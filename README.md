@@ -1,2 +1,28 @@
-# project-vault
-Create something
+# 어디서 보지? (working title)
+
+보고 싶은 작품을 검색해 국내 OTT 구독·대여·구매 제공처를 확인하고,
+검증된 KDisk 공식 제공 콘텐츠는 별도 영역에서 가입으로 연결하는 검색형 서비스입니다.
+
+## 현재 구현 범위
+
+- 검색 중심 메인 화면
+- 작품명 입력 및 예시 검색어 자동 입력
+- 입력한 검색어의 결과 상태 표시
+- 한국어 SEO 메타데이터
+- 반응형 UI와 키보드 접근성
+
+## 다음 구현
+
+- 콘텐츠 검색 결과 목록
+- 작품 상세 및 OTT 제공처
+- KDisk 공식 제공 콘텐츠 CTA
+- 검색어 복사 → KDisk 가입 화면 이동
+- GA4 전환 이벤트
+
+## 로컬 검증
+
+```bash
+npm run install:ci
+npm run lint
+npm run build
+```
