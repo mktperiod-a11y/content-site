@@ -66,6 +66,9 @@ function HomeContent() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<KobisMovieSummary[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  /** 키보드로 이동 중인 자동완성 항목 (-1 = 선택 없음) */
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const suggestionLinkRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [results, setResults] = useState<KobisMovieSummary[]>([]);
@@ -91,6 +94,7 @@ function HomeContent() {
       try {
         const movies = await fetchMovieSearch(trimmed, 6, controller.signal);
         setSuggestions(movies);
+        setActiveSuggestion(-1);
       } catch {
         // 자동완성 실패는 조용히 무시하고, 제출 시 결과 영역에서 오류를 안내한다.
       }
@@ -98,6 +102,49 @@ function HomeContent() {
 
     return () => clearTimeout(timer);
   }, [query]);
+
+  const suggestionsOpen = showSuggestions && suggestions.length > 0;
+
+  function handleSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      setShowSuggestions(false);
+      setActiveSuggestion(-1);
+      return;
+    }
+
+    // 목록이 닫혀 있어도 아래 방향키로 다시 열 수 있어야 한다
+    // (Escape로 닫은 뒤 키보드만으로 복구 가능하도록).
+    if (event.key === "ArrowDown" && !suggestionsOpen && suggestions.length > 0) {
+      event.preventDefault();
+      setShowSuggestions(true);
+      setActiveSuggestion(0);
+      return;
+    }
+
+    if (!suggestionsOpen) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestion((current) =>
+        current >= suggestions.length - 1 ? 0 : current + 1,
+      );
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestion((current) =>
+        current <= 0 ? suggestions.length - 1 : current - 1,
+      );
+      return;
+    }
+
+    if (event.key === "Enter" && activeSuggestion >= 0) {
+      // 폼 제출(전체 검색) 대신 선택한 항목의 상세로 이동한다.
+      event.preventDefault();
+      suggestionLinkRefs.current[activeSuggestion]?.click();
+    }
+  }
 
   async function runSearch(term: string) {
     const trimmed = term.trim();
@@ -194,9 +241,14 @@ function HomeContent() {
                     <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
                     <Input
                       role="combobox"
+                      aria-activedescendant={
+                        activeSuggestion >= 0
+                          ? `search-suggestion-${activeSuggestion}`
+                          : undefined
+                      }
                       aria-autocomplete="list"
                       aria-controls="search-suggestions"
-                      aria-expanded={showSuggestions && suggestions.length > 0}
+                      aria-expanded={suggestionsOpen}
                       aria-haspopup="listbox"
                       aria-label="작품명 검색"
                       className="h-14 rounded-2xl border-0 bg-white pl-12 pr-4 text-base text-ink shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
@@ -204,24 +256,38 @@ function HomeContent() {
                       onChange={(event) => {
                         setQuery(event.target.value);
                         setShowSuggestions(true);
+                        setActiveSuggestion(-1);
                       }}
                       onFocus={() => setShowSuggestions(true)}
+                      onKeyDown={handleSearchKeyDown}
                       placeholder="영화·드라마·애니메이션 제목, 감독명으로 검색"
                       value={query}
                     />
 
-                    {showSuggestions && suggestions.length > 0 && (
+                    {suggestionsOpen && (
                       <ul
                         className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 max-h-80 overflow-auto rounded-2xl border border-border bg-card p-1.5 shadow-2xl"
                         id="search-suggestions"
                         role="listbox"
                       >
-                        {suggestions.map((movie) => (
-                          <li key={movie.movieCd} role="option" aria-selected="false">
+                        {suggestions.map((movie, index) => (
+                          <li
+                            aria-selected={index === activeSuggestion}
+                            id={`search-suggestion-${index}`}
+                            key={movie.movieCd}
+                            role="option"
+                          >
                             <Link
-                              className="flex flex-col gap-0.5 rounded-xl px-3.5 py-2.5 text-left text-ink hover:bg-accent/50"
+                              className={
+                                "flex flex-col gap-0.5 rounded-xl px-3.5 py-2.5 text-left text-ink hover:bg-accent/50 " +
+                                (index === activeSuggestion ? "bg-accent/60" : "")
+                              }
                               data-ga-event="search_suggestion_select"
                               href={`/movie/${movie.movieCd}`}
+                              onMouseEnter={() => setActiveSuggestion(index)}
+                              ref={(node) => {
+                                suggestionLinkRefs.current[index] = node;
+                              }}
                             >
                               <span className="truncate font-semibold">{movie.titleKo}</span>
                               <span className="truncate text-xs text-muted-foreground">
