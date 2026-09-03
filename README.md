@@ -56,15 +56,6 @@ cp .env.example .env.local
 > 상태를 보여줍니다. 네트워크 없이 화면을 검증하려면 `KOBIS_API_BASE`,
 > `TMDB_API_BASE`, `TMDB_IMAGE_BASE`를 로컬 목 서버로 지정하세요.
 
-### 라이선스 관련 확인 필요 사항
-
-- TMDB 이용약관상 **공식 로고 표기**가 필요합니다. TMDB 브랜드 자산 페이지에서 로고를
-  내려받아 `/public/tmdb-logo.svg`로 추가한 뒤
-  `components/tmdb-attribution.tsx`의 주석 처리된 `<img>`를 활성화하세요.
-- TMDB의 무료/유료 구분 기준은 **회사 매출 $500,000 초과 또는 MAU 50만 초과** 여부입니다.
-  해당하면 Commercial($149/월) 또는 Enterprise 플랜이 필요하므로, 정식 공개 런칭 전에
-  계정 플랜이 실제 이용 형태와 맞는지 확인해야 합니다.
-
 ## 다음 구현 우선순위
 
 1. 가격 비교 계산기 실데이터화 — OTT 요금제 가격 확보 (TMDB는 제공처만 알려주고
