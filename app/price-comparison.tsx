@@ -166,7 +166,7 @@ export function PriceComparison({
                 <WalletCards className="size-4" />
                 구독 효용 계산기
               </p>
-              <h1 className="mt-4 max-w-3xl text-balance break-keep text-[clamp(2.3rem,5vw,4.5rem)] font-bold leading-[1.5] tracking-[-0.05em]">
+              <h1 className="mt-4 max-w-3xl text-balance break-keep text-[clamp(2.3rem,5vw,4.5rem)] font-black leading-[1.2] tracking-[-0.05em]">
                 보고 싶은 5편,<br />어디를 구독해야 할까요?
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-white/58 sm:text-lg">
