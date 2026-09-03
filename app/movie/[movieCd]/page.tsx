@@ -406,13 +406,6 @@ export default async function MovieDetailPage({
                       <TmdbAttribution justWatchLink={tmdb.providers.link} />
                     </div>
                   </div>
-                  {(
-                    <div className="px-6 pb-6 sm:px-8">
-                      <Button asChild className="h-11 w-full rounded-xl" variant="outline">
-                        <Link href={`/?tab=compare&add=${movie.movieCd}`}>가격 비교에 담기</Link>
-                      </Button>
-                    </div>
-                  )}
                 </article>
               ) : providerLookupSucceeded ? (
                 <>
@@ -429,12 +422,6 @@ export default async function MovieDetailPage({
                     확인해주세요.
                   </p>
                 </article>
-              )}
-
-              {!hasAnyProvider && (
-                <Button asChild className="h-11 w-full rounded-xl" variant="outline">
-                  <Link href={`/?tab=compare&add=${movie.movieCd}`}>가격 비교에 담기</Link>
-                </Button>
               )}
             </div>
           </div>
