@@ -216,6 +216,12 @@ export function PriceComparison() {
     [selected, coverageByMovie],
   );
 
+  const subscriptionAvailableMovies = useMemo(
+    () =>
+      selected.filter((movie) => coverageByMovie.get(movie.movieCd)?.state === "available"),
+    [selected, coverageByMovie],
+  );
+
   const unavailableMovies = useMemo(
     () => selected.filter((movie) => coverageByMovie.get(movie.movieCd)?.state === "none"),
     [selected, coverageByMovie],
@@ -625,35 +631,121 @@ export function PriceComparison() {
               {(unavailableMovies.length > 0 ||
                 unknownMovies.length > 0 ||
                 unpricedMovies.length > 0) && (
-                <div className="mt-5 grid gap-4 lg:grid-cols-[1.28fr_0.72fr]">
+                <div
+                  className={
+                    "mt-5 grid gap-4 " +
+                    (unavailableMovies.length > 0 ? "lg:grid-cols-[1.28fr_0.72fr]" : "")
+                  }
+                >
                   <article className="rounded-[1.5rem] border border-border bg-card p-6 sm:p-7">
-                    <p className="text-sm font-bold text-muted-foreground">
-                      구독으로 해결되지 않는 작품
-                    </p>
+                    <div>
+                      <p className="text-lg font-bold">선택한 작품별 구독 상태</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        현재 확인된 국내 구독형 OTT 제공처를 기준으로 나눴어요.
+                      </p>
+                    </div>
 
-                    {unavailableMovies.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm font-semibold">
-                          구독형 OTT에서 확인되지 않는 작품 {unavailableMovies.length}편
-                        </p>
-                        <ul className="mt-2 space-y-1.5">
-                          {unavailableMovies.map((movie) => {
-                            const coverage = coverageByMovie.get(movie.movieCd);
-                            const rentOrBuy =
-                              coverage?.state === "none" ? coverage.rentOrBuyCount : 0;
-                            return (
-                              <li className="text-sm text-muted-foreground" key={movie.movieCd}>
-                                · {movie.titleKo} ({movie.prdtYear})
-                                {rentOrBuy > 0 && " — 대여·구매로는 이용 가능"}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
+                    <div className="mt-5 grid gap-3 md:grid-cols-2">
+                      <section className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-5">
+                        <div className="flex items-center gap-3">
+                          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-600 text-white">
+                            <Check className="size-5" strokeWidth={3} />
+                          </span>
+                          <div>
+                            <p className="text-sm font-bold text-emerald-800">
+                              구독으로 볼 수 있어요
+                            </p>
+                            <p className="mt-0.5 text-3xl font-black text-emerald-950">
+                              {subscriptionAvailableMovies.length}편
+                            </p>
+                          </div>
+                        </div>
+
+                        {subscriptionAvailableMovies.length > 0 ? (
+                          <ul className="mt-4 space-y-3">
+                            {subscriptionAvailableMovies.map((movie) => {
+                              const providers = enriched[movie.movieCd]?.subscription ?? [];
+                              return (
+                                <li
+                                  className="border-t border-emerald-200/80 pt-3"
+                                  key={movie.movieCd}
+                                >
+                                  <p className="font-bold text-emerald-950">{movie.titleKo}</p>
+                                  <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {providers.map((provider) => (
+                                      <span
+                                        className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs font-semibold text-emerald-950 shadow-sm"
+                                        key={provider.name}
+                                      >
+                                        {provider.logoUrl && (
+                                          // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN의 제공처 로고 이미지입니다.
+                                          <img
+                                            alt=""
+                                            className="size-4 rounded-full object-cover"
+                                            src={provider.logoUrl}
+                                          />
+                                        )}
+                                        {provider.name}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          <p className="mt-4 border-t border-emerald-200/80 pt-3 text-sm text-emerald-800">
+                            현재 확인된 작품이 없어요.
+                          </p>
+                        )}
+                      </section>
+
+                      <section className="rounded-2xl border border-rose-200 bg-rose-50/80 p-5">
+                        <div className="flex items-center gap-3">
+                          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-rose-600 text-white">
+                            <AlertCircle className="size-5" strokeWidth={2.7} />
+                          </span>
+                          <div>
+                            <p className="text-sm font-bold text-rose-800">
+                              구독형에서는 확인되지 않아요
+                            </p>
+                            <p className="mt-0.5 text-3xl font-black text-rose-950">
+                              {unavailableMovies.length}편
+                            </p>
+                          </div>
+                        </div>
+
+                        {unavailableMovies.length > 0 ? (
+                          <ul className="mt-4 space-y-3">
+                            {unavailableMovies.map((movie) => {
+                              const coverage = coverageByMovie.get(movie.movieCd);
+                              const rentOrBuy =
+                                coverage?.state === "none" ? coverage.rentOrBuyCount : 0;
+                              return (
+                                <li
+                                  className="border-t border-rose-200/80 pt-3"
+                                  key={movie.movieCd}
+                                >
+                                  <p className="font-bold text-rose-950">{movie.titleKo}</p>
+                                  <p className="mt-1 text-sm leading-5 text-rose-800">
+                                    {rentOrBuy > 0
+                                      ? `대여·구매 제공처 ${rentOrBuy}곳은 확인됐어요.`
+                                      : "현재 확인된 구독 제공처가 없어요."}
+                                  </p>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          <p className="mt-4 border-t border-rose-200/80 pt-3 text-sm text-rose-800">
+                            모든 선택 작품에서 구독 제공처가 확인됐어요.
+                          </p>
+                        )}
+                      </section>
+                    </div>
 
                     {unknownMovies.length > 0 && (
-                      <div className="mt-5">
+                      <div className="mt-5 rounded-xl bg-secondary/70 px-4 py-3">
                         <p className="text-sm font-semibold">제공처를 확인하지 못한 작품</p>
                         <ul className="mt-2 space-y-1.5">
                           {unknownMovies.map((movie) => (
@@ -669,7 +761,7 @@ export function PriceComparison() {
                     )}
 
                     {unpricedMovies.length > 0 && (
-                      <div className="mt-5">
+                      <div className="mt-3 rounded-xl bg-secondary/70 px-4 py-3">
                         <p className="text-sm font-semibold">요금 비교에서 제외된 작품</p>
                         <ul className="mt-2 space-y-1.5">
                           {unpricedMovies.map((movie) => (
@@ -686,14 +778,9 @@ export function PriceComparison() {
                     )}
                   </article>
 
-                  <AlternativeServiceCard
-                    title={
-                      unavailableMovies[0]?.titleKo ??
-                      unknownMovies[0]?.titleKo ??
-                      unpricedMovies[0]?.titleKo ??
-                      selected[0].titleKo
-                    }
-                  />
+                  {unavailableMovies.length > 0 && (
+                    <AlternativeServiceCard title={unavailableMovies[0].titleKo} />
+                  )}
                 </div>
               )}
 
