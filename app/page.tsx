@@ -1,15 +1,16 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   ArrowRight,
   Check,
+  Clapperboard,
   History,
   Loader2,
   Search,
+  Star,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,15 +40,21 @@ async function fetchMovieSearch(query: string, limit: number, signal: AbortSigna
 function ProviderChips({ enriched }: { enriched: EnrichedMovie | undefined }) {
   // 아직 조회 중 — 자리만 잡아두고 레이아웃이 흔들리지 않게 한다.
   if (!enriched) {
-    return <div className="mt-2 h-6 w-40 animate-pulse rounded-full bg-muted" />;
+    return <div className="mt-3 h-7 w-32 animate-pulse rounded-full bg-muted" />;
   }
 
-  // 조회 자체를 못 한 경우엔 아무것도 단정하지 않는다.
-  if (enriched.subscription === null) return <div className="mt-2 h-6" />;
+  // 조회 자체를 못 한 경우엔 "없음"으로 단정하지 않는다.
+  if (enriched.subscription === null) {
+    return (
+      <p className="mt-3 text-xs font-medium text-muted-foreground">
+        제공처 확인 필요
+      </p>
+    );
+  }
 
   if (enriched.subscription.length === 0) {
     return (
-      <p className="mt-2 flex h-6 items-center text-xs text-muted-foreground">
+      <p className="mt-3 text-xs font-medium leading-5 text-muted-foreground">
         {enriched.rentOrBuyCount > 0
           ? "구독형 없음 · 대여/구매 가능"
           : "구독형 OTT에서 확인되지 않음"}
@@ -56,22 +63,22 @@ function ProviderChips({ enriched }: { enriched: EnrichedMovie | undefined }) {
   }
 
   return (
-    <div className="mt-2 flex h-6 flex-wrap items-center gap-1.5">
-      {enriched.subscription.slice(0, 4).map((provider) => (
+    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+      {enriched.subscription.slice(0, 3).map((provider) => (
         <span
-          className="flex items-center gap-1.5 rounded-full border border-border bg-background py-0.5 pl-0.5 pr-2"
+          className="flex max-w-full items-center gap-1.5 rounded-full border border-border bg-background py-0.5 pl-0.5 pr-2"
           key={provider.name}
         >
           {provider.logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN 원격 이미지. 이 배포 환경의 이미지 최적화는 로컬 asset만 지원합니다.
             <img alt="" className="size-5 rounded-full" src={provider.logoUrl} />
           )}
-          <span className="text-xs font-semibold">{provider.name}</span>
+          <span className="truncate text-xs font-semibold">{provider.name}</span>
         </span>
       ))}
-      {enriched.subscription.length > 4 && (
+      {enriched.subscription.length > 3 && (
         <span className="text-xs text-muted-foreground">
-          +{enriched.subscription.length - 4}
+          +{enriched.subscription.length - 3}
         </span>
       )}
     </div>
@@ -87,42 +94,50 @@ function ResultCard({
 }) {
   return (
     <Link
-      className="flex items-center gap-4 rounded-xl border border-border bg-card p-3 transition-colors hover:border-brand/60 hover:bg-accent/30 sm:gap-5 sm:px-5 sm:py-4"
+      className="group flex min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-border bg-card shadow-[0_14px_42px_rgba(20,32,51,0.06)] transition duration-200 hover:-translate-y-1 hover:border-brand/70 hover:shadow-[0_20px_48px_rgba(20,32,51,0.12)]"
       data-ga-event="search_result_select"
       href={`/movie/${movie.movieCd}`}
     >
-      <div className="w-14 shrink-0 overflow-hidden rounded-lg bg-muted sm:w-16">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
         {enriched?.posterUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN 원격 이미지. 이 배포 환경의 이미지 최적화는 로컬 asset만 지원합니다.
-          <img alt="" className="block w-full" src={enriched.posterUrl} />
+          <img
+            alt={`${movie.titleKo} 포스터`}
+            className="size-full object-cover transition duration-300 group-hover:scale-[1.025]"
+            loading="lazy"
+            src={enriched.posterUrl}
+          />
         ) : (
-          <div className="aspect-[2/3]" />
+          <div className="grid size-full place-items-center bg-gradient-to-br from-slate-100 to-slate-200">
+            <Clapperboard className="size-8 text-slate-400" />
+          </div>
+        )}
+        {enriched && enriched.voteAverage !== null && enriched.voteCount > 0 && (
+          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-ink/88 px-2.5 py-1 text-xs font-bold text-white backdrop-blur">
+            <Star className="size-3.5 text-brand" fill="currentColor" />
+            {enriched.voteAverage.toFixed(1)}
+          </span>
         )}
       </div>
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-bold">{movie.titleKo}</p>
-        <p className="mt-1 truncate text-sm text-muted-foreground">
+      <div className="flex min-h-44 w-full flex-1 flex-col p-4">
+        <p className="line-clamp-2 text-base font-bold leading-6">{movie.titleKo}</p>
+        <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
           {[movie.prdtYear, movie.directors.join(", "), movie.genreAlt]
             .filter(Boolean)
             .join(" · ")}
         </p>
         <ProviderChips enriched={enriched} />
+        <span className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs font-semibold text-muted-foreground">
+          상세 정보 보기
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+        </span>
       </div>
-
-      <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
     </Link>
   );
 }
 
 function HomeContent() {
-  const searchParams = useSearchParams();
-
-  const [tab, setTab] = useState<string>(
-    searchParams.get("tab") === "compare" ? "compare" : "search",
-  );
-  const compareAddId = searchParams.get("add") ?? undefined;
-
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<KobisMovieSummary[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -225,7 +240,7 @@ function HomeContent() {
     searchAbortRef.current = controller;
 
     try {
-      const movies = await fetchMovieSearch(trimmed, 20, controller.signal);
+      const movies = await fetchMovieSearch(trimmed, 12, controller.signal);
       setResults(movies);
       setEnriched({});
       setStatus("success");
@@ -247,7 +262,7 @@ function HomeContent() {
         headers: { "content-type": "application/json" },
         signal,
         body: JSON.stringify({
-          items: movies.slice(0, 10).map((movie) => ({
+          items: movies.map((movie) => ({
             movieCd: movie.movieCd,
             titleKo: movie.titleKo,
             titleEn: movie.titleEn,
@@ -282,7 +297,7 @@ function HomeContent() {
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <SiteHeader />
 
-      <Tabs className="gap-0" onValueChange={setTab} value={tab}>
+      <Tabs className="gap-0" defaultValue="search">
         <div className="border-b border-white/10 bg-ink">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <TabsList
@@ -492,7 +507,7 @@ function HomeContent() {
                   </div>
 
                   {results.length > 0 ? (
-                    <div className="grid gap-3">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                       {results.map((movie) => (
                         <ResultCard
                           enriched={enriched[movie.movieCd]}
@@ -516,14 +531,7 @@ function HomeContent() {
         </TabsContent>
 
         <TabsContent className="mt-0" value="compare">
-          <PriceComparison
-            initialAddId={compareAddId}
-            onInitialAddHandled={() => {
-              if (searchParams.get("add")) {
-                window.history.replaceState(null, "", "/?tab=compare");
-              }
-            }}
-          />
+          <PriceComparison />
         </TabsContent>
       </Tabs>
     </main>
@@ -531,9 +539,5 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <Suspense fallback={null}>
-      <HomeContent />
-    </Suspense>
-  );
+  return <HomeContent />;
 }
