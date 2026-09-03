@@ -17,7 +17,7 @@ import {
 } from "@/lib/kobis";
 import {
   LOW_VOTE_COUNT_THRESHOLD,
-  findTmdbMovieId,
+  findTmdbMatch,
   getTmdbMovie,
   getTmdbReviews,
   getTmdbWatchProvidersKR,
@@ -55,13 +55,13 @@ const getTmdbBundleCached = cache(
   async (titleKo: string, year: string, titleEn: string): Promise<TmdbBundle> => {
     const empty: TmdbBundle = { movie: null, providers: null, reviews: [], failed: false };
     try {
-      const tmdbId = await findTmdbMovieId(titleKo, year, titleEn);
-      if (!tmdbId) return empty;
+      const match = await findTmdbMatch(titleKo, year, titleEn);
+      if (!match) return empty;
 
       const [movie, providers, reviews] = await Promise.all([
-        getTmdbMovie(tmdbId),
-        getTmdbWatchProvidersKR(tmdbId),
-        getTmdbReviews(tmdbId),
+        getTmdbMovie(match.id),
+        getTmdbWatchProvidersKR(match.id),
+        getTmdbReviews(match.id),
       ]);
       return { movie, providers, reviews, failed: false };
     } catch {

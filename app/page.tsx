@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SiteHeader } from "@/components/site-header";
 import { PriceComparison } from "@/app/price-comparison";
 import type { KobisMovieSummary } from "@/lib/kobis";
+import type { EnrichedMovie } from "@/lib/enrichment";
 
 const EXAMPLE_TITLE = "조제, 호랑이 그리고 물고기들";
 
@@ -35,21 +36,80 @@ async function fetchMovieSearch(query: string, limit: number, signal: AbortSigna
   return body.movies ?? [];
 }
 
-function ResultCard({ movie }: { movie: KobisMovieSummary }) {
+function ProviderChips({ enriched }: { enriched: EnrichedMovie | undefined }) {
+  // 아직 조회 중 — 자리만 잡아두고 레이아웃이 흔들리지 않게 한다.
+  if (!enriched) {
+    return <div className="mt-2 h-6 w-40 animate-pulse rounded-full bg-muted" />;
+  }
+
+  // 조회 자체를 못 한 경우엔 아무것도 단정하지 않는다.
+  if (enriched.subscription === null) return <div className="mt-2 h-6" />;
+
+  if (enriched.subscription.length === 0) {
+    return (
+      <p className="mt-2 flex h-6 items-center text-xs text-muted-foreground">
+        {enriched.rentOrBuyCount > 0
+          ? "구독형 없음 · 대여/구매 가능"
+          : "구독형 OTT에서 확인되지 않음"}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex h-6 flex-wrap items-center gap-1.5">
+      {enriched.subscription.slice(0, 4).map((provider) => (
+        <span
+          className="flex items-center gap-1.5 rounded-full border border-border bg-background py-0.5 pl-0.5 pr-2"
+          key={provider.name}
+        >
+          {provider.logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN 원격 이미지. 이 배포 환경의 이미지 최적화는 로컬 asset만 지원합니다.
+            <img alt="" className="size-5 rounded-full" src={provider.logoUrl} />
+          )}
+          <span className="text-xs font-semibold">{provider.name}</span>
+        </span>
+      ))}
+      {enriched.subscription.length > 4 && (
+        <span className="text-xs text-muted-foreground">
+          +{enriched.subscription.length - 4}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ResultCard({
+  movie,
+  enriched,
+}: {
+  movie: KobisMovieSummary;
+  enriched: EnrichedMovie | undefined;
+}) {
   return (
     <Link
-      className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-5 py-4 transition-colors hover:border-brand/60 hover:bg-accent/30"
+      className="flex items-center gap-4 rounded-xl border border-border bg-card p-3 transition-colors hover:border-brand/60 hover:bg-accent/30 sm:gap-5 sm:px-5 sm:py-4"
       data-ga-event="search_result_select"
       href={`/movie/${movie.movieCd}`}
     >
-      <div className="min-w-0">
+      <div className="w-14 shrink-0 overflow-hidden rounded-lg bg-muted sm:w-16">
+        {enriched?.posterUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN 원격 이미지. 이 배포 환경의 이미지 최적화는 로컬 asset만 지원합니다.
+          <img alt="" className="block w-full" src={enriched.posterUrl} />
+        ) : (
+          <div className="aspect-[2/3]" />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
         <p className="truncate font-bold">{movie.titleKo}</p>
         <p className="mt-1 truncate text-sm text-muted-foreground">
           {[movie.prdtYear, movie.directors.join(", "), movie.genreAlt]
             .filter(Boolean)
             .join(" · ")}
         </p>
+        <ProviderChips enriched={enriched} />
       </div>
+
       <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
     </Link>
   );
@@ -74,6 +134,8 @@ function HomeContent() {
   const [results, setResults] = useState<KobisMovieSummary[]>([]);
   const [status, setStatus] = useState<SearchStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  /** movieCd → 포스터·제공처 (목록 렌더링 후 채워진다) */
+  const [enriched, setEnriched] = useState<Record<string, EnrichedMovie>>({});
 
   const resultRef = useRef<HTMLElement>(null);
   const suggestionsAbortRef = useRef<AbortController | null>(null);
@@ -165,11 +227,44 @@ function HomeContent() {
     try {
       const movies = await fetchMovieSearch(trimmed, 20, controller.signal);
       setResults(movies);
+      setEnriched({});
       setStatus("success");
+      // 목록은 즉시 보여주고, 포스터·제공처는 뒤이어 채운다.
+      void loadEnrichment(movies, controller.signal);
     } catch (error) {
       if (controller.signal.aborted) return;
       setErrorMessage(error instanceof Error ? error.message : "검색 중 오류가 발생했어요.");
       setStatus("error");
+    }
+  }
+
+  async function loadEnrichment(movies: KobisMovieSummary[], signal: AbortSignal) {
+    if (!movies.length) return;
+
+    try {
+      const response = await fetch("/api/movies/enrich", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        signal,
+        body: JSON.stringify({
+          items: movies.slice(0, 10).map((movie) => ({
+            movieCd: movie.movieCd,
+            titleKo: movie.titleKo,
+            titleEn: movie.titleEn,
+            year: movie.prdtYear,
+          })),
+        }),
+      });
+      if (!response.ok) return;
+
+      const body = (await response.json()) as { movies?: EnrichedMovie[] };
+      const byMovieCd: Record<string, EnrichedMovie> = {};
+      for (const item of body.movies ?? []) {
+        byMovieCd[item.movieCd] = item;
+      }
+      setEnriched(byMovieCd);
+    } catch {
+      // 제공처 조회 실패 시 목록은 그대로 두고 칩만 생략한다.
     }
   }
 
@@ -399,7 +494,11 @@ function HomeContent() {
                   {results.length > 0 ? (
                     <div className="grid gap-3">
                       {results.map((movie) => (
-                        <ResultCard key={movie.movieCd} movie={movie} />
+                        <ResultCard
+                          enriched={enriched[movie.movieCd]}
+                          key={movie.movieCd}
+                          movie={movie}
+                        />
                       ))}
                     </div>
                   ) : (

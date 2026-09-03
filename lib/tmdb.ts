@@ -65,6 +65,32 @@ export function tmdbImageUrl(path: string | null | undefined, size: string) {
   return `${TMDB_IMAGE_BASE}/${size}${path}`;
 }
 
+// --- 간단한 인메모리 캐시 ---
+// 검색 결과 목록에 제공처 칩을 붙이려면 작품마다 TMDB를 조회해야 해서 호출량이
+// 빠르게 늘어난다. 인기작은 반복 조회되므로 캐시 적중률이 높다.
+// (워커 인스턴스 단위의 best-effort 캐시이며, 영속 저장소가 아니다.)
+
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const CACHE_MAX_ENTRIES = 500;
+const memoryCache = new Map<string, { value: unknown; expiresAt: number }>();
+
+async function withCache<T>(key: string, load: () => Promise<T>): Promise<T> {
+  const hit = memoryCache.get(key);
+  if (hit && hit.expiresAt > Date.now()) {
+    return hit.value as T;
+  }
+
+  const value = await load();
+
+  if (memoryCache.size >= CACHE_MAX_ENTRIES) {
+    // 가장 오래된 항목부터 제거 (Map은 삽입 순서를 유지한다)
+    const oldestKey = memoryCache.keys().next().value;
+    if (oldestKey !== undefined) memoryCache.delete(oldestKey);
+  }
+  memoryCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+  return value;
+}
+
 /** 제목 비교용 정규화 (공백·문장부호 제거) */
 function normalizeTitle(value: string) {
   return value
@@ -78,6 +104,13 @@ type TmdbSearchResult = {
   title?: string;
   original_title?: string;
   release_date?: string;
+  poster_path?: string | null;
+};
+
+export type TmdbMatch = {
+  id: number;
+  /** 검색 응답에 포함된 포스터 (별도 상세 조회 없이 목록에서 바로 쓴다) */
+  posterUrl: string | null;
 };
 
 export type TmdbMovie = {
@@ -99,42 +132,46 @@ export type TmdbMovie = {
  * 제목(한국어/원제/영문)이 정규화 후 정확히 일치하고, 개봉연도가 ±1년 이내인
  * 결과만 채택한다. 조건을 만족하는 결과가 없으면 null을 반환한다.
  */
-export async function findTmdbMovieId(
+export async function findTmdbMatch(
   titleKo: string,
   year?: string,
   titleEn?: string,
-): Promise<number | null> {
-  const json = (await fetchTmdbJson("/search/movie", {
-    query: titleKo,
-    language: "ko-KR",
-    include_adult: "false",
-  })) as { results?: TmdbSearchResult[] } | null;
+): Promise<TmdbMatch | null> {
+  return withCache(`match:${titleKo}:${year ?? ""}:${titleEn ?? ""}`, async () => {
+    const json = (await fetchTmdbJson("/search/movie", {
+      query: titleKo,
+      language: "ko-KR",
+      include_adult: "false",
+    })) as { results?: TmdbSearchResult[] } | null;
 
-  const results = json?.results ?? [];
-  if (!results.length) return null;
+    const results = json?.results ?? [];
+    if (!results.length) return null;
 
-  const wantedTitles = [titleKo, titleEn].filter(Boolean).map((t) => normalizeTitle(t as string));
-  const wantedYear = year ? Number(year) : null;
-
-  for (const result of results) {
-    const candidateTitles = [result.title, result.original_title]
+    const wantedTitles = [titleKo, titleEn]
       .filter(Boolean)
       .map((t) => normalizeTitle(t as string));
+    const wantedYear = year ? Number(year) : null;
 
-    const titleMatches = candidateTitles.some((candidate) =>
-      wantedTitles.some((wanted) => candidate === wanted),
-    );
-    if (!titleMatches) continue;
+    for (const result of results) {
+      const candidateTitles = [result.title, result.original_title]
+        .filter(Boolean)
+        .map((t) => normalizeTitle(t as string));
 
-    if (wantedYear) {
-      const resultYear = Number((result.release_date ?? "").slice(0, 4));
-      if (!resultYear || Math.abs(resultYear - wantedYear) > 1) continue;
+      const titleMatches = candidateTitles.some((candidate) =>
+        wantedTitles.some((wanted) => candidate === wanted),
+      );
+      if (!titleMatches) continue;
+
+      if (wantedYear) {
+        const resultYear = Number((result.release_date ?? "").slice(0, 4));
+        if (!resultYear || Math.abs(resultYear - wantedYear) > 1) continue;
+      }
+
+      return { id: result.id, posterUrl: tmdbImageUrl(result.poster_path, "w185") };
     }
 
-    return result.id;
-  }
-
-  return null;
+    return null;
+  });
 }
 
 export async function getTmdbMovie(tmdbId: number): Promise<TmdbMovie | null> {
@@ -200,22 +237,24 @@ function mapProviders(list: RawProvider[] | undefined): WatchProvider[] {
 export async function getTmdbWatchProvidersKR(
   tmdbId: number,
 ): Promise<WatchProvidersKR | null> {
-  const json = (await fetchTmdbJson(`/movie/${tmdbId}/watch/providers`)) as {
-    results?: Record<
-      string,
-      { link?: string; flatrate?: RawProvider[]; rent?: RawProvider[]; buy?: RawProvider[] }
-    >;
-  } | null;
+  return withCache(`providers:${tmdbId}`, async () => {
+    const json = (await fetchTmdbJson(`/movie/${tmdbId}/watch/providers`)) as {
+      results?: Record<
+        string,
+        { link?: string; flatrate?: RawProvider[]; rent?: RawProvider[]; buy?: RawProvider[] }
+      >;
+    } | null;
 
-  const kr = json?.results?.KR;
-  if (!kr) return null;
+    const kr = json?.results?.KR;
+    if (!kr) return null;
 
-  return {
-    link: kr.link ?? "",
-    subscription: mapProviders(kr.flatrate),
-    rent: mapProviders(kr.rent),
-    buy: mapProviders(kr.buy),
-  };
+    return {
+      link: kr.link ?? "",
+      subscription: mapProviders(kr.flatrate),
+      rent: mapProviders(kr.rent),
+      buy: mapProviders(kr.buy),
+    };
+  });
 }
 
 export type TmdbReview = {
