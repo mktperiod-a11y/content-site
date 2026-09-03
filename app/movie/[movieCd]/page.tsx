@@ -26,7 +26,6 @@ import {
   type WatchProvider,
   type WatchProvidersKR,
 } from "@/lib/tmdb";
-import { findLocalProviderMatch } from "@/lib/movies";
 
 type PageParams = { movieCd: string };
 
@@ -150,7 +149,6 @@ export default async function MovieDetailPage({
   const openDate = formatKobisOpenDate(movie.openDt);
   const runtime = formatKobisRuntime(movie.runtimeMinutes);
   const genre = movie.genres.join("·");
-  const localMatch = findLocalProviderMatch(movie.titleKo, movie.prdtYear);
 
   const tmdb = await getTmdbBundleCached(movie.titleKo, movie.prdtYear, movie.titleEn);
   const subscriptionProviders = tmdb.providers?.subscription ?? [];
@@ -408,10 +406,10 @@ export default async function MovieDetailPage({
                       <TmdbAttribution justWatchLink={tmdb.providers.link} />
                     </div>
                   </div>
-                  {localMatch && (
+                  {(
                     <div className="px-6 pb-6 sm:px-8">
                       <Button asChild className="h-11 w-full rounded-xl" variant="outline">
-                        <Link href={`/?tab=compare&add=${localMatch.id}`}>가격 비교에 담기</Link>
+                        <Link href={`/?tab=compare&add=${movie.movieCd}`}>가격 비교에 담기</Link>
                       </Button>
                     </div>
                   )}
@@ -433,9 +431,9 @@ export default async function MovieDetailPage({
                 </article>
               )}
 
-              {localMatch && !hasAnyProvider && (
+              {!hasAnyProvider && (
                 <Button asChild className="h-11 w-full rounded-xl" variant="outline">
-                  <Link href={`/?tab=compare&add=${localMatch.id}`}>가격 비교에 담기</Link>
+                  <Link href={`/?tab=compare&add=${movie.movieCd}`}>가격 비교에 담기</Link>
                 </Button>
               )}
             </div>
