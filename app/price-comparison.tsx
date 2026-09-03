@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   Crown,
@@ -12,13 +12,7 @@ import {
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-
-type MovieOption = {
-  id: string;
-  title: string;
-  year: string;
-  providers: string[];
-};
+import { MOVIES, PROVIDER_CATALOG, normalizeSearchValue, type Movie } from "@/lib/movies";
 
 type ProviderPlan = {
   id: string;
@@ -27,44 +21,64 @@ type ProviderPlan = {
   plan: string;
 };
 
-const PROVIDER_PLANS: ProviderPlan[] = [
-  { id: "tving", name: "TVING", price: 5500, plan: "예시 요금제" },
-  { id: "netflix", name: "Netflix", price: 7000, plan: "예시 요금제" },
-  { id: "wavve", name: "Wavve", price: 7900, plan: "예시 요금제" },
-  { id: "watcha", name: "Watcha", price: 7900, plan: "예시 요금제" },
-  { id: "disney", name: "Disney+", price: 9900, plan: "예시 요금제" },
-];
+const PROVIDER_PLANS: ProviderPlan[] = Object.entries(PROVIDER_CATALOG).map(
+  ([id, catalog]) => ({ id, ...catalog }),
+);
 
-const MOVIES: MovieOption[] = [
-  { id: "jose-2003", title: "조제, 호랑이 그리고 물고기들", year: "2003", providers: ["tving", "wavve", "watcha"] },
-  { id: "exhuma", title: "파묘", year: "2024", providers: ["netflix", "tving"] },
-  { id: "inside-out-2", title: "인사이드 아웃 2", year: "2024", providers: ["disney"] },
-  { id: "dune-2", title: "듄: 파트 2", year: "2024", providers: ["netflix", "wavve"] },
-  { id: "roundup-4", title: "범죄도시4", year: "2024", providers: ["disney", "tving"] },
-  { id: "12-12", title: "서울의 봄", year: "2023", providers: ["netflix", "wavve", "watcha"] },
-  { id: "top-gun", title: "탑건: 매버릭", year: "2022", providers: ["netflix", "tving"] },
-  { id: "decision-to-leave", title: "헤어질 결심", year: "2022", providers: ["netflix", "watcha"] },
-];
+const DEFAULT_SELECTED_IDS = ["jose-2003", "exhuma"];
 
 const formatWon = new Intl.NumberFormat("ko-KR");
 
-export function PriceComparison() {
-  const [selectedIds, setSelectedIds] = useState<string[]>(["jose-2003", "exhuma"]);
+export function PriceComparison({
+  initialAddId,
+  onInitialAddHandled,
+}: {
+  initialAddId?: string;
+  onInitialAddHandled?: () => void;
+} = {}) {
+  const [selectedIds, setSelectedIds] = useState<string[]>(DEFAULT_SELECTED_IDS);
   const [searchTerm, setSearchTerm] = useState("");
+  const handledAddId = useRef<string | null>(null);
+  // onInitialAddHandled is typically a fresh inline function on every parent
+  // render. Keeping it out of the effect's dependency array (via a ref) stops
+  // the effect from tearing down and rescheduling its own setTimeout on every
+  // unrelated re-render, which previously cancelled the timer before it fired.
+  const onInitialAddHandledRef = useRef(onInitialAddHandled);
+  useEffect(() => {
+    onInitialAddHandledRef.current = onInitialAddHandled;
+  });
+
+  useEffect(() => {
+    if (!initialAddId || handledAddId.current === initialAddId) return;
+    handledAddId.current = initialAddId;
+
+    const timer = setTimeout(() => {
+      if (MOVIES.some((movie) => movie.id === initialAddId)) {
+        setSelectedIds((current) =>
+          current.includes(initialAddId) || current.length >= 5
+            ? current
+            : [...current, initialAddId],
+        );
+      }
+      onInitialAddHandledRef.current?.();
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [initialAddId]);
 
   const selectedMovies = useMemo(
-    () => selectedIds.map((id) => MOVIES.find((movie) => movie.id === id)).filter(Boolean) as MovieOption[],
+    () => selectedIds.map((id) => MOVIES.find((movie) => movie.id === id)).filter(Boolean) as Movie[],
     [selectedIds],
   );
 
   const searchResults = useMemo(() => {
-    const normalized = searchTerm.trim().toLowerCase();
+    const normalized = normalizeSearchValue(searchTerm);
     return MOVIES.filter(
       (movie) =>
         !selectedIds.includes(movie.id) &&
         (!normalized ||
-          movie.title.toLowerCase().includes(normalized) ||
-          movie.year.includes(normalized)),
+          normalizeSearchValue(movie.titleKo).includes(normalized) ||
+          movie.year.includes(searchTerm.trim())),
     );
   }, [searchTerm, selectedIds]);
 
@@ -72,7 +86,7 @@ export function PriceComparison() {
     () =>
       PROVIDER_PLANS.map((provider) => {
         const coveredMovies = selectedMovies.filter((movie) =>
-          movie.providers.includes(provider.id),
+          movie.providers.some((p) => p.id === provider.id && p.offers.includes("구독")),
         );
 
         return {
@@ -109,8 +123,8 @@ export function PriceComparison() {
       const coveredIds = new Set(
         selectedMovies
           .filter((movie) =>
-            movie.providers.some((providerId) =>
-              providers.some((provider) => provider.id === providerId),
+            movie.providers.some(
+              (p) => p.offers.includes("구독") && providers.some((provider) => provider.id === p.id),
             ),
           )
           .map((movie) => movie.id),
@@ -152,7 +166,7 @@ export function PriceComparison() {
                 <WalletCards className="size-4" />
                 구독 효용 계산기
               </p>
-              <h1 className="mt-4 max-w-3xl text-balance text-[clamp(2.3rem,5vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.05em]">
+              <h1 className="mt-4 max-w-3xl text-balance break-keep text-[clamp(2.3rem,5vw,4.5rem)] font-black leading-[1.2] tracking-[-0.05em]">
                 보고 싶은 5편,<br />어디를 구독해야 할까요?
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-white/58 sm:text-lg">
@@ -194,9 +208,9 @@ export function PriceComparison() {
                     className="inline-flex items-center gap-2 rounded-full bg-brand px-3 py-2 text-sm font-bold text-ink"
                     key={movie.id}
                   >
-                    {movie.title}
+                    {movie.titleKo}
                     <button
-                      aria-label={movie.title + " 선택 해제"}
+                      aria-label={movie.titleKo + " 선택 해제"}
                       className="grid size-5 place-items-center rounded-full bg-ink/10 transition-colors hover:bg-ink/20"
                       onClick={() => removeMovie(movie.id)}
                       type="button"
@@ -208,22 +222,37 @@ export function PriceComparison() {
               </div>
             )}
 
-            {selectedIds.length < 5 && searchResults.length > 0 && (
-              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                {searchResults.slice(0, 8).map((movie) => (
-                  <button
-                    className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.055] px-4 py-3 text-left transition-colors hover:border-brand/50 hover:bg-white/10"
-                    key={movie.id}
-                    onClick={() => addMovie(movie.id)}
-                    type="button"
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-white/90">{movie.title}</span>
-                      <span className="mt-0.5 block text-xs text-white/38">{movie.year}</span>
-                    </span>
-                    <Plus className="size-4 shrink-0 text-brand" />
-                  </button>
-                ))}
+            {selectedIds.length < 5 && (
+              <div className="mt-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
+                  {searchTerm.trim() ? "검색 결과" : "이런 영화도 있어요"}
+                </p>
+
+                {searchResults.length > 0 ? (
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                    {searchResults.slice(0, 8).map((movie) => (
+                      <button
+                        className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.055] px-4 py-3 text-left transition-colors hover:border-brand/50 hover:bg-white/10"
+                        key={movie.id}
+                        onClick={() => addMovie(movie.id)}
+                        type="button"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-white/90">{movie.titleKo}</span>
+                          <span className="mt-0.5 block text-xs text-white/38">{movie.year}</span>
+                        </span>
+                        <Plus className="size-4 shrink-0 text-brand" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 rounded-xl border border-dashed border-white/15 px-4 py-6 text-center">
+                    <p className="text-sm font-semibold text-white/80">검색 결과가 없어요.</p>
+                    <p className="mt-1 text-xs text-white/45">
+                      제목을 다시 확인하거나 다른 작품을 검색해주세요.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -319,7 +348,7 @@ export function PriceComparison() {
                     <div className="hidden min-w-0 sm:block">
                       {provider.coveredMovies.length ? (
                         <p className="truncate text-sm text-muted-foreground">
-                          {provider.coveredMovies.map((movie) => movie.title).join(", ")}
+                          {provider.coveredMovies.map((movie) => movie.titleKo).join(", ")}
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground">해당 작품 없음</p>
