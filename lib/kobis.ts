@@ -7,6 +7,34 @@
 const KOBIS_BASE =
   process.env.KOBIS_API_BASE || "https://www.kobis.or.kr/kobisopenapi/webservice/rest";
 const REQUEST_TIMEOUT_MS = 8000;
+const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
+const DETAIL_CACHE_TTL_MS = 60 * 60 * 1000;
+const CACHE_MAX_ENTRIES = 300;
+
+const memoryCache = new Map<string, { value: unknown; expiresAt: number }>();
+const pendingRequests = new Map<string, Promise<unknown>>();
+
+async function withCache<T>(key: string, ttl: number, load: () => Promise<T>): Promise<T> {
+  const hit = memoryCache.get(key);
+  if (hit && hit.expiresAt > Date.now()) return hit.value as T;
+
+  const pending = pendingRequests.get(key);
+  if (pending) return pending as Promise<T>;
+
+  const request = load()
+    .then((value) => {
+      if (memoryCache.size >= CACHE_MAX_ENTRIES) {
+        const oldestKey = memoryCache.keys().next().value;
+        if (oldestKey !== undefined) memoryCache.delete(oldestKey);
+      }
+      memoryCache.set(key, { value, expiresAt: Date.now() + ttl });
+      return value;
+    })
+    .finally(() => pendingRequests.delete(key));
+
+  pendingRequests.set(key, request);
+  return request;
+}
 
 export class KobisApiError extends Error {
   constructor(message: string) {
@@ -94,22 +122,53 @@ export async function searchKobisMovies(
   query: string,
   limit = 20,
 ): Promise<KobisMovieSummary[]> {
-  const json = (await fetchKobisJson("movie/searchMovieList.json", {
-    movieNm: query,
-    itemPerPage: String(Math.min(Math.max(limit, 1), 30)),
-  })) as SearchMovieListResponse;
+  const trimmed = query.normalize("NFKC").trim();
+  if (!trimmed) return [];
 
-  const list = json.movieListResult?.movieList ?? [];
-  return list.map((item) => ({
-    movieCd: item.movieCd,
-    titleKo: item.movieNm,
-    titleEn: item.movieNmEn ?? "",
-    prdtYear: item.prdtYear ?? "",
-    openDt: item.openDt ?? "",
-    genreAlt: item.genreAlt ?? "",
-    nationAlt: item.nationAlt ?? "",
-    directors: (item.directors ?? []).map((director) => director.peopleNm),
-  }));
+  const safeLimit = Math.min(Math.max(limit, 1), 30);
+  const cacheKey = `search:${trimmed.toLowerCase()}:${safeLimit}`;
+
+  return withCache(cacheKey, SEARCH_CACHE_TTL_MS, async () => {
+    async function searchBy(field: "movieNm" | "directorNm") {
+      const json = (await fetchKobisJson("movie/searchMovieList.json", {
+        [field]: trimmed,
+        itemPerPage: String(safeLimit),
+      })) as SearchMovieListResponse;
+
+      return (json.movieListResult?.movieList ?? []).map((item) => ({
+        movieCd: item.movieCd,
+        titleKo: item.movieNm,
+        titleEn: item.movieNmEn ?? "",
+        prdtYear: item.prdtYear ?? "",
+        openDt: item.openDt ?? "",
+        genreAlt: item.genreAlt ?? "",
+        nationAlt: item.nationAlt ?? "",
+        directors: (item.directors ?? []).map((director) => director.peopleNm),
+      }));
+    }
+
+    // KOBIS는 제목(movieNm)과 감독(directorNm)을 별도 필드로 검색해야 한다.
+    // 둘 중 하나가 실패해도 나머지 검색 결과는 계속 보여준다.
+    const [titleResult, directorResult] = await Promise.allSettled([
+      searchBy("movieNm"),
+      searchBy("directorNm"),
+    ]);
+
+    if (titleResult.status === "rejected" && directorResult.status === "rejected") {
+      throw titleResult.reason;
+    }
+
+    const titleMovies = titleResult.status === "fulfilled" ? titleResult.value : [];
+    const directorMovies = directorResult.status === "fulfilled" ? directorResult.value : [];
+    const merged = new Map<string, KobisMovieSummary>();
+
+    // 제목 결과를 먼저 넣어 동일 작품일 때 제목 검색 순위를 보존한다.
+    for (const movie of [...titleMovies, ...directorMovies]) {
+      if (!merged.has(movie.movieCd)) merged.set(movie.movieCd, movie);
+    }
+
+    return Array.from(merged.values()).slice(0, safeLimit);
+  });
 }
 
 export type KobisMovieDetail = {
@@ -151,28 +210,30 @@ type SearchMovieInfoResponse = {
 export async function getKobisMovieInfo(
   movieCd: string,
 ): Promise<KobisMovieDetail | null> {
-  const json = (await fetchKobisJson("movie/searchMovieInfo.json", {
-    movieCd,
-  })) as SearchMovieInfoResponse;
+  return withCache(`detail:${movieCd}`, DETAIL_CACHE_TTL_MS, async () => {
+    const json = (await fetchKobisJson("movie/searchMovieInfo.json", {
+      movieCd,
+    })) as SearchMovieInfoResponse;
 
-  const info = json.movieInfoResult?.movieInfo;
-  if (!info) return null;
+    const info = json.movieInfoResult?.movieInfo;
+    if (!info) return null;
 
-  return {
-    movieCd: info.movieCd,
-    titleKo: info.movieNm,
-    titleEn: info.movieNmEn ?? "",
-    titleOriginal: info.movieNmOg ?? "",
-    prdtYear: info.prdtYear ?? "",
-    openDt: info.openDt ?? "",
-    runtimeMinutes: info.showTm ?? "",
-    typeNm: info.typeNm ?? "",
-    nations: (info.nations ?? []).map((n) => n.nationNm),
-    genres: (info.genres ?? []).map((g) => g.genreNm),
-    directors: (info.directors ?? []).map((d) => d.peopleNm),
-    actors: (info.actors ?? []).map((a) => a.peopleNm),
-    watchGrade: info.audits?.[0]?.watchGradeNm ?? "",
-  };
+    return {
+      movieCd: info.movieCd,
+      titleKo: info.movieNm,
+      titleEn: info.movieNmEn ?? "",
+      titleOriginal: info.movieNmOg ?? "",
+      prdtYear: info.prdtYear ?? "",
+      openDt: info.openDt ?? "",
+      runtimeMinutes: info.showTm ?? "",
+      typeNm: info.typeNm ?? "",
+      nations: (info.nations ?? []).map((n) => n.nationNm),
+      genres: (info.genres ?? []).map((g) => g.genreNm),
+      directors: (info.directors ?? []).map((d) => d.peopleNm),
+      actors: (info.actors ?? []).map((a) => a.peopleNm),
+      watchGrade: info.audits?.[0]?.watchGradeNm ?? "",
+    };
+  });
 }
 
 export function formatKobisOpenDate(openDt: string) {
