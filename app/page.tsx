@@ -30,7 +30,7 @@ export default function Home() {
       <header className="border-b border-white/10 bg-ink text-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
           <a className="flex items-center gap-2.5 font-semibold tracking-tight" href="#top">
-            <span className="grid size-8 place-items-center rounded-xl bg-lime text-ink">
+            <span className="grid size-8 place-items-center rounded-xl bg-brand text-ink">
               <Clapperboard className="size-4.5" strokeWidth={2.4} />
             </span>
             <span>어디서 보지?</span>
@@ -53,8 +53,8 @@ export default function Home() {
 
         <div className="relative mx-auto grid max-w-6xl gap-12 px-5 pb-16 pt-16 sm:px-8 sm:pb-24 sm:pt-24 lg:grid-cols-[1fr_0.72fr] lg:items-end">
           <div>
-            <p className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-lime">
-              <span className="size-1.5 rounded-full bg-lime shadow-[0_0_14px_#a8ff60]" />
+            <p className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-brand">
+              <span className="size-1.5 rounded-full bg-brand shadow-[0_0_14px_#ffd84d]" />
               작품별 시청 가능한 곳을 한 번에
             </p>
             <h1 className="max-w-3xl text-balance text-[clamp(2.7rem,7vw,5.8rem)] font-bold leading-[0.98] tracking-[-0.055em]">
@@ -74,14 +74,14 @@ export default function Home() {
                 <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
                 <Input
                   aria-label="작품명 검색"
-                  className="h-14 rounded-2xl border-0 bg-white pl-12 pr-4 text-base text-ink shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-lime"
+                  className="h-14 rounded-2xl border-0 bg-white pl-12 pr-4 text-base text-ink shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="영화·드라마·애니메이션 제목 검색"
                   value={query}
                 />
               </div>
               <Button
-                className="h-14 rounded-2xl bg-lime px-6 text-base font-bold text-ink shadow-[0_10px_30px_rgba(168,255,96,0.18)] hover:bg-lime-bright"
+                className="h-14 rounded-2xl bg-brand px-6 text-base font-bold text-ink shadow-[0_10px_30px_rgba(255,216,77,0.2)] hover:bg-brand-bright"
                 type="submit"
               >
                 찾아보기
@@ -110,7 +110,7 @@ export default function Home() {
                 ["정보 출처와 갱신일", "변경될 수 있는 제공 정보를 투명하게"],
               ].map(([title, description]) => (
                 <li className="flex gap-3.5" key={title}>
-                  <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-lime/15 text-lime">
+                  <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-brand/15 text-brand">
                     <Check className="size-3.5" strokeWidth={2.8} />
                   </span>
                   <div>
@@ -141,7 +141,7 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-3 border-l-2 border-lime pl-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-l-2 border-brand pl-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-semibold">어떤 작품이든 제목부터 검색해보세요.</p>
               <p className="mt-1 text-sm text-muted-foreground">정확한 제공처만 확인할 수 있도록 데이터 기준을 설계하고 있습니다.</p>
