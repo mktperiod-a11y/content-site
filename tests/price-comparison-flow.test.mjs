@@ -30,16 +30,16 @@ test("separates search, selected, recommendation, and no-result states", () => {
 });
 
 test("distinguishes lookup failures and providers without curated prices", () => {
-  assert.match(comparisonSource, /제공처를 확인하지 못한 작품/);
-  assert.match(comparisonSource, /요금 비교에서 제외된 작품/);
+  assert.match(comparisonSource, /제공처 확인 필요/);
+  assert.match(comparisonSource, /요금 비교 제외/);
   assert.match(comparisonSource, /subscription: null/);
 });
 
 test("does not describe KDisk or OnDisk catalog availability as official", () => {
   assert.doesNotMatch(comparisonSource, /KDisk·OnDisk의 공식 보유 여부/);
-  assert.match(comparisonSource, /실제 보유 여부는 각 서비스의 검색/);
-  assert.match(comparisonSource, /KDisk에서 찾아보기/);
-  assert.match(comparisonSource, /OnDisk에서 찾아보기/);
+  assert.match(comparisonSource, /실제 보유 여부는 각 서비스 검색 결과/);
+  assert.match(comparisonSource, /KDisk에서 확인하기/);
+  assert.match(comparisonSource, /OnDisk에서도 확인/);
 });
 
 test("renders the main navigation as flat underline tabs", () => {
