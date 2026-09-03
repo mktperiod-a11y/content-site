@@ -387,7 +387,9 @@ export function PriceComparison() {
             {selected.length < MAX_SELECTED && (
               <div className="mt-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
-                  {searchTerm.trim() ? "검색 결과" : "작품을 검색해 최대 5편까지 선택해보세요"}
+                  {searchTerm.trim()
+                    ? `검색 결과 ${availableSearchResults.length}${searchResults.length === 8 ? "+" : ""}개`
+                    : "작품을 검색해 최대 5편까지 선택해보세요"}
                 </p>
 
                 {searchStatus === "loading" && (
