@@ -415,7 +415,7 @@ export function PriceComparison({
               </h2>
             </div>
             <p className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground">
-              제공처: TMDB · 요금 확인일 {PRICES_VERIFIED_ON}
+              제공처: TMDB · 요금 데이터 입력일 {PRICES_VERIFIED_ON}
             </p>
           </div>
 
@@ -612,7 +612,7 @@ export function PriceComparison({
                 <p>
                   <strong>추천 기준:</strong> 볼 수 있는 작품 수를 먼저 비교하고, 같은 경우 작품당
                   비용과 월요금이 낮은 순서로 추천합니다. 제공처는 TMDB 기준이며 월 요금은{" "}
-                  {PRICES_VERIFIED_ON} 확인 기준입니다. 요금제는 변경될 수 있으니 결제 전 각
+                  {PRICES_VERIFIED_ON} 입력 기준입니다. 아직 공식 요금 검증 전이므로 결제 전 각
                   서비스에서 확인해주세요.
                 </p>
               </div>
