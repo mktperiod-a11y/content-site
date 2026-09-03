@@ -2,7 +2,10 @@
 // 서버 전용 모듈입니다 — KOBIS_API_KEY는 절대 클라이언트 번들에 포함되지 않도록
 // 이 파일을 Route Handler / Server Component에서만 import 하세요 (client component에서 import 금지).
 
-const KOBIS_BASE = "https://www.kobis.or.kr/kobisopenapi/webservice/rest";
+// 기본값은 실제 KOBIS. KOBIS_API_BASE로 로컬 목 서버를 가리키면 네트워크 없이
+// 화면을 검증할 수 있다 (개발/테스트 용도).
+const KOBIS_BASE =
+  process.env.KOBIS_API_BASE || "https://www.kobis.or.kr/kobisopenapi/webservice/rest";
 const REQUEST_TIMEOUT_MS = 8000;
 
 export class KobisApiError extends Error {
