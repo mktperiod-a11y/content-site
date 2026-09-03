@@ -9,7 +9,7 @@ import type { EnrichedMovie } from "@/lib/enrichment";
  * 인메모리 캐시에 기대고, (3) 목록 렌더링을 막지 않도록 별도 엔드포인트로 뺐다.
  */
 
-const MAX_ITEMS = 10;
+const MAX_ITEMS = 12;
 
 type EnrichRequestItem = {
   movieCd: string;
@@ -34,6 +34,8 @@ export async function POST(request: Request) {
       const fallback: EnrichedMovie = {
         movieCd: item.movieCd,
         posterUrl: null,
+        voteAverage: null,
+        voteCount: 0,
         subscription: null,
         rentOrBuyCount: 0,
       };
@@ -46,6 +48,8 @@ export async function POST(request: Request) {
         return {
           movieCd: item.movieCd,
           posterUrl: match.posterUrl,
+          voteAverage: match.voteAverage,
+          voteCount: match.voteCount,
           // 제공처 응답이 없으면 "구독처 없음"으로 확인된 것으로 본다.
           subscription: (providers?.subscription ?? []).map((provider) => ({
             name: provider.name,
