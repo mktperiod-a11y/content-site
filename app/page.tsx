@@ -176,10 +176,10 @@ function HomeContent() {
                   <span className="size-1.5 rounded-full bg-brand shadow-[0_0_14px_#ffd84d]" />
                   작품별 시청 가능한 곳을 한 번에
                 </p>
-                <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.7rem,7vw,5.8rem)] font-bold leading-[0.98] tracking-[-0.055em]">
-                  이 영화, OTT에
+                <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.8rem)] font-bold leading-[0.98] tracking-[-0.055em]">
+                  이 영화,
                   <br />
-                  있나요?
+                  OTT에 있나요?
                 </h1>
                 <p className="mt-6 max-w-xl break-keep text-lg leading-8 text-white/62">
                   제목만 입력하면 바로 알려드려요. 국내 주요 OTT의 구독·대여·구매 여부를
