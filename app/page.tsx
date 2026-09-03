@@ -24,6 +24,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PriceComparison } from "@/app/price-comparison";
 
 const EXAMPLE_TITLE = "조제, 호랑이 그리고 물고기들";
 const KDISK_SIGNUP_URL = "https://m.kdisk.co.kr/web/member/join.html";
@@ -99,18 +101,38 @@ export default function Home() {
             <span>어디서 보지?</span>
           </a>
 
-          <nav className="hidden items-center gap-7 text-sm text-white/65 sm:flex" aria-label="주요 메뉴">
-            <a className="transition-colors hover:text-white" href="#search">콘텐츠 찾기</a>
-            <a className="transition-colors hover:text-white" href="#guide">이용 가이드</a>
-          </nav>
-
           <span className="rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/60">
             국내 제공처 기준
           </span>
         </div>
       </header>
 
-      <section id="top" className="relative bg-ink text-white">
+      <Tabs className="gap-0" defaultValue="search">
+        <div className="border-b border-white/10 bg-ink">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <TabsList
+              aria-label="주요 기능"
+              className="h-12 w-full justify-start gap-6 rounded-none bg-transparent p-0 sm:w-auto"
+              variant="line"
+            >
+              <TabsTrigger
+                className="h-12 flex-none px-0 text-white/50 after:bg-brand data-[state=active]:text-white"
+                value="search"
+              >
+                영화 찾기
+              </TabsTrigger>
+              <TabsTrigger
+                className="h-12 flex-none px-0 text-white/50 after:bg-brand data-[state=active]:text-white"
+                value="compare"
+              >
+                가격 비교하기
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+
+        <TabsContent className="mt-0" value="search">
+          <section id="top" className="relative bg-ink text-white">
         <div className="glow glow-one" aria-hidden="true" />
         <div className="glow glow-two" aria-hidden="true" />
 
@@ -185,14 +207,14 @@ export default function Home() {
             </ul>
           </div>
         </div>
-      </section>
+          </section>
 
-      <section
-        ref={resultRef}
-        className="scroll-mt-6 px-5 py-10 sm:px-8 sm:py-14"
-        aria-live="polite"
-      >
-        <div className="mx-auto max-w-6xl">
+          <section
+            ref={resultRef}
+            className="scroll-mt-6 px-5 py-10 sm:px-8 sm:py-14"
+            aria-live="polite"
+          >
+            <div className="mx-auto max-w-6xl">
           {submittedQuery && isExampleResult ? (
             <div className="result-enter space-y-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -304,8 +326,14 @@ export default function Home() {
               <p className="text-sm font-medium text-muted-foreground">정보 우선 · 브랜드 노출 최소화</p>
             </div>
           )}
-        </div>
-      </section>
+            </div>
+          </section>
+        </TabsContent>
+
+        <TabsContent className="mt-0" value="compare">
+          <PriceComparison />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="overflow-hidden rounded-[1.5rem] border-0 p-0 sm:max-w-md">
