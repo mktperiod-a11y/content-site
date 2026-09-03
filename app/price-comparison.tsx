@@ -246,9 +246,13 @@ export function PriceComparison() {
         const coverage = coverageByMovie.get(movie.movieCd);
         return coverage?.state === "available" && coverage.planIds.includes(plan.id);
       });
+      const logoUrl = selected
+        .flatMap((movie) => enriched[movie.movieCd]?.subscription ?? [])
+        .find((provider) => findPlanByTmdbName(provider.name)?.id === plan.id)?.logoUrl ?? null;
 
       return {
         ...plan,
+        logoUrl,
         coveredMovies,
         coverage: selected.length ? coveredMovies.length / selected.length : 0,
         costPerMovie: coveredMovies.length
@@ -266,7 +270,7 @@ export function PriceComparison() {
         }
         return a.price - b.price;
       });
-  }, [selected, coverageByMovie]);
+  }, [selected, coverageByMovie, enriched]);
 
   const bestSingle = planStats[0];
 
@@ -314,22 +318,22 @@ export function PriceComparison() {
     <>
       <section className="relative overflow-hidden bg-ink text-white">
         <div className="glow glow-one" aria-hidden="true" />
-        <div className="relative mx-auto max-w-6xl px-5 pb-10 pt-10 sm:px-8 sm:pb-14 sm:pt-14">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-16 sm:px-8 sm:pb-24 sm:pt-24">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-end">
             <div>
-              <p className="inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
+              <p className="mb-5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
                 <WalletCards className="size-4.5" />
                 구독 효용 계산기
               </p>
-              <h1 className="mt-4 max-w-3xl text-balance break-keep text-[clamp(2.3rem,5vw,4.5rem)] font-black leading-[1.2] tracking-[1px]">
+              <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.8rem)] font-bold leading-[0.98] tracking-[1px]">
                 보고 싶은 작품으로<br />구독료를 비교해보세요
               </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-white/58 sm:text-lg">
+              <p className="mt-6 max-w-3xl break-keep text-lg leading-8 text-white/62">
                 최대 5편을 고르면 가장 많이 볼 수 있는 한 곳과
                 전부 보기 위한 최저가 조합을 바로 계산해드려요.
               </p>
             </div>
-            <div className="w-full max-w-56 rounded-2xl border border-white/10 bg-white/[0.055] p-5">
+            <div className="w-full max-w-56 rounded-2xl border border-white/10 bg-white/[0.055] p-5 lg:justify-self-end">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-white/55">보고 싶은 작품</span>
                 <strong className="text-brand">
@@ -345,12 +349,12 @@ export function PriceComparison() {
             </div>
           </div>
 
-          <div className="mt-9 rounded-[1.5rem] border border-white/10 bg-white/[0.065] p-4 backdrop-blur sm:p-5">
+          <div className="mt-10 rounded-[1.5rem] border border-white/10 bg-white/[0.065] p-4 backdrop-blur sm:p-5">
             <div className="relative">
-              <Search className="absolute left-4.5 top-1/2 size-5.5 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-5 top-1/2 size-6 -translate-y-1/2 text-slate-400" />
               <Input
                 aria-label="비교할 영화 검색"
-                className="h-16 rounded-2xl border-0 bg-white pl-13 pr-4 text-[17px] text-ink placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
+                className="h-[4.5rem] rounded-2xl border-0 bg-white pl-14 pr-5 text-lg text-ink placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
                 disabled={selected.length >= MAX_SELECTED}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={
@@ -386,7 +390,7 @@ export function PriceComparison() {
 
             {selected.length < MAX_SELECTED && (
               <div className="mt-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
+                <p className="text-sm font-semibold text-white/55">
                   {searchTerm.trim()
                     ? `검색 결과 ${availableSearchResults.length}${searchResults.length === 8 ? "+" : ""}개`
                     : "작품을 검색해 최대 5편까지 선택해보세요"}
@@ -573,7 +577,17 @@ export function PriceComparison() {
                           {index + 1}
                         </span>
                         <div>
-                          <p className="font-bold">{plan.name}</p>
+                          <p className="flex items-center gap-2 font-bold">
+                            {plan.logoUrl && (
+                              // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN의 제공처 로고 이미지입니다.
+                              <img
+                                alt=""
+                                className="size-5 shrink-0 rounded-full object-cover"
+                                src={plan.logoUrl}
+                              />
+                            )}
+                            <span>{plan.name}</span>
+                          </p>
                           <p className="mt-0.5 text-xs text-muted-foreground">{plan.planName}</p>
                         </div>
                       </div>

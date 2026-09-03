@@ -325,7 +325,7 @@ function HomeContent() {
         </div>
 
         <TabsContent className="mt-0" value="search">
-          <section id="top" className="relative bg-ink text-white">
+          <section id="top" className="relative z-20 bg-ink text-white">
             <div className="glow glow-one" aria-hidden="true" />
             <div className="glow glow-two" aria-hidden="true" />
 
@@ -347,7 +347,7 @@ function HomeContent() {
 
                 <form
                   id="search"
-                  className="relative mt-10 flex max-w-3xl flex-col gap-3 rounded-[1.55rem] border border-white/12 bg-white/7 p-3 shadow-2xl shadow-black/25 backdrop-blur sm:flex-row"
+                  className="relative z-30 mt-10 flex max-w-3xl flex-col gap-3 rounded-[1.55rem] border border-white/12 bg-white/7 p-3 shadow-2xl shadow-black/25 backdrop-blur sm:flex-row"
                   onSubmit={handleSubmit}
                 >
                   <div className="relative flex-1">
@@ -379,7 +379,7 @@ function HomeContent() {
 
                     {suggestionsOpen && (
                       <ul
-                        className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 max-h-80 overflow-auto rounded-2xl border border-border bg-card p-1.5 shadow-2xl"
+                        className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-80 overflow-auto rounded-2xl border border-border bg-card p-1.5 shadow-2xl"
                         id="search-suggestions"
                         role="listbox"
                       >
@@ -464,7 +464,7 @@ function HomeContent() {
             </div>
           </section>
 
-          <section ref={resultRef} className="scroll-mt-6 px-5 py-10 sm:px-8 sm:py-14" aria-live="polite">
+          <section ref={resultRef} className="relative z-0 scroll-mt-6 px-5 py-10 sm:px-8 sm:py-14" aria-live="polite">
             <div className="mx-auto max-w-6xl">
               {status === "idle" && (
                 <div className="flex flex-col gap-3 border-l-2 border-brand pl-5 sm:flex-row sm:items-center sm:justify-between">

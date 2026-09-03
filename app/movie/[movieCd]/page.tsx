@@ -215,10 +215,10 @@ export default async function MovieDetailPage({
 
         <div className="relative mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
           <Link
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-white/60 hover:text-white"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 text-[15px] font-bold text-white shadow-lg shadow-black/15 backdrop-blur transition-colors hover:border-brand/70 hover:bg-white/15 hover:text-brand"
             href="/"
           >
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="size-4.5" strokeWidth={2.5} />
             다른 작품 검색하기
           </Link>
 
