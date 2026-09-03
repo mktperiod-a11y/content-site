@@ -150,13 +150,13 @@ function HomeContent() {
               variant="line"
             >
               <TabsTrigger
-                className="h-12 flex-none px-0 text-white/50 after:bg-brand data-[state=active]:text-white"
+                className="h-12 flex-none border-0 bg-transparent px-0 text-white/50 shadow-none after:bg-brand data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
                 value="search"
               >
                 영화 찾기
               </TabsTrigger>
               <TabsTrigger
-                className="h-12 flex-none px-0 text-white/50 after:bg-brand data-[state=active]:text-white"
+                className="h-12 flex-none border-0 bg-transparent px-0 text-white/50 shadow-none after:bg-brand data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
                 value="compare"
               >
                 가격 비교하기
