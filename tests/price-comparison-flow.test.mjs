@@ -20,6 +20,8 @@ test("starts the calculator with an empty selection", () => {
 test("separates search, selected, recommendation, and no-result states", () => {
   assert.match(comparisonSource, /보고 싶은 작품/);
   assert.match(comparisonSource, /검색 결과/);
+  assert.match(comparisonSource, /availableSearchResults\.length/);
+  assert.match(comparisonSource, /searchResults\.length === 8/);
   assert.match(comparisonSource, /검색 결과가 없어요/);
   assert.match(comparisonSource, /가장 효율적이에요/);
   assert.match(comparisonSource, /한 곳만 구독한다면/);
