@@ -5,6 +5,11 @@ import handler from "vinext/server/app-router-entry";
 interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
+  KOBIS_API_KEY?: string;
+  TMDB_API_KEY?: string;
+  KOBIS_API_BASE?: string;
+  TMDB_API_BASE?: string;
+  TMDB_IMAGE_BASE?: string;
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {
@@ -27,6 +32,19 @@ interface ExecutionContext {
 
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // Sites runtime bindings are injected through env. Keep every secret server-side
+    // and expose it only to server components and route handlers via process.env.
+    for (const key of [
+      "KOBIS_API_KEY",
+      "TMDB_API_KEY",
+      "KOBIS_API_BASE",
+      "TMDB_API_BASE",
+      "TMDB_IMAGE_BASE",
+    ] as const) {
+      const value = env[key];
+      if (value) process.env[key] = value;
+    }
+
     const url = new URL(request.url);
 
     if (url.pathname === "/_vinext/image") {
