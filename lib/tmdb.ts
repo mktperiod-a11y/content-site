@@ -105,12 +105,16 @@ type TmdbSearchResult = {
   original_title?: string;
   release_date?: string;
   poster_path?: string | null;
+  vote_average?: number;
+  vote_count?: number;
 };
 
 export type TmdbMatch = {
   id: number;
   /** 검색 응답에 포함된 포스터 (별도 상세 조회 없이 목록에서 바로 쓴다) */
   posterUrl: string | null;
+  voteAverage: number;
+  voteCount: number;
 };
 
 export type TmdbMovie = {
@@ -167,7 +171,12 @@ export async function findTmdbMatch(
         if (!resultYear || Math.abs(resultYear - wantedYear) > 1) continue;
       }
 
-      return { id: result.id, posterUrl: tmdbImageUrl(result.poster_path, "w185") };
+      return {
+        id: result.id,
+        posterUrl: tmdbImageUrl(result.poster_path, "w342"),
+        voteAverage: result.vote_average ?? 0,
+        voteCount: result.vote_count ?? 0,
+      };
     }
 
     return null;
