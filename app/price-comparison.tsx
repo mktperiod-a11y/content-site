@@ -39,6 +39,14 @@ export function PriceComparison({
   const [selectedIds, setSelectedIds] = useState<string[]>(DEFAULT_SELECTED_IDS);
   const [searchTerm, setSearchTerm] = useState("");
   const handledAddId = useRef<string | null>(null);
+  // onInitialAddHandled is typically a fresh inline function on every parent
+  // render. Keeping it out of the effect's dependency array (via a ref) stops
+  // the effect from tearing down and rescheduling its own setTimeout on every
+  // unrelated re-render, which previously cancelled the timer before it fired.
+  const onInitialAddHandledRef = useRef(onInitialAddHandled);
+  useEffect(() => {
+    onInitialAddHandledRef.current = onInitialAddHandled;
+  });
 
   useEffect(() => {
     if (!initialAddId || handledAddId.current === initialAddId) return;
@@ -52,11 +60,11 @@ export function PriceComparison({
             : [...current, initialAddId],
         );
       }
-      onInitialAddHandled?.();
+      onInitialAddHandledRef.current?.();
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [initialAddId, onInitialAddHandled]);
+  }, [initialAddId]);
 
   const selectedMovies = useMemo(
     () => selectedIds.map((id) => MOVIES.find((movie) => movie.id === id)).filter(Boolean) as Movie[],

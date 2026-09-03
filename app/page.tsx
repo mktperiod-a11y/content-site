@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   ArrowRight,
@@ -56,7 +56,6 @@ function ResultCard({ movie }: { movie: KobisMovieSummary }) {
 }
 
 function HomeContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [tab, setTab] = useState<string>(
@@ -356,7 +355,7 @@ function HomeContent() {
             initialAddId={compareAddId}
             onInitialAddHandled={() => {
               if (searchParams.get("add")) {
-                router.replace("/?tab=compare");
+                window.history.replaceState(null, "", "/?tab=compare");
               }
             }}
           />
