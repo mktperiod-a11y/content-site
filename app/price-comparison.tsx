@@ -166,7 +166,7 @@ export function PriceComparison({
                 <WalletCards className="size-4" />
                 구독 효용 계산기
               </p>
-              <h1 className="mt-4 max-w-3xl text-balance text-[clamp(2.3rem,5vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.05em]">
+              <h1 className="mt-4 max-w-3xl text-balance break-keep text-[clamp(2.3rem,5vw,4.5rem)] font-bold leading-[1.5] tracking-[-0.05em]">
                 보고 싶은 5편,<br />어디를 구독해야 할까요?
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-white/58 sm:text-lg">
@@ -222,22 +222,37 @@ export function PriceComparison({
               </div>
             )}
 
-            {selectedIds.length < 5 && searchResults.length > 0 && (
-              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                {searchResults.slice(0, 8).map((movie) => (
-                  <button
-                    className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.055] px-4 py-3 text-left transition-colors hover:border-brand/50 hover:bg-white/10"
-                    key={movie.id}
-                    onClick={() => addMovie(movie.id)}
-                    type="button"
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-white/90">{movie.titleKo}</span>
-                      <span className="mt-0.5 block text-xs text-white/38">{movie.year}</span>
-                    </span>
-                    <Plus className="size-4 shrink-0 text-brand" />
-                  </button>
-                ))}
+            {selectedIds.length < 5 && (
+              <div className="mt-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
+                  {searchTerm.trim() ? "검색 결과" : "이런 영화도 있어요"}
+                </p>
+
+                {searchResults.length > 0 ? (
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                    {searchResults.slice(0, 8).map((movie) => (
+                      <button
+                        className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.055] px-4 py-3 text-left transition-colors hover:border-brand/50 hover:bg-white/10"
+                        key={movie.id}
+                        onClick={() => addMovie(movie.id)}
+                        type="button"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-white/90">{movie.titleKo}</span>
+                          <span className="mt-0.5 block text-xs text-white/38">{movie.year}</span>
+                        </span>
+                        <Plus className="size-4 shrink-0 text-brand" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 rounded-xl border border-dashed border-white/15 px-4 py-6 text-center">
+                    <p className="text-sm font-semibold text-white/80">검색 결과가 없어요.</p>
+                    <p className="mt-1 text-xs text-white/45">
+                      제목을 다시 확인하거나 다른 작품을 검색해주세요.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
