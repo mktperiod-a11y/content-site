@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   Check,
@@ -37,13 +37,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return body;
 }
 
-export function PriceComparison({
-  initialAddId,
-  onInitialAddHandled,
-}: {
-  initialAddId?: string;
-  onInitialAddHandled?: () => void;
-} = {}) {
+export function PriceComparison() {
   const [selected, setSelected] = useState<KobisMovieSummary[]>([]);
   const [enriched, setEnriched] = useState<Record<string, EnrichedMovie>>({});
 
@@ -51,45 +45,10 @@ export function PriceComparison({
   const [searchResults, setSearchResults] = useState<KobisMovieSummary[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>("idle");
 
-  const handledAddId = useRef<string | null>(null);
-  const onInitialAddHandledRef = useRef(onInitialAddHandled);
-  useEffect(() => {
-    onInitialAddHandledRef.current = onInitialAddHandled;
-  });
-
-  // --- 상세 페이지에서 "가격 비교에 담기"로 넘어온 작품 담기 ---
-  useEffect(() => {
-    if (!initialAddId || handledAddId.current === initialAddId) return;
-    handledAddId.current = initialAddId;
-
-    let cancelled = false;
-    void (async () => {
-      try {
-        const body = await fetchJson<{ movie: KobisMovieSummary }>(
-          `/api/movies/lookup?movieCd=${encodeURIComponent(initialAddId)}`,
-        );
-        if (cancelled) return;
-        setSelected((current) =>
-          current.length >= MAX_SELECTED ||
-          current.some((movie) => movie.movieCd === body.movie.movieCd)
-            ? current
-            : [...current, body.movie],
-        );
-      } catch {
-        // 담기 실패 시 조용히 넘어간다 — 사용자가 직접 검색해서 담을 수 있다.
-      } finally {
-        if (!cancelled) onInitialAddHandledRef.current?.();
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialAddId]);
-
   // --- 검색 (KOBIS) ---
   useEffect(() => {
     const trimmed = searchTerm.trim();
+    const controller = new AbortController();
 
     const timer = setTimeout(async () => {
       if (!trimmed) {
@@ -102,16 +61,21 @@ export function PriceComparison({
       try {
         const body = await fetchJson<{ movies: KobisMovieSummary[] }>(
           `/api/movies/search?q=${encodeURIComponent(trimmed)}&limit=8`,
+          { signal: controller.signal },
         );
         setSearchResults(body.movies ?? []);
         setSearchStatus("success");
       } catch {
+        if (controller.signal.aborted) return;
         setSearchResults([]);
         setSearchStatus("error");
       }
     }, 350);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [searchTerm]);
 
   // --- 선택한 작품의 제공처 조회 ---
@@ -141,7 +105,22 @@ export function PriceComparison({
           return next;
         });
       } catch {
-        // 실패하면 해당 작품은 "확인 불가"로 남는다.
+        // 네트워크 실패도 무한 로딩으로 남기지 않고 "확인 불가"로 구분한다.
+        if (cancelled) return;
+        setEnriched((current) => {
+          const next = { ...current };
+          for (const movie of missing) {
+            next[movie.movieCd] = {
+              movieCd: movie.movieCd,
+              posterUrl: null,
+              voteAverage: null,
+              voteCount: 0,
+              subscription: null,
+              rentOrBuyCount: 0,
+            };
+          }
+          return next;
+        });
       }
     })();
 
@@ -196,6 +175,15 @@ export function PriceComparison({
 
   const unknownMovies = useMemo(
     () => selected.filter((movie) => coverageByMovie.get(movie.movieCd)?.state === "unknown"),
+    [selected, coverageByMovie],
+  );
+
+  const unpricedMovies = useMemo(
+    () =>
+      selected.filter((movie) => {
+        const coverage = coverageByMovie.get(movie.movieCd);
+        return coverage?.state === "available" && coverage.planIds.length === 0;
+      }),
     [selected, coverageByMovie],
   );
 
@@ -278,7 +266,7 @@ export function PriceComparison({
     <>
       <section className="relative overflow-hidden bg-ink text-white">
         <div className="glow glow-one" aria-hidden="true" />
-        <div className="relative mx-auto max-w-6xl px-5 pb-12 pt-12 sm:px-8 sm:pb-16 sm:pt-16">
+        <div className="relative mx-auto max-w-6xl px-5 pb-10 pt-10 sm:px-8 sm:pb-14 sm:pt-14">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="inline-flex items-center gap-2 text-sm font-semibold text-brand">
@@ -286,16 +274,16 @@ export function PriceComparison({
                 구독 효용 계산기
               </p>
               <h1 className="mt-4 max-w-3xl text-balance break-keep text-[clamp(2.3rem,5vw,4.5rem)] font-black leading-[1.2] tracking-[-0.05em]">
-                보고 싶은 5편,<br />어디를 구독해야 할까요?
+                보고 싶은 작품으로<br />구독료를 비교해보세요
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-white/58 sm:text-lg">
-                작품을 고르면 OTT별 보유 편수와 월요금을 함께 계산해
-                가장 효율적인 선택을 보여드려요.
+                최대 5편을 고르면 가장 많이 볼 수 있는 한 곳과
+                전부 보기 위한 최저가 조합을 바로 계산해드려요.
               </p>
             </div>
             <div className="w-full max-w-52 rounded-2xl border border-white/10 bg-white/[0.055] p-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-white/55">선택한 작품</span>
+                <span className="text-white/55">보고 싶은 작품</span>
                 <strong className="text-brand">
                   {selected.length} / {MAX_SELECTED}
                 </strong>
@@ -320,7 +308,7 @@ export function PriceComparison({
                 placeholder={
                   selected.length >= MAX_SELECTED
                     ? `최대 ${MAX_SELECTED}편을 선택했어요`
-                    : "비교할 영화 제목을 검색하세요"
+                    : "영화 제목 또는 감독명으로 검색하세요"
                 }
                 value={searchTerm}
               />
@@ -351,7 +339,7 @@ export function PriceComparison({
             {selected.length < MAX_SELECTED && (
               <div className="mt-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
-                  {searchTerm.trim() ? "검색 결과" : "제목을 검색해 작품을 담아보세요"}
+                  {searchTerm.trim() ? "검색 결과" : "작품을 검색해 최대 5편까지 선택해보세요"}
                 </p>
 
                 {searchStatus === "loading" && (
@@ -409,9 +397,13 @@ export function PriceComparison({
         <div className="mx-auto max-w-6xl">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-muted-foreground">선택 결과</p>
+              <p className="text-sm font-semibold text-muted-foreground">추천 결과</p>
               <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-                가장 효율적인 구독 조합
+                {selected.length === 0
+                  ? "보고 싶은 작품을 먼저 골라주세요"
+                  : bestSingle
+                    ? `${bestSingle.name}가 가장 효율적이에요`
+                    : "구독형 OTT 추천을 만들 수 없어요"}
               </h2>
             </div>
             <p className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground">
@@ -421,9 +413,9 @@ export function PriceComparison({
 
           {selected.length === 0 ? (
             <div className="rounded-[1.5rem] border border-dashed border-border bg-card px-6 py-14 text-center">
-              <p className="text-lg font-bold">비교할 영화를 한 편 이상 선택해주세요.</p>
+              <p className="text-lg font-bold">위 검색창에서 작품을 선택해주세요.</p>
               <p className="mt-2 text-sm text-muted-foreground">
-                최대 {MAX_SELECTED}편까지 선택할 수 있어요.
+                한 편부터 최대 {MAX_SELECTED}편까지 비교할 수 있어요.
               </p>
             </div>
           ) : stillLoading ? (
@@ -439,11 +431,11 @@ export function PriceComparison({
                     <div className="absolute right-0 top-0 h-28 w-28 rounded-bl-full bg-brand/10" aria-hidden="true" />
                     <p className="flex items-center gap-2 text-sm font-bold text-brand">
                       <Crown className="size-4" />
-                      단일 OTT 효용 1위
+                      한 곳만 구독한다면
                     </p>
                     <h3 className="mt-4 text-3xl font-bold">{bestSingle.name}</h3>
                     <p className="mt-2 text-base text-white/60">
-                      선택한 {selected.length}편 중 {bestSingle.coveredMovies.length}편 시청 가능
+                      {selected.length}편 중 {bestSingle.coveredMovies.length}편을 볼 수 있어요
                     </p>
                     <div className="mt-6 flex items-end justify-between gap-4 border-t border-white/10 pt-5">
                       <div>
@@ -465,7 +457,7 @@ export function PriceComparison({
                   <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-[0_18px_60px_rgba(25,35,55,0.07)] sm:p-7">
                     <p className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
                       <Sparkles className="size-4 text-amber-500" />
-                      최소비용 조합
+                      가능한 작품을 전부 보려면
                     </p>
                     {bestCombination ? (
                       <>
@@ -473,8 +465,8 @@ export function PriceComparison({
                           {bestCombination.plans.map((plan) => plan.name).join(" + ")}
                         </h3>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          구독형에서 확인된 {coverableMovies.length}편을 모두 보려면 이 조합의 월
-                          합계가 가장 낮아요.
+                          구독형에서 확인된 {coverableMovies.length}편을 모두 볼 수 있는 조합 중
+                          월 합계가 가장 낮아요.
                         </p>
                         <p className="mt-6 border-t border-border pt-5 text-2xl font-black text-ink">
                           월 {formatWon.format(bestCombination.price)}원
@@ -489,6 +481,16 @@ export function PriceComparison({
                       </>
                     )}
                   </article>
+                </div>
+              )}
+
+              {!bestSingle && selected.length > 0 && (
+                <div className="rounded-[1.5rem] border border-border bg-card px-6 py-10 sm:px-8">
+                  <p className="text-lg font-bold">계산 가능한 구독형 OTT가 없어요.</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    제공처를 확인하지 못했거나, 확인된 제공처의 월 요금 데이터가 아직
+                    등록되지 않은 작품입니다.
+                  </p>
                 </div>
               )}
 
@@ -556,7 +558,9 @@ export function PriceComparison({
                 </div>
               )}
 
-              {(unavailableMovies.length > 0 || unknownMovies.length > 0) && (
+              {(unavailableMovies.length > 0 ||
+                unknownMovies.length > 0 ||
+                unpricedMovies.length > 0) && (
                 <div className="mt-5 grid gap-4 lg:grid-cols-[1.28fr_0.72fr]">
                   <article className="rounded-[1.5rem] border border-border bg-card p-6 sm:p-7">
                     <p className="text-sm font-bold text-muted-foreground">
@@ -596,6 +600,23 @@ export function PriceComparison({
                         </ul>
                         <p className="mt-2 text-xs leading-5 text-muted-foreground">
                           제공처 데이터를 가져오지 못했어요. 이용 가능 여부를 단정할 수 없습니다.
+                        </p>
+                      </div>
+                    )}
+
+                    {unpricedMovies.length > 0 && (
+                      <div className="mt-5">
+                        <p className="text-sm font-semibold">요금 비교에서 제외된 작품</p>
+                        <ul className="mt-2 space-y-1.5">
+                          {unpricedMovies.map((movie) => (
+                            <li className="text-sm text-muted-foreground" key={movie.movieCd}>
+                              · {movie.titleKo} ({movie.prdtYear})
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                          구독 제공처는 확인됐지만 해당 서비스의 월 요금 데이터가 아직
+                          등록되지 않았어요.
                         </p>
                       </div>
                     )}
