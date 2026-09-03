@@ -40,13 +40,13 @@ async function fetchMovieSearch(query: string, limit: number, signal: AbortSigna
 function ProviderChips({ enriched }: { enriched: EnrichedMovie | undefined }) {
   // 아직 조회 중 — 자리만 잡아두고 레이아웃이 흔들리지 않게 한다.
   if (!enriched) {
-    return <div className="mt-3 h-7 w-32 animate-pulse rounded-full bg-muted" />;
+    return <div className="mt-2 h-6 w-28 animate-pulse rounded-full bg-muted" />;
   }
 
   // 조회 자체를 못 한 경우엔 "없음"으로 단정하지 않는다.
   if (enriched.subscription === null) {
     return (
-      <p className="mt-3 text-xs font-medium text-muted-foreground">
+      <p className="mt-2 text-xs font-medium text-muted-foreground">
         제공처 확인 필요
       </p>
     );
@@ -54,7 +54,7 @@ function ProviderChips({ enriched }: { enriched: EnrichedMovie | undefined }) {
 
   if (enriched.subscription.length === 0) {
     return (
-      <p className="mt-3 text-xs font-medium leading-5 text-muted-foreground">
+      <p className="mt-2 text-xs font-medium leading-5 text-muted-foreground">
         {enriched.rentOrBuyCount > 0
           ? "구독형 없음 · 대여/구매 가능"
           : "구독형 OTT에서 확인되지 않음"}
@@ -63,17 +63,17 @@ function ProviderChips({ enriched }: { enriched: EnrichedMovie | undefined }) {
   }
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+    <div aria-label="구독형 OTT 제공처" className="mt-2 flex flex-wrap items-center gap-1.5">
       {enriched.subscription.slice(0, 3).map((provider) => (
         <span
-          className="flex max-w-full items-center gap-1.5 rounded-full border border-border bg-background py-0.5 pl-0.5 pr-2"
+          className="flex max-w-full items-center gap-1 rounded-full bg-muted py-0.5 pl-0.5 pr-2"
           key={provider.name}
         >
           {provider.logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN 원격 이미지. 이 배포 환경의 이미지 최적화는 로컬 asset만 지원합니다.
             <img alt="" className="size-5 rounded-full" src={provider.logoUrl} />
           )}
-          <span className="truncate text-xs font-semibold">{provider.name}</span>
+          <span className="max-w-20 truncate text-[11px] font-semibold">{provider.name}</span>
         </span>
       ))}
       {enriched.subscription.length > 3 && (
@@ -94,45 +94,48 @@ function ResultCard({
 }) {
   return (
     <Link
-      className="group flex min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-border bg-card shadow-[0_14px_42px_rgba(20,32,51,0.06)] transition duration-200 hover:-translate-y-1 hover:border-brand/70 hover:shadow-[0_20px_48px_rgba(20,32,51,0.12)]"
+      className="group flex min-w-0 items-center gap-4 overflow-hidden rounded-[1.35rem] border border-border bg-card p-3 shadow-[0_12px_36px_rgba(20,32,51,0.06)] transition duration-200 hover:-translate-y-0.5 hover:border-brand/70 hover:shadow-[0_18px_42px_rgba(20,32,51,0.11)] sm:p-4"
       data-ga-event="search_result_select"
       href={`/movie/${movie.movieCd}`}
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
+      <div className="relative aspect-[2/3] w-[4.5rem] shrink-0 overflow-hidden rounded-xl bg-muted sm:w-[5.25rem]">
         {enriched?.posterUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN 원격 이미지. 이 배포 환경의 이미지 최적화는 로컬 asset만 지원합니다.
           <img
             alt={`${movie.titleKo} 포스터`}
-            className="size-full object-cover transition duration-300 group-hover:scale-[1.025]"
+            className="size-full object-cover transition duration-300 group-hover:scale-[1.035]"
             loading="lazy"
             src={enriched.posterUrl}
           />
         ) : (
           <div className="grid size-full place-items-center bg-gradient-to-br from-slate-100 to-slate-200">
-            <Clapperboard className="size-8 text-slate-400" />
+            <Clapperboard className="size-6 text-slate-400" />
           </div>
-        )}
-        {enriched && enriched.voteAverage !== null && enriched.voteCount > 0 && (
-          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-ink/88 px-2.5 py-1 text-xs font-bold text-white backdrop-blur">
-            <Star className="size-3.5 text-brand" fill="currentColor" />
-            {enriched.voteAverage.toFixed(1)}
-          </span>
         )}
       </div>
 
-      <div className="flex min-h-44 w-full flex-1 flex-col p-4">
-        <p className="line-clamp-2 text-base font-bold leading-6">{movie.titleKo}</p>
+      <div className="min-w-0 flex-1 py-0.5">
+        <div className="flex items-start gap-2">
+          <p className="line-clamp-2 min-w-0 flex-1 text-base font-bold leading-6">{movie.titleKo}</p>
+          {enriched && enriched.voteAverage !== null && enriched.voteCount > 0 && (
+            <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-xs font-bold text-foreground">
+              <Star className="size-3.5 text-brand" fill="currentColor" />
+              {enriched.voteAverage.toFixed(1)}
+            </span>
+          )}
+        </div>
         <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
           {[movie.prdtYear, movie.directors.join(", "), movie.genreAlt]
             .filter(Boolean)
             .join(" · ")}
         </p>
         <ProviderChips enriched={enriched} />
-        <span className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs font-semibold text-muted-foreground">
-          상세 정보 보기
-          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-        </span>
       </div>
+
+      <ArrowRight
+        aria-hidden="true"
+        className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
+      />
     </Link>
   );
 }
@@ -143,7 +146,7 @@ function HomeContent() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   /** 키보드로 이동 중인 자동완성 항목 (-1 = 선택 없음) */
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
-  const suggestionLinkRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+  const suggestionButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [results, setResults] = useState<KobisMovieSummary[]>([]);
@@ -217,9 +220,9 @@ function HomeContent() {
     }
 
     if (event.key === "Enter" && activeSuggestion >= 0) {
-      // 폼 제출(전체 검색) 대신 선택한 항목의 상세로 이동한다.
+      // 자동완성 선택도 결과 목록을 먼저 거쳐 2뎁스 흐름을 유지한다.
       event.preventDefault();
-      suggestionLinkRefs.current[activeSuggestion]?.click();
+      suggestionButtonRefs.current[activeSuggestion]?.click();
     }
   }
 
@@ -302,17 +305,17 @@ function HomeContent() {
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <TabsList
               aria-label="주요 기능"
-              className="h-12 w-full justify-start gap-6 rounded-none bg-transparent p-0 sm:w-auto"
+              className="h-14 w-full justify-start gap-8 rounded-none bg-transparent p-0 sm:w-auto"
               variant="line"
             >
               <TabsTrigger
-                className="h-12 flex-none border-0 bg-transparent px-0 text-white/50 shadow-none after:bg-brand data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+                className="h-14 flex-none border-0 bg-transparent px-0 text-[15px] text-white/50 shadow-none after:bg-brand data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
                 value="search"
               >
                 영화 찾기
               </TabsTrigger>
               <TabsTrigger
-                className="h-12 flex-none border-0 bg-transparent px-0 text-white/50 shadow-none after:bg-brand data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+                className="h-14 flex-none border-0 bg-transparent px-0 text-[15px] text-white/50 shadow-none after:bg-brand data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
                 value="compare"
               >
                 가격 비교하기
@@ -328,11 +331,11 @@ function HomeContent() {
 
             <div className="relative mx-auto grid max-w-6xl gap-12 px-5 pb-16 pt-16 sm:px-8 sm:pb-24 sm:pt-24 lg:grid-cols-[1fr_0.72fr] lg:items-end">
               <div>
-                <p className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-brand">
-                  <span className="size-1.5 rounded-full bg-brand shadow-[0_0_14px_#ffd84d]" />
+                <p className="mb-5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
+                  <span className="size-2 rounded-full bg-brand shadow-[0_0_14px_#ffd84d]" />
                   작품별 시청 가능한 곳을 한 번에
                 </p>
-                <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.8rem)] font-bold leading-[0.98] tracking-[-0.055em]">
+                <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.8rem)] font-bold leading-[0.98] tracking-[1px]">
                   이 영화,
                   <br />
                   OTT에 있나요?
@@ -344,11 +347,11 @@ function HomeContent() {
 
                 <form
                   id="search"
-                  className="relative mt-10 flex max-w-2xl flex-col gap-3 rounded-[1.45rem] border border-white/12 bg-white/7 p-2.5 shadow-2xl shadow-black/25 backdrop-blur sm:flex-row"
+                  className="relative mt-10 flex max-w-3xl flex-col gap-3 rounded-[1.55rem] border border-white/12 bg-white/7 p-3 shadow-2xl shadow-black/25 backdrop-blur sm:flex-row"
                   onSubmit={handleSubmit}
                 >
                   <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                    <Search className="absolute left-4.5 top-1/2 size-5.5 -translate-y-1/2 text-slate-400" />
                     <Input
                       role="combobox"
                       aria-activedescendant={
@@ -361,7 +364,7 @@ function HomeContent() {
                       aria-expanded={suggestionsOpen}
                       aria-haspopup="listbox"
                       aria-label="작품명 검색"
-                      className="h-14 rounded-2xl border-0 bg-white pl-12 pr-4 text-base text-ink shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
+                      className="h-16 rounded-2xl border-0 bg-white pl-13 pr-4 text-[17px] text-ink shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
                       onChange={(event) => {
                         setQuery(event.target.value);
@@ -387,17 +390,22 @@ function HomeContent() {
                             key={movie.movieCd}
                             role="option"
                           >
-                            <Link
+                            <button
                               className={
-                                "flex flex-col gap-0.5 rounded-xl px-3.5 py-2.5 text-left text-ink hover:bg-accent/50 " +
+                                "flex w-full flex-col gap-0.5 rounded-xl px-3.5 py-2.5 text-left text-ink hover:bg-accent/50 " +
                                 (index === activeSuggestion ? "bg-accent/60" : "")
                               }
                               data-ga-event="search_suggestion_select"
-                              href={`/movie/${movie.movieCd}`}
                               onMouseEnter={() => setActiveSuggestion(index)}
-                              ref={(node) => {
-                                suggestionLinkRefs.current[index] = node;
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => {
+                                setQuery(movie.titleKo);
+                                void runSearch(movie.titleKo);
                               }}
+                              ref={(node) => {
+                                suggestionButtonRefs.current[index] = node;
+                              }}
+                              type="button"
                             >
                               <span className="truncate font-semibold">{movie.titleKo}</span>
                               <span className="truncate text-xs text-muted-foreground">
@@ -405,14 +413,14 @@ function HomeContent() {
                                   .filter(Boolean)
                                   .join(" · ")}
                               </span>
-                            </Link>
+                            </button>
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
                   <Button
-                    className="h-14 rounded-2xl bg-brand px-6 text-base font-bold text-ink shadow-[0_10px_30px_rgba(255,216,77,0.2)] hover:bg-brand-bright"
+                    className="h-16 rounded-2xl bg-brand px-7 text-[17px] font-bold text-ink shadow-[0_10px_30px_rgba(255,216,77,0.2)] hover:bg-brand-bright"
                     data-ga-event="search_submit"
                     type="submit"
                   >
@@ -422,7 +430,7 @@ function HomeContent() {
                 </form>
 
                 <button
-                  className="mt-4 inline-flex items-center gap-2 text-left text-sm text-white/48 transition-colors hover:text-white/75"
+                  className="mt-4 inline-flex items-center gap-2 text-left text-[15px] text-white/48 transition-colors hover:text-white/75"
                   onClick={showExample}
                   type="button"
                 >
@@ -507,7 +515,7 @@ function HomeContent() {
                   </div>
 
                   {results.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                       {results.map((movie) => (
                         <ResultCard
                           enriched={enriched[movie.movieCd]}
