@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Check,
   Crown,
+  ExternalLink,
   Loader2,
   Plus,
   Search,
@@ -14,14 +15,61 @@ import {
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { KdiskFlow } from "@/components/kdisk-flow";
 import { OTT_PLANS, PRICES_VERIFIED_ON, findPlanByTmdbName, formatWon, type OttPlan } from "@/lib/ott-plans";
 import type { KobisMovieSummary } from "@/lib/kobis";
 import type { EnrichedMovie } from "@/lib/enrichment";
 
 const MAX_SELECTED = 5;
+const KDISK_HOME_URL = "https://m.kdisk.co.kr/";
+const ONDISK_HOME_URL = "https://m.ondisk.co.kr/";
 
 type SearchStatus = "idle" | "loading" | "success" | "error";
+
+function AlternativeServiceCard({ title }: { title: string }) {
+  function copyTitle() {
+    void navigator.clipboard?.writeText(title).catch(() => undefined);
+  }
+
+  return (
+    <aside className="rounded-[1.5rem] bg-ink p-6 text-white shadow-[0_18px_60px_rgba(25,35,55,0.12)] sm:p-7">
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">다른 이용 방법</p>
+      <h3 className="mt-3 text-xl font-bold leading-8">
+        구독으로 해결되지 않는 작품,
+        <br />
+        여기서 직접 찾아보세요
+      </h3>
+      <p className="mt-3 text-sm leading-6 text-white/55">
+        &ldquo;{title}&rdquo; 작품명을 복사하고 이동해요. 실제 보유 여부는 각 서비스의 검색
+        결과에서 확인해주세요.
+      </p>
+      <div className="mt-5 grid gap-2">
+        {[
+          ["KDisk에서 찾아보기", KDISK_HOME_URL, "kdisk_compare_outbound_click"],
+          ["OnDisk에서 찾아보기", ONDISK_HOME_URL, "ondisk_compare_outbound_click"],
+        ].map(([label, url, eventName], index) => (
+          <a
+            className={
+              "flex h-12 items-center justify-between rounded-xl px-4 text-sm font-bold transition-colors " +
+              (index === 0
+                ? "bg-brand text-ink hover:bg-brand-bright"
+                : "bg-white/10 text-white hover:bg-white/15")
+            }
+            data-content-title={title}
+            data-ga-event={eventName}
+            href={url}
+            key={url}
+            onClick={copyTitle}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {label}
+            <ExternalLink className="size-4" />
+          </a>
+        ))}
+      </div>
+    </aside>
+  );
+}
 
 /** 선택한 작품의 제공처 조회 상태 */
 type MovieCoverage =
@@ -269,11 +317,11 @@ export function PriceComparison() {
         <div className="relative mx-auto max-w-6xl px-5 pb-10 pt-10 sm:px-8 sm:pb-14 sm:pt-14">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="inline-flex items-center gap-2 text-sm font-semibold text-brand">
-                <WalletCards className="size-4" />
+              <p className="inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
+                <WalletCards className="size-4.5" />
                 구독 효용 계산기
               </p>
-              <h1 className="mt-4 max-w-3xl text-balance break-keep text-[clamp(2.3rem,5vw,4.5rem)] font-black leading-[1.2] tracking-[-0.05em]">
+              <h1 className="mt-4 max-w-3xl text-balance break-keep text-[clamp(2.3rem,5vw,4.5rem)] font-black leading-[1.2] tracking-[1px]">
                 보고 싶은 작품으로<br />구독료를 비교해보세요
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-white/58 sm:text-lg">
@@ -281,7 +329,7 @@ export function PriceComparison() {
                 전부 보기 위한 최저가 조합을 바로 계산해드려요.
               </p>
             </div>
-            <div className="w-full max-w-52 rounded-2xl border border-white/10 bg-white/[0.055] p-4">
+            <div className="w-full max-w-56 rounded-2xl border border-white/10 bg-white/[0.055] p-5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-white/55">보고 싶은 작품</span>
                 <strong className="text-brand">
@@ -299,10 +347,10 @@ export function PriceComparison() {
 
           <div className="mt-9 rounded-[1.5rem] border border-white/10 bg-white/[0.065] p-4 backdrop-blur sm:p-5">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-4.5 top-1/2 size-5.5 -translate-y-1/2 text-slate-400" />
               <Input
                 aria-label="비교할 영화 검색"
-                className="h-14 rounded-2xl border-0 bg-white pl-12 pr-4 text-base text-ink placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
+                className="h-16 rounded-2xl border-0 bg-white pl-13 pr-4 text-[17px] text-ink placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
                 disabled={selected.length >= MAX_SELECTED}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={
@@ -622,9 +670,14 @@ export function PriceComparison() {
                     )}
                   </article>
 
-                  {unavailableMovies.length > 0 && (
-                    <KdiskFlow title={unavailableMovies[0].titleKo} />
-                  )}
+                  <AlternativeServiceCard
+                    title={
+                      unavailableMovies[0]?.titleKo ??
+                      unknownMovies[0]?.titleKo ??
+                      unpricedMovies[0]?.titleKo ??
+                      selected[0].titleKo
+                    }
+                  />
                 </div>
               )}
 
