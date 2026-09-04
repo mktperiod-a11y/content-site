@@ -24,6 +24,14 @@ test("searches by partial title or director and enriches result cards", () => {
   assert.doesNotMatch(pageSource, /data-ga-event="search_suggestion_select"\s+href=/);
 });
 
+test("makes the example search actionable and explains the two-character minimum", () => {
+  assert.match(pageSource, /placeholder="영화 제목 또는 감독명 검색"/);
+  assert.match(pageSource, /minLength=\{2\}/);
+  assert.match(pageSource, /2글자 이상 입력하면 검색 결과가 보여요/);
+  assert.match(pageSource, /예시 검색/);
+  assert.match(pageSource, /onClick=\{showExample\}/);
+});
+
 test("shows TMDB images, ratings, reviews, and Korean watch providers", () => {
   assert.match(detailSource, /TMDB · 평가/);
   assert.match(detailSource, /TMDB 사용자 리뷰/);

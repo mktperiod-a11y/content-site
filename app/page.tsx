@@ -163,7 +163,7 @@ function HomeContent() {
     const trimmed = query.trim();
 
     const timer = setTimeout(async () => {
-      if (!trimmed) {
+      if (Array.from(trimmed).length < 2) {
         setSuggestions([]);
         return;
       }
@@ -228,7 +228,7 @@ function HomeContent() {
 
   async function runSearch(term: string) {
     const trimmed = term.trim();
-    if (!trimmed) return;
+    if (Array.from(trimmed).length < 2) return;
 
     setSubmittedQuery(trimmed);
     setShowSuggestions(false);
@@ -373,7 +373,8 @@ function HomeContent() {
                       }}
                       onFocus={() => setShowSuggestions(true)}
                       onKeyDown={handleSearchKeyDown}
-                      placeholder="영화·드라마·애니메이션 제목, 감독명으로 검색"
+                      minLength={2}
+                      placeholder="영화 제목 또는 감독명 검색"
                       value={query}
                     />
 
@@ -429,14 +430,22 @@ function HomeContent() {
                   </Button>
                 </form>
 
-                <button
-                  className="mt-4 inline-flex items-center gap-2 text-left text-[15px] text-white/48 transition-colors hover:text-white/75"
-                  onClick={showExample}
-                  type="button"
-                >
-                  <History className="size-4" />
-                  예시 결과 보기: {EXAMPLE_TITLE}
-                </button>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <p className="text-sm text-white/48">
+                    2글자 이상 입력하면 검색 결과가 보여요
+                  </p>
+                  <button
+                    aria-label={`${EXAMPLE_TITLE} 예시 검색하기`}
+                    className="group inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-brand/45 bg-brand/10 px-4 py-2 text-left text-sm font-semibold text-brand-bright transition-colors hover:border-brand/70 hover:bg-brand/18 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                    onClick={showExample}
+                    type="button"
+                  >
+                    <History className="size-4 shrink-0" />
+                    <span className="shrink-0 text-white/58">예시 검색</span>
+                    <span className="truncate">{EXAMPLE_TITLE}</span>
+                    <ArrowRight className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                </div>
               </div>
 
               <div id="guide" className="rounded-[1.75rem] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-sm sm:p-7">
