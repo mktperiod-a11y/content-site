@@ -35,17 +35,17 @@ async function readCssTree(directory) {
   return contents.join("\n");
 }
 
-test("emits the catalog's animation and scrolling utilities", async () => {
+test("emits the product brand and responsive visual utilities", async () => {
   const css = await readCssTree(path.join(root, "dist"));
 
-  assert.match(css, /--tw-enter-opacity/);
   assert.match(css, /scrollbar-width:\s*thin/);
-  assert.match(css, /scrollbar-width:\s*none/);
-  assert.match(css, /scrollbar-gutter:\s*stable/);
-  assert.match(css, /scroll-fade-reveal-b/);
-  assert.match(css, /mask-image:/);
-  assert.match(css, /tw-shimmer/);
+  assert.match(css, /#ffd84d/);
+  assert.match(css, /radial-gradient/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(css, /--on-dark-primary:\s*#fff/);
+  assert.match(css, /--on-dark-secondary:\s*#cbd5e1/);
+  assert.match(css, /--on-dark-tertiary:\s*#94a3b8/);
+  assert.match(css, /--brand-muted:\s*#b59a3a/);
 });
 
 test("forwards progress semantics to the primitive", async () => {

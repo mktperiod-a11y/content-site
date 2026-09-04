@@ -329,25 +329,29 @@ function HomeContent() {
             <div className="glow glow-one" aria-hidden="true" />
             <div className="glow glow-two" aria-hidden="true" />
 
-            <div className="relative mx-auto grid max-w-6xl gap-12 px-5 pb-16 pt-16 sm:px-8 sm:pb-24 sm:pt-24 lg:grid-cols-[1fr_0.72fr] lg:items-end">
+            <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14">
               <div>
                 <p className="mb-5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
                   <span className="size-2 rounded-full bg-brand shadow-[0_0_14px_#ffd84d]" />
                   작품별 시청 가능한 곳을 한 번에
                 </p>
-                <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.8rem)] font-bold leading-[0.98] tracking-[1px]">
+                <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
                   이 영화,
                   <br />
                   OTT에 있나요?
                 </h1>
-                <p className="mt-6 max-w-xl break-keep text-lg leading-8 text-white/62">
+                <p className="mt-5 max-w-xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg sm:leading-8">
                   제목만 입력하면 바로 알려드려요. 국내 주요 OTT의 구독·대여·구매 여부를
                   한 번에 확인하고, 가장 합리적인 시청 방법을 찾아보세요.
                 </p>
 
+                <p className="mt-9 text-sm font-medium text-on-dark-tertiary sm:mt-10">
+                  2글자 이상 입력하면 검색 결과가 보여요
+                </p>
+
                 <form
                   id="search"
-                  className="relative z-30 mt-10 flex max-w-3xl flex-col gap-3 rounded-[1.55rem] border border-white/12 bg-white/7 p-3 shadow-2xl shadow-black/25 backdrop-blur sm:flex-row"
+                  className="relative z-30 mt-2.5 flex max-w-3xl flex-col gap-3 rounded-[1.4rem] bg-surface-dark-soft p-2.5 shadow-2xl shadow-black/20 backdrop-blur sm:flex-row"
                   onSubmit={handleSubmit}
                 >
                   <div className="relative flex-1">
@@ -430,46 +434,41 @@ function HomeContent() {
                   </Button>
                 </form>
 
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <p className="text-sm text-white/48">
-                    2글자 이상 입력하면 검색 결과가 보여요
-                  </p>
-                  <button
-                    aria-label={`${EXAMPLE_TITLE} 예시 검색하기`}
-                    className="group inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-brand/45 bg-brand/10 px-4 py-2 text-left text-sm font-semibold text-brand-bright transition-colors hover:border-brand/70 hover:bg-brand/18 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                    onClick={showExample}
-                    type="button"
-                  >
-                    <History className="size-4 shrink-0" />
-                    <span className="shrink-0 text-white/58">예시 검색</span>
-                    <span className="truncate">{EXAMPLE_TITLE}</span>
-                    <ArrowRight className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
-                  </button>
-                </div>
+                <button
+                  aria-label={`${EXAMPLE_TITLE} 예시 검색하기`}
+                  className="group mt-3 inline-flex w-fit max-w-full items-center gap-2 rounded-full bg-white/[0.035] px-4 py-2 text-left text-sm font-semibold text-on-dark-tertiary transition-colors hover:bg-white/[0.065] hover:text-on-dark-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  onClick={showExample}
+                  type="button"
+                >
+                  <History className="size-4 shrink-0 text-brand-muted-icon" />
+                  <span className="shrink-0 text-brand-muted">예시 검색</span>
+                  <span className="truncate">{EXAMPLE_TITLE}</span>
+                  <ArrowRight className="size-4 shrink-0 text-slate-500 transition-transform group-hover:translate-x-0.5" />
+                </button>
               </div>
 
-              <div id="guide" className="rounded-[1.75rem] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-sm sm:p-7">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/38">
-                  검색 결과에서 확인할 수 있어요
+              <aside id="guide" className="hidden border-l-2 border-brand/40 pl-5 lg:mt-10 lg:block">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-on-dark-tertiary">
+                  검색 결과에서 바로 확인
                 </p>
-                <ul className="mt-6 space-y-5">
+                <ul className="mt-4 space-y-3.5">
                   {[
-                    ["현재 이용 가능한 곳", "구독·대여·구매를 구분해서 확인"],
-                    ["내게 맞는 이용 방식", "여러 서비스를 헤매지 않고 비교"],
-                    ["정보 출처와 갱신일", "변경될 수 있는 제공 정보를 투명하게"],
+                    ["이용 가능한 OTT", "구독·대여·구매 구분"],
+                    ["평점과 작품 정보", "결정에 필요한 정보만"],
+                    ["정보 출처·갱신일", "변경 가능성까지 투명하게"],
                   ].map(([title, description]) => (
-                    <li className="flex gap-3.5" key={title}>
-                      <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-brand/15 text-brand">
-                        <Check className="size-3.5" strokeWidth={2.8} />
+                    <li className="flex items-start gap-3" key={title}>
+                      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-brand/12 text-brand">
+                        <Check className="size-3" strokeWidth={2.8} />
                       </span>
                       <div>
-                        <p className="font-semibold text-white/92">{title}</p>
-                        <p className="mt-1 text-sm leading-6 text-white/45">{description}</p>
+                        <p className="text-sm font-semibold text-on-dark-primary">{title}</p>
+                        <p className="mt-0.5 text-xs leading-5 text-on-dark-tertiary">{description}</p>
                       </div>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </aside>
             </div>
           </section>
 

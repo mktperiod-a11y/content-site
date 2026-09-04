@@ -48,6 +48,16 @@ test("renders the main navigation as flat underline tabs", () => {
   assert.match(pageSource, /data-\[state=active\]:text-white/);
 });
 
+test("keeps the two hero layouts aligned and responsive", () => {
+  const sharedHeroPadding = /px-5 py-14 sm:px-8 sm:py-20/;
+  assert.match(pageSource, sharedHeroPadding);
+  assert.match(comparisonSource, sharedHeroPadding);
+  assert.match(pageSource, /text-on-dark-primary/);
+  assert.match(comparisonSource, /text-on-dark-primary/);
+  assert.match(pageSource, /lg:grid-cols-/);
+  assert.match(comparisonSource, /lg:grid-cols-/);
+});
+
 test("keeps discovery and comparison independent", () => {
   assert.doesNotMatch(pageSource, /useSearchParams/);
   assert.doesNotMatch(pageSource, /initialAddId/);

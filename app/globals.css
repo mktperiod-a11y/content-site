@@ -28,6 +28,13 @@
   --ink: #0b1424;
   --brand: #ffd84d;
   --brand-bright: #ffe47a;
+  --brand-muted: #b59a3a;
+  --brand-muted-icon: #a88d32;
+  --on-dark-primary: #ffffff;
+  --on-dark-secondary: #cbd5e1;
+  --on-dark-tertiary: #94a3b8;
+  --surface-dark-subtle: rgba(255, 255, 255, 0.055);
+  --surface-dark-soft: rgba(255, 255, 255, 0.075);
   --radius: 0.75rem;
 }
 
@@ -53,6 +60,13 @@
   --color-ink: var(--ink);
   --color-brand: var(--brand);
   --color-brand-bright: var(--brand-bright);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-muted-icon: var(--brand-muted-icon);
+  --color-on-dark-primary: var(--on-dark-primary);
+  --color-on-dark-secondary: var(--on-dark-secondary);
+  --color-on-dark-tertiary: var(--on-dark-tertiary);
+  --color-surface-dark-subtle: var(--surface-dark-subtle);
+  --color-surface-dark-soft: var(--surface-dark-soft);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

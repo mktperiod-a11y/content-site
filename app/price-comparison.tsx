@@ -316,24 +316,24 @@ export function PriceComparison() {
     <>
       <section className="relative overflow-hidden bg-ink text-white">
         <div className="glow glow-one" aria-hidden="true" />
-        <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-16 sm:px-8 sm:pb-24 sm:pt-24">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-end">
+        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div>
               <p className="mb-5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
                 <WalletCards className="size-4.5" />
                 구독 효용 계산기
               </p>
-              <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.8rem)] font-bold leading-[0.98] tracking-[1px]">
+              <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
                 보고 싶은 작품으로<br />구독료를 비교해보세요
               </h1>
-              <p className="mt-6 max-w-3xl break-keep text-lg leading-8 text-white/62">
+              <p className="mt-5 max-w-3xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg sm:leading-8">
                 최대 5편을 고르면 가장 많이 볼 수 있는 한 곳과
                 전부 보기 위한 최저가 조합을 바로 계산해드려요.
               </p>
             </div>
-            <div className="w-full max-w-56 rounded-2xl border border-white/10 bg-white/[0.055] p-5 lg:justify-self-end">
+            <div className="w-full max-w-48 rounded-2xl bg-surface-dark-subtle p-4 lg:mt-10 lg:justify-self-end">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-white/55">보고 싶은 작품</span>
+                <span className="text-on-dark-tertiary">보고 싶은 작품</span>
                 <strong className="text-brand">
                   {selected.length} / {MAX_SELECTED}
                 </strong>
@@ -347,7 +347,7 @@ export function PriceComparison() {
             </div>
           </div>
 
-          <div className="mt-10 rounded-[1.5rem] border border-white/10 bg-white/[0.065] p-4 backdrop-blur sm:p-5">
+          <div className="mt-9 rounded-[1.4rem] bg-surface-dark-soft p-3 backdrop-blur sm:mt-10 sm:p-4">
             <div className="relative">
               <Search className="absolute left-5 top-1/2 size-6 -translate-y-1/2 text-slate-400" />
               <Input
@@ -388,30 +388,30 @@ export function PriceComparison() {
 
             {selected.length < MAX_SELECTED && (
               <div className="mt-4">
-                <p className="text-sm font-semibold text-white/55">
+                <p className="text-sm font-semibold text-on-dark-tertiary">
                   {searchTerm.trim()
                     ? `검색 결과 ${availableSearchResults.length}${searchResults.length === 8 ? "+" : ""}개`
                     : "작품을 검색해 최대 5편까지 선택해보세요"}
                 </p>
 
                 {searchStatus === "loading" && (
-                  <p className="mt-3 flex items-center gap-2 text-sm text-white/50">
+                  <p className="mt-3 flex items-center gap-2 text-sm text-on-dark-tertiary">
                     <Loader2 className="size-4 animate-spin" />
                     검색 중이에요...
                   </p>
                 )}
 
                 {searchStatus === "error" && (
-                  <p className="mt-3 flex items-center gap-2 text-sm text-white/60">
+                  <p className="mt-3 flex items-center gap-2 text-sm text-on-dark-secondary">
                     <AlertCircle className="size-4" />
                     검색에 실패했어요. 잠시 후 다시 시도해주세요.
                   </p>
                 )}
 
                 {searchStatus === "success" && availableSearchResults.length === 0 && (
-                  <div className="mt-2 rounded-xl border border-dashed border-white/15 px-4 py-6 text-center">
-                    <p className="text-sm font-semibold text-white/80">검색 결과가 없어요.</p>
-                    <p className="mt-1 text-xs text-white/45">
+                  <div className="mt-2 px-4 py-5 text-center">
+                    <p className="text-sm font-semibold text-on-dark-primary">검색 결과가 없어요.</p>
+                    <p className="mt-1 text-xs text-on-dark-tertiary">
                       제목을 다시 확인하거나 다른 작품을 검색해주세요.
                     </p>
                   </div>
@@ -421,16 +421,16 @@ export function PriceComparison() {
                   <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     {availableSearchResults.map((movie) => (
                       <button
-                        className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.055] px-4 py-3 text-left transition-colors hover:border-brand/50 hover:bg-white/10"
+                        className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.055] px-4 py-3 text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                         key={movie.movieCd}
                         onClick={() => addMovie(movie)}
                         type="button"
                       >
                         <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold text-white/90">
+                          <span className="block truncate text-sm font-semibold text-on-dark-primary">
                             {movie.titleKo}
                           </span>
-                          <span className="mt-0.5 block truncate text-xs text-white/38">
+                          <span className="mt-0.5 block truncate text-xs text-on-dark-tertiary">
                             {[movie.prdtYear, movie.directors.join(", ")].filter(Boolean).join(" · ")}
                           </span>
                         </span>
