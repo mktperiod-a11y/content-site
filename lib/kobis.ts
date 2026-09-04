@@ -10,6 +10,7 @@ const REQUEST_TIMEOUT_MS = 8000;
 const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
 const DETAIL_CACHE_TTL_MS = 60 * 60 * 1000;
 const CACHE_MAX_ENTRIES = 300;
+const SEARCH_CANDIDATE_LIMIT = 30;
 
 const memoryCache = new Map<string, { value: unknown; expiresAt: number }>();
 const pendingRequests = new Map<string, Promise<unknown>>();
@@ -118,6 +119,107 @@ type SearchMovieListResponse = {
   };
 };
 
+type KobisSearchParams = Partial<Record<"movieNm" | "directorNm", string>>;
+
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLocaleLowerCase("ko-KR")
+    .replace(/[\s\p{P}\p{S}]+/gu, "");
+}
+
+function getSearchTokens(query: string) {
+  return query
+    .normalize("NFKC")
+    .toLocaleLowerCase("ko-KR")
+    .split(/[\s\p{P}\p{S}]+/u)
+    .map((token) => normalizeSearchText(token))
+    .filter(Boolean);
+}
+
+export function buildKobisSearchPlans(query: string): KobisSearchParams[] {
+  const trimmed = query.normalize("NFKC").trim();
+  if (!trimmed) return [];
+
+  const plans: KobisSearchParams[] = [
+    { movieNm: trimmed },
+    { directorNm: trimmed },
+  ];
+  const words = trimmed.split(/\s+/).filter(Boolean);
+
+  // 제목과 감독을 함께 입력했을 때만 조합 검색을 보탠다.
+  // 첫/마지막 경계만 확인해 외부 요청 수는 최대 6개로 제한한다.
+  if (words.length >= 2) {
+    const boundaries = new Set([1, words.length - 1]);
+    for (const boundary of boundaries) {
+      const left = words.slice(0, boundary).join(" ");
+      const right = words.slice(boundary).join(" ");
+      plans.push(
+        { directorNm: left, movieNm: right },
+        { movieNm: left, directorNm: right },
+      );
+    }
+  }
+
+  const unique = new Map<string, KobisSearchParams>();
+  for (const plan of plans) {
+    const key = `${plan.movieNm ?? ""}|${plan.directorNm ?? ""}`;
+    if (!unique.has(key)) unique.set(key, plan);
+  }
+  return Array.from(unique.values());
+}
+
+function getMovieRelevance(movie: KobisMovieSummary, query: string) {
+  const compactQuery = normalizeSearchText(query);
+  const tokens = getSearchTokens(query);
+  const titles = [movie.titleKo, movie.titleEn]
+    .map(normalizeSearchText)
+    .filter(Boolean);
+  const directors = movie.directors.map(normalizeSearchText).filter(Boolean);
+
+  if (titles.some((title) => title === compactQuery)) return 10_000;
+
+  const titleTokenMatches = tokens.map((token) =>
+    titles.some((title) => title.includes(token)),
+  );
+  const directorTokenMatches = tokens.map((token) =>
+    directors.some((director) => director.includes(token)),
+  );
+  const allTokensMatch = tokens.every(
+    (_, index) => titleTokenMatches[index] || directorTokenMatches[index],
+  );
+
+  if (
+    tokens.length > 1 &&
+    allTokensMatch &&
+    titleTokenMatches.some(Boolean) &&
+    directorTokenMatches.some(Boolean)
+  ) {
+    return 9_500;
+  }
+  if (tokens.length > 1 && allTokensMatch && titleTokenMatches.every(Boolean)) {
+    return 9_000;
+  }
+  if (directors.some((director) => director === compactQuery)) return 8_500;
+  if (titles.some((title) => title.startsWith(compactQuery))) return 8_000;
+  if (titles.some((title) => title.includes(compactQuery))) return 7_000;
+  if (directors.some((director) => director.includes(compactQuery))) return 6_000;
+
+  const titleMatches = titleTokenMatches.filter(Boolean).length;
+  const directorMatches = directorTokenMatches.filter(Boolean).length;
+  return titleMatches * 100 + directorMatches * 50;
+}
+
+export function rankKobisMovies(
+  movies: KobisMovieSummary[],
+  query: string,
+): KobisMovieSummary[] {
+  return movies
+    .map((movie, index) => ({ movie, index, score: getMovieRelevance(movie, query) }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(({ movie }) => movie);
+}
+
 export async function searchKobisMovies(
   query: string,
   limit = 20,
@@ -126,13 +228,13 @@ export async function searchKobisMovies(
   if (!trimmed) return [];
 
   const safeLimit = Math.min(Math.max(limit, 1), 30);
-  const cacheKey = `search:${trimmed.toLowerCase()}:${safeLimit}`;
+  const cacheKey = `search:v2:${trimmed.toLowerCase()}:${safeLimit}`;
 
   return withCache(cacheKey, SEARCH_CACHE_TTL_MS, async () => {
-    async function searchBy(field: "movieNm" | "directorNm") {
+    async function searchBy(params: KobisSearchParams) {
       const json = (await fetchKobisJson("movie/searchMovieList.json", {
-        [field]: trimmed,
-        itemPerPage: String(safeLimit),
+        ...params,
+        itemPerPage: String(SEARCH_CANDIDATE_LIMIT),
       })) as SearchMovieListResponse;
 
       return (json.movieListResult?.movieList ?? []).map((item) => ({
@@ -149,25 +251,29 @@ export async function searchKobisMovies(
 
     // KOBIS는 제목(movieNm)과 감독(directorNm)을 별도 필드로 검색해야 한다.
     // 둘 중 하나가 실패해도 나머지 검색 결과는 계속 보여준다.
-    const [titleResult, directorResult] = await Promise.allSettled([
-      searchBy("movieNm"),
-      searchBy("directorNm"),
-    ]);
-
-    if (titleResult.status === "rejected" && directorResult.status === "rejected") {
-      throw titleResult.reason;
+    const results = await Promise.allSettled(
+      buildKobisSearchPlans(trimmed).map((params) => searchBy(params)),
+    );
+    const fulfilled = results.filter(
+      (result): result is PromiseFulfilledResult<KobisMovieSummary[]> =>
+        result.status === "fulfilled",
+    );
+    if (!fulfilled.length) {
+      const rejected = results.find(
+        (result): result is PromiseRejectedResult => result.status === "rejected",
+      );
+      throw rejected?.reason;
     }
 
-    const titleMovies = titleResult.status === "fulfilled" ? titleResult.value : [];
-    const directorMovies = directorResult.status === "fulfilled" ? directorResult.value : [];
     const merged = new Map<string, KobisMovieSummary>();
 
-    // 제목 결과를 먼저 넣어 동일 작품일 때 제목 검색 순위를 보존한다.
-    for (const movie of [...titleMovies, ...directorMovies]) {
-      if (!merged.has(movie.movieCd)) merged.set(movie.movieCd, movie);
+    for (const result of fulfilled) {
+      for (const movie of result.value) {
+        if (!merged.has(movie.movieCd)) merged.set(movie.movieCd, movie);
+      }
     }
 
-    return Array.from(merged.values()).slice(0, safeLimit);
+    return rankKobisMovies(Array.from(merged.values()), trimmed).slice(0, safeLimit);
   });
 }
 
