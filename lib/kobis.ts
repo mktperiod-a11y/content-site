@@ -106,6 +106,7 @@ export type KobisMovieSummary = {
 
 type SearchMovieListResponse = {
   movieListResult?: {
+    totCnt?: number;
     movieList?: Array<{
       movieCd: string;
       movieNm: string;
@@ -118,6 +119,23 @@ type SearchMovieListResponse = {
     }>;
   };
 };
+
+function mapMovieSummary(
+  item: NonNullable<
+    NonNullable<SearchMovieListResponse["movieListResult"]>["movieList"]
+  >[number],
+): KobisMovieSummary {
+  return {
+    movieCd: item.movieCd,
+    titleKo: item.movieNm,
+    titleEn: item.movieNmEn ?? "",
+    prdtYear: item.prdtYear ?? "",
+    openDt: item.openDt ?? "",
+    genreAlt: item.genreAlt ?? "",
+    nationAlt: item.nationAlt ?? "",
+    directors: (item.directors ?? []).map((director) => director.peopleNm),
+  };
+}
 
 type KobisSearchParams = Partial<Record<"movieNm" | "directorNm", string>>;
 
@@ -237,16 +255,7 @@ export async function searchKobisMovies(
         itemPerPage: String(SEARCH_CANDIDATE_LIMIT),
       })) as SearchMovieListResponse;
 
-      return (json.movieListResult?.movieList ?? []).map((item) => ({
-        movieCd: item.movieCd,
-        titleKo: item.movieNm,
-        titleEn: item.movieNmEn ?? "",
-        prdtYear: item.prdtYear ?? "",
-        openDt: item.openDt ?? "",
-        genreAlt: item.genreAlt ?? "",
-        nationAlt: item.nationAlt ?? "",
-        directors: (item.directors ?? []).map((director) => director.peopleNm),
-      }));
+      return (json.movieListResult?.movieList ?? []).map(mapMovieSummary);
     }
 
     // KOBIS는 제목(movieNm)과 감독(directorNm)을 별도 필드로 검색해야 한다.
@@ -274,6 +283,54 @@ export async function searchKobisMovies(
     }
 
     return rankKobisMovies(Array.from(merged.values()), trimmed).slice(0, safeLimit);
+  });
+}
+
+const RELEASE_PAGE_SIZE = 100;
+const MAX_RELEASE_PAGES = 50;
+
+/**
+ * 개봉일 범위 안의 KOBIS 영화 목록을 페이지 끝까지 수집한다.
+ * 영화 검색과 달리 이 결과는 D1에 저장되어 하루에 한 번만 갱신된다.
+ */
+export async function listKobisMoviesByOpenDate(
+  openStartDt: string,
+  openEndDt: string,
+): Promise<KobisMovieSummary[]> {
+  const cacheKey = `releases:${openStartDt}:${openEndDt}`;
+
+  return withCache(cacheKey, SEARCH_CACHE_TTL_MS, async () => {
+    const merged = new Map<string, KobisMovieSummary>();
+    let totalPages = 1;
+
+    for (let currentPage = 1; currentPage <= totalPages; currentPage += 1) {
+      if (currentPage > MAX_RELEASE_PAGES) {
+        throw new KobisApiError("개봉작 목록이 안전한 수집 범위를 초과했어요.");
+      }
+
+      const json = (await fetchKobisJson("movie/searchMovieList.json", {
+        openStartDt,
+        openEndDt,
+        curPage: String(currentPage),
+        itemPerPage: String(RELEASE_PAGE_SIZE),
+      })) as SearchMovieListResponse;
+      const result = json.movieListResult;
+      const totalCount = result?.totCnt ?? 0;
+      totalPages = Math.max(1, Math.ceil(totalCount / RELEASE_PAGE_SIZE));
+
+      for (const item of result?.movieList ?? []) {
+        const movie = mapMovieSummary(item);
+        if (
+          movie.openDt >= openStartDt &&
+          movie.openDt <= openEndDt &&
+          !merged.has(movie.movieCd)
+        ) {
+          merged.set(movie.movieCd, movie);
+        }
+      }
+    }
+
+    return Array.from(merged.values());
   });
 }
 

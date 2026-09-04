@@ -32,6 +32,11 @@ interface ExecutionContext {
 
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // Server Components and route handlers read the request-scoped D1 binding
+    // through db/index.ts without importing a Cloudflare-only module in Node tests.
+    (globalThis as typeof globalThis & { __WHERE_TO_WATCH_DB__?: D1Database })
+      .__WHERE_TO_WATCH_DB__ = env.DB;
+
     // Sites runtime bindings are injected through env. Keep every secret server-side
     // and expose it only to server components and route handlers via process.env.
     for (const key of [

@@ -12,9 +12,17 @@ export function SiteHeader() {
           <span>어디서 보지?</span>
         </Link>
 
-        <span className="rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/60">
-          국내 제공처 기준
-        </span>
+        <nav className="flex items-center gap-2" aria-label="보조 메뉴">
+          <Link
+            className="rounded-full px-3 py-2 text-xs font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            href="/movies/now"
+          >
+            최신 개봉작
+          </Link>
+          <span className="hidden rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/60 sm:inline-flex">
+            국내 제공처 기준
+          </span>
+        </nav>
       </div>
     </header>
   );
