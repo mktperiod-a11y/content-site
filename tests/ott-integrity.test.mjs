@@ -40,3 +40,11 @@ test("labels the plan table as curated pricing rather than TMDB pricing", () => 
   assert.match(planSource, /TMDB는 어떤 서비스에서 볼 수 있는지는 알려주지만 "얼마인지"는/);
   assert.match(planSource, /별도로 관리해야 하는 큐레이션 데이터/);
 });
+
+test("uses the Netflix ad plan price and shows its content restriction", () => {
+  assert.match(planSource, /id: "netflix"[\s\S]*?price: 7000/);
+  assert.match(planSource, /planName: "광고형 스탠다드"/);
+  assert.match(planSource, /광고형 요금제는 일부 작품 이용이 제한될 수 있어요/);
+  assert.match(comparisonSource, /plan\.name\} 월 \{formatWon\.format\(plan\.price\)\}원부터/);
+  assert.match(comparisonSource, /\{plan\.note\}/);
+});

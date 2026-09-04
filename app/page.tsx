@@ -467,15 +467,26 @@ function HomeContent() {
           <section ref={resultRef} className="relative z-0 scroll-mt-6 px-5 py-10 sm:px-8 sm:py-14" aria-live="polite">
             <div className="mx-auto max-w-6xl">
               {status === "idle" && (
-                <div className="flex flex-col gap-3 border-l-2 border-brand pl-5 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-semibold">어떤 작품이든 제목부터 검색해보세요.</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                <>
+                  <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-muted-foreground">검색 결과</p>
+                      <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+                        어떤 작품이든 제목부터 검색해보세요
+                      </h2>
+                    </div>
+                    <p className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground">
+                      기본 정보 출처: KOBIS
+                    </p>
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-dashed border-border bg-card px-6 py-14 text-center">
+                    <p className="text-lg font-bold">위 검색창에 작품명이나 감독명을 입력해주세요.</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
                       제목 일부, 영문·원제, 감독명으로도 검색할 수 있어요.
                     </p>
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">정보 우선 · 브랜드 노출 최소화</p>
-                </div>
+                </>
               )}
 
               {status === "loading" && (

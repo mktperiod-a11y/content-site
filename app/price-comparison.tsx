@@ -586,77 +586,100 @@ export function PriceComparison() {
               )}
 
               {planStats.length > 0 && (
-                <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-border bg-card">
-                  <div className="grid grid-cols-[1fr_auto] gap-4 border-b border-border px-5 py-4 sm:grid-cols-[1.1fr_1.7fr_0.7fr_0.7fr] sm:px-7">
-                    <span className="text-sm font-semibold text-muted-foreground">OTT</span>
-                    <span className="hidden text-sm font-semibold text-muted-foreground sm:block">
-                      볼 수 있는 작품
-                    </span>
-                    <span className="hidden text-right text-sm font-semibold text-muted-foreground sm:block">
-                      포함률
-                    </span>
-                    <span className="text-right text-sm font-semibold text-muted-foreground">
-                      월요금
-                    </span>
-                  </div>
-                  {planStats.map((plan, index) => (
-                    <div
-                      className="grid grid-cols-[1fr_auto] gap-4 border-b border-border px-5 py-5 last:border-b-0 sm:grid-cols-[1.1fr_1.7fr_0.7fr_0.7fr] sm:items-center sm:px-7"
-                      key={plan.id}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={
-                            "grid size-9 place-items-center rounded-xl text-sm font-black " +
-                            (index === 0 ? "bg-brand text-ink" : "bg-secondary text-secondary-foreground")
-                          }
-                        >
-                          {index + 1}
-                        </span>
-                        <div>
-                          <p className="flex items-center gap-2 font-bold">
-                            {plan.logoUrl && (
-                              // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN의 제공처 로고 이미지입니다.
-                              <img
-                                alt=""
-                                className="size-5 shrink-0 rounded-full object-cover"
-                                src={plan.logoUrl}
-                              />
-                            )}
-                            <span>{plan.name}</span>
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{plan.planName}</p>
-                        </div>
-                      </div>
-                      <div className="hidden min-w-0 sm:block">
-                        <p className="truncate text-sm text-muted-foreground">
-                          {plan.coveredMovies.map((movie) => movie.titleKo).join(", ")}
-                        </p>
-                      </div>
-                      <div className="hidden sm:block">
-                        <div className="flex items-center justify-end gap-2">
-                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary">
-                            <div
-                              className="h-full rounded-full bg-brand"
-                              style={{ width: String(plan.coverage * 100) + "%" }}
-                            />
-                          </div>
-                          <span className="w-10 text-right text-sm font-semibold">
-                            {plan.coveredMovies.length}/{selected.length}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold">{formatWon.format(plan.price)}원</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {plan.costPerMovie
-                            ? "편당 " + formatWon.format(plan.costPerMovie) + "원"
-                            : "비교 제외"}
-                        </p>
-                      </div>
+                <>
+                  <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-border bg-card">
+                    <div className="grid grid-cols-[1fr_auto] gap-4 border-b border-border px-5 py-4 sm:grid-cols-[1.1fr_1.7fr_0.7fr_0.7fr] sm:px-7">
+                      <span className="text-sm font-semibold text-muted-foreground">OTT</span>
+                      <span className="hidden text-sm font-semibold text-muted-foreground sm:block">
+                        볼 수 있는 작품
+                      </span>
+                      <span className="hidden text-right text-sm font-semibold text-muted-foreground sm:block">
+                        포함률
+                      </span>
+                      <span className="text-right text-sm font-semibold text-muted-foreground">
+                        월요금
+                      </span>
                     </div>
-                  ))}
-                </div>
+                    {planStats.map((plan, index) => (
+                      <div
+                        className="grid grid-cols-[1fr_auto] gap-4 border-b border-border px-5 py-5 last:border-b-0 sm:grid-cols-[1.1fr_1.7fr_0.7fr_0.7fr] sm:items-center sm:px-7"
+                        key={plan.id}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={
+                              "grid size-9 place-items-center rounded-xl text-sm font-black " +
+                              (index === 0 ? "bg-brand text-ink" : "bg-secondary text-secondary-foreground")
+                            }
+                          >
+                            {index + 1}
+                          </span>
+                          <div>
+                            <p className="flex items-center gap-2 font-bold">
+                              {plan.logoUrl && (
+                                // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN의 제공처 로고 이미지입니다.
+                                <img
+                                  alt=""
+                                  className="size-5 shrink-0 rounded-full object-cover"
+                                  src={plan.logoUrl}
+                                />
+                              )}
+                              <span>{plan.name}</span>
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{plan.planName}</p>
+                          </div>
+                        </div>
+                        <div className="hidden min-w-0 sm:block">
+                          <p className="truncate text-sm text-muted-foreground">
+                            {plan.coveredMovies.map((movie) => movie.titleKo).join(", ")}
+                          </p>
+                        </div>
+                        <div className="hidden sm:block">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary">
+                              <div
+                                className="h-full rounded-full bg-brand"
+                                style={{ width: String(plan.coverage * 100) + "%" }}
+                              />
+                            </div>
+                            <span className="w-10 text-right text-sm font-semibold">
+                              {plan.coveredMovies.length}/{selected.length}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold">{formatWon.format(plan.price)}원</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {plan.costPerMovie
+                              ? "편당 " + formatWon.format(plan.costPerMovie) + "원"
+                              : "비교 제외"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {planStats
+                    .filter((plan) => plan.note)
+                    .map((plan) => (
+                      <div
+                        className="mt-4 border-l-4 border-brand px-4 py-1 sm:flex sm:items-start sm:justify-between sm:gap-8"
+                        key={plan.id + "-plan-note"}
+                      >
+                        <div>
+                          <p className="text-base font-bold text-foreground">
+                            {plan.name} 월 {formatWon.format(plan.price)}원부터
+                          </p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {plan.planName}
+                          </p>
+                        </div>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-0 sm:text-right">
+                          {plan.note}
+                        </p>
+                      </div>
+                    ))}
+                </>
               )}
 
               {bestSingle && unavailableMovies.length > 0 && (

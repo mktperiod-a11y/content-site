@@ -5,11 +5,11 @@
 // 요금제는 수시로 바뀌므로 공개 배포 전에 각 서비스 공식 요금 페이지에서
 // 반드시 검증하고 PRICES_VERIFIED_ON을 갱신하세요.
 //
-// 비교 기준: 광고 없는 최저가 단일 요금제(대체로 '베이직'/'스탠다드').
-// 서비스마다 화질·동시접속 조건이 달라 완전한 동일 조건 비교는 아닙니다.
+// 비교 기준: 각 서비스에서 안내하는 최저가 구독 요금제입니다.
+// 광고형에서 작품별 이용 제한이 있는 경우 화면에 주의 문구를 함께 노출합니다.
 
 /** 아래 금액을 마지막으로 확인한 날짜 (화면에 함께 노출됩니다) */
-export const PRICES_VERIFIED_ON = "2026-09-03";
+export const PRICES_VERIFIED_ON = "2026-09-04";
 
 export type OttPlan = {
   id: string;
@@ -19,6 +19,8 @@ export type OttPlan = {
   price: number;
   /** 어떤 요금제 기준인지 */
   planName: string;
+  /** 요금제 이용 시 사용자가 알아야 할 제한 사항 */
+  note?: string;
   /**
    * TMDB watch/providers가 돌려주는 provider_name 후보들.
    * 정규화(소문자·공백제거) 후 비교합니다.
@@ -30,8 +32,9 @@ export const OTT_PLANS: OttPlan[] = [
   {
     id: "netflix",
     name: "Netflix",
-    price: 5500,
+    price: 7000,
     planName: "광고형 스탠다드",
+    note: "광고형 요금제는 일부 작품 이용이 제한될 수 있어요",
     tmdbNames: ["Netflix", "Netflix basic with Ads", "Netflix Standard with Ads"],
   },
   {
