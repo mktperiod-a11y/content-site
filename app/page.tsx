@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowRight,
+  CalendarDays,
   Check,
   Clapperboard,
   History,
@@ -141,6 +142,7 @@ function ResultCard({
 }
 
 function HomeContent() {
+  const [activeTab, setActiveTab] = useState<"search" | "compare">("search");
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<KobisMovieSummary[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -158,6 +160,24 @@ function HomeContent() {
   const resultRef = useRef<HTMLElement>(null);
   const suggestionsAbortRef = useRef<AbortController | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("tab") === "compare") {
+      const timer = window.setTimeout(() => setActiveTab("compare"), 0);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, []);
+
+  function handleTabChange(value: string) {
+    if (value !== "search" && value !== "compare") return;
+    setActiveTab(value);
+
+    const url = new URL(window.location.href);
+    if (value === "compare") url.searchParams.set("tab", "compare");
+    else url.searchParams.delete("tab");
+    window.history.replaceState({}, "", url);
+  }
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -298,38 +318,43 @@ function HomeContent() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <SiteHeader />
-
-      <Tabs className="gap-0" defaultValue="search">
-        <div className="border-b border-white/10 bg-ink">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+      <Tabs className="gap-0" onValueChange={handleTabChange} value={activeTab}>
+        <SiteHeader
+          navigation={
             <TabsList
               aria-label="주요 기능"
-              className="h-14 w-full justify-start gap-8 rounded-none bg-transparent p-0 sm:w-auto"
+              className="h-14 w-full justify-start gap-1.5 rounded-none bg-transparent p-0 sm:w-auto"
               variant="line"
             >
               <TabsTrigger
-                className="h-14 flex-none border-0 bg-transparent px-0 text-[15px] text-white/50 shadow-none after:bg-brand data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+                className="h-10 flex-none rounded-xl border-0 bg-transparent px-4 text-[15px] font-bold text-white/55 shadow-none after:bottom-[-8px] after:bg-brand hover:bg-white/[0.05] hover:text-white data-[state=active]:border-transparent data-[state=active]:bg-white/[0.09] data-[state=active]:text-brand data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-white/[0.09]"
                 value="search"
               >
                 영화 찾기
               </TabsTrigger>
               <TabsTrigger
-                className="h-14 flex-none border-0 bg-transparent px-0 text-[15px] text-white/50 shadow-none after:bg-brand data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+                className="h-10 flex-none rounded-xl border-0 bg-transparent px-4 text-[15px] font-bold text-white/55 shadow-none after:bottom-[-8px] after:bg-brand hover:bg-white/[0.05] hover:text-white data-[state=active]:border-transparent data-[state=active]:bg-white/[0.09] data-[state=active]:text-brand data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-white/[0.09]"
                 value="compare"
               >
                 가격 비교하기
               </TabsTrigger>
+              <Link
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+                href="/movies/now"
+              >
+                <CalendarDays className="size-4" />
+                개봉작
+              </Link>
             </TabsList>
-          </div>
-        </div>
+          }
+        />
 
         <TabsContent className="mt-0" value="search">
           <section id="top" className="relative z-20 bg-ink text-white">
             <div className="glow glow-one" aria-hidden="true" />
             <div className="glow glow-two" aria-hidden="true" />
 
-            <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14">
+            <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-16 lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14">
               <div>
                 <p className="mb-5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
                   <span className="size-2 rounded-full bg-brand shadow-[0_0_14px_#ffd84d]" />
@@ -341,8 +366,7 @@ function HomeContent() {
                   OTT에 있나요?
                 </h1>
                 <p className="mt-5 max-w-xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg sm:leading-8">
-                  제목만 입력하면 바로 알려드려요. 국내 주요 OTT의 구독·대여·구매 여부를
-                  한 번에 확인하고, 가장 합리적인 시청 방법을 찾아보세요.
+                  국내 주요 OTT의 보유 여부를 확인하고, 가장 합리적인 시청 방법을 찾아보세요.
                 </p>
 
                 <p className="mt-9 text-sm font-medium text-on-dark-tertiary sm:mt-10">

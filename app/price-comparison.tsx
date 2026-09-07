@@ -316,7 +316,7 @@ export function PriceComparison() {
     <>
       <section className="relative overflow-hidden bg-ink text-white">
         <div className="glow glow-one" aria-hidden="true" />
-        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
+        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div>
               <p className="mb-5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">

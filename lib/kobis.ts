@@ -309,8 +309,10 @@ export async function listKobisMoviesByOpenDate(
       }
 
       const json = (await fetchKobisJson("movie/searchMovieList.json", {
-        openStartDt,
-        openEndDt,
+        // KOBIS의 개봉일 검색 파라미터는 YYYYMMDD가 아니라 YYYY만 허용한다.
+        // 넓게 연도로 받은 뒤 아래에서 실제 YYYYMMDD 범위를 다시 거른다.
+        openStartDt: openStartDt.slice(0, 4),
+        openEndDt: openEndDt.slice(0, 4),
         curPage: String(currentPage),
         itemPerPage: String(RELEASE_PAGE_SIZE),
       })) as SearchMovieListResponse;

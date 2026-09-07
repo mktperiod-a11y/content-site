@@ -42,14 +42,15 @@ test("does not describe KDisk or OnDisk catalog availability as official", () =>
   assert.match(comparisonSource, /OnDisk에서도 확인/);
 });
 
-test("renders the main navigation as flat underline tabs", () => {
+test("renders the main navigation as prominent primary tabs", () => {
   assert.match(pageSource, /rounded-none bg-transparent/);
   assert.match(pageSource, /after:bg-brand/);
-  assert.match(pageSource, /data-\[state=active\]:text-white/);
+  assert.match(pageSource, /data-\[state=active\]:text-brand/);
+  assert.match(pageSource, /href="\/movies\/now"/);
 });
 
 test("keeps the two hero layouts aligned and responsive", () => {
-  const sharedHeroPadding = /px-5 py-14 sm:px-8 sm:py-20/;
+  const sharedHeroPadding = /px-5 py-14 sm:px-8 sm:py-16/;
   assert.match(pageSource, sharedHeroPadding);
   assert.match(comparisonSource, sharedHeroPadding);
   assert.match(pageSource, /text-on-dark-primary/);

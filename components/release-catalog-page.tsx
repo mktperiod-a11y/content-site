@@ -106,55 +106,100 @@ function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
 
 export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
   const isUpcoming = view === "upcoming";
-  const catalog = await getReleaseCatalog(view);
+  const [nowCatalog, upcomingCatalog] = await Promise.all([
+    getReleaseCatalog("now"),
+    getReleaseCatalog("upcoming"),
+  ]);
+  const catalog = isUpcoming ? upcomingCatalog : nowCatalog;
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <SiteHeader />
+      <SiteHeader
+        navigation={
+          <nav aria-label="주요 기능" className="flex h-14 items-center gap-1.5">
+            <Link
+              className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+              href="/"
+            >
+              영화 찾기
+            </Link>
+            <Link
+              className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+              href="/?tab=compare"
+            >
+              가격 비교하기
+            </Link>
+            <Link
+              aria-current="page"
+              className="relative inline-flex h-10 items-center gap-1.5 rounded-xl bg-white/[0.09] px-4 text-[15px] font-bold text-brand after:absolute after:inset-x-0 after:bottom-[-8px] after:h-0.5 after:bg-brand"
+              href={isUpcoming ? "/movies/upcoming" : "/movies/now"}
+            >
+              <CalendarDays className="size-4" />
+              개봉작
+            </Link>
+          </nav>
+        }
+      />
 
       <section className="overflow-hidden bg-ink text-white">
         <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16">
           <div className="glow glow-one" aria-hidden="true" />
-          <div className="relative max-w-3xl">
-            <span className="inline-flex items-center gap-2 text-sm font-bold text-brand">
-              <CalendarDays className="size-4" />
-              하루 한 번 갱신되는 국내 개봉 정보
-            </span>
-            <h1 className="mt-4 break-keep text-4xl font-black leading-[1.12] tracking-[-0.025em] text-on-dark-primary sm:text-6xl">
-              최신 개봉작과 예정작을
-              <br className="hidden sm:block" /> 한곳에서 살펴보세요
-            </h1>
-            <p className="mt-5 max-w-2xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg">
-              개봉일과 포스터를 먼저 확인하고, 궁금한 작품은 상세 페이지에서 국내 OTT 제공처까지 이어서 볼 수 있어요.
-            </p>
+          <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
+            <div className="max-w-3xl">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-brand">
+                <CalendarDays className="size-4" />
+                하루 한 번 갱신되는 국내 개봉 정보
+              </span>
+              <h1 className="mt-4 break-keep text-4xl font-black leading-[1.12] tracking-[1px] text-on-dark-primary sm:text-6xl">
+                최신 개봉작과 예정작을
+                <br className="hidden sm:block" /> 한곳에서 살펴보세요
+              </h1>
+              <p className="mt-5 max-w-2xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg">
+                개봉일과 포스터를 확인하고, 관심 있는 작품의 국내 OTT 제공처를 살펴보세요.
+              </p>
 
-            <nav
-              aria-label="개봉작 목록 전환"
-              className="mt-8 inline-flex rounded-full border border-white/15 bg-surface-dark-soft p-1.5"
-            >
-              <Link
-                aria-current={!isUpcoming ? "page" : undefined}
-                className={`min-h-11 rounded-full px-5 py-3 text-sm font-black transition-colors ${
-                  !isUpcoming
-                    ? "bg-brand text-ink shadow-lg shadow-brand/10"
-                    : "text-on-dark-secondary hover:bg-white/10 hover:text-white"
-                }`}
-                href="/movies/now"
+              <nav
+                aria-label="개봉작 목록 전환"
+                className="mt-8 inline-flex rounded-full border border-white/15 bg-surface-dark-soft p-1.5"
               >
-                최신 개봉작
-              </Link>
-              <Link
-                aria-current={isUpcoming ? "page" : undefined}
-                className={`min-h-11 rounded-full px-5 py-3 text-sm font-black transition-colors ${
-                  isUpcoming
-                    ? "bg-brand text-ink shadow-lg shadow-brand/10"
-                    : "text-on-dark-secondary hover:bg-white/10 hover:text-white"
-                }`}
-                href="/movies/upcoming"
-              >
-                개봉 예정작
-              </Link>
-            </nav>
+                <Link
+                  aria-current={!isUpcoming ? "page" : undefined}
+                  className={`min-h-11 rounded-full px-5 py-3 text-sm font-black transition-colors ${
+                    !isUpcoming
+                      ? "bg-brand text-ink shadow-lg shadow-brand/10"
+                      : "text-on-dark-secondary hover:bg-white/10 hover:text-white"
+                  }`}
+                  href="/movies/now"
+                >
+                  최신 개봉작
+                </Link>
+                <Link
+                  aria-current={isUpcoming ? "page" : undefined}
+                  className={`min-h-11 rounded-full px-5 py-3 text-sm font-black transition-colors ${
+                    isUpcoming
+                      ? "bg-brand text-ink shadow-lg shadow-brand/10"
+                      : "text-on-dark-secondary hover:bg-white/10 hover:text-white"
+                  }`}
+                  href="/movies/upcoming"
+                >
+                  개봉 예정작
+                </Link>
+              </nav>
+            </div>
+
+            <aside className="w-full max-w-48 rounded-2xl bg-surface-dark-subtle p-4 lg:mt-10 lg:justify-self-end">
+              <p className="text-xs font-semibold text-on-dark-tertiary">수집된 개봉 정보</p>
+              <dl className="mt-3 space-y-2.5 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-on-dark-secondary">최신</dt>
+                  <dd className="font-black text-brand">{nowCatalog.movies.length}편</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-on-dark-secondary">예정</dt>
+                  <dd className="font-black text-brand">{upcomingCatalog.movies.length}편</dd>
+                </div>
+              </dl>
+            </aside>
           </div>
         </div>
       </section>

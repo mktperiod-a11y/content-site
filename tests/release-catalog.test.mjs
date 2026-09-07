@@ -18,6 +18,14 @@ const sitemapSource = await readFile(
   new URL("../app/sitemap.xml/route.ts", import.meta.url),
   "utf8",
 );
+const kobisSource = await readFile(
+  new URL("../lib/kobis.ts", import.meta.url),
+  "utf8",
+);
+const headerSource = await readFile(
+  new URL("../components/site-header.tsx", import.meta.url),
+  "utf8",
+);
 
 test("stores movie, provider, and sync state records in D1", () => {
   assert.match(schemaSource, /sqliteTable\(\s*"movies"/);
@@ -48,4 +56,27 @@ test("publishes stored movie pages through the XML sitemap", () => {
   assert.match(sitemapSource, /\/movies\/now/);
   assert.match(sitemapSource, /\/movies\/upcoming/);
   assert.match(sitemapSource, /\/movie\/\$\{encodeURIComponent/);
+});
+
+test("uses KOBIS four-digit release years then filters exact dates", () => {
+  assert.match(kobisSource, /openStartDt: openStartDt\.slice\(0, 4\)/);
+  assert.match(kobisSource, /openEndDt: openEndDt\.slice\(0, 4\)/);
+  assert.match(kobisSource, /movie\.openDt >= openStartDt/);
+  assert.match(kobisSource, /movie\.openDt <= openEndDt/);
+});
+
+test("keeps release browsing in the primary navigation with clear return paths", () => {
+  assert.doesNotMatch(headerSource, /최신·예정 개봉작/);
+  assert.match(pageSource, /aria-label="주요 기능"/);
+  assert.match(pageSource, /가격 비교하기/);
+  assert.match(pageSource, /개봉작/);
+  assert.match(pageSource, /href="\/"/);
+  assert.match(pageSource, /href="\/\?tab=compare"/);
+});
+
+test("aligns the release hero with the core tabs and summarizes both lists", () => {
+  assert.match(pageSource, /lg:grid-cols-\[minmax\(0,1fr\)_12rem\]/);
+  assert.match(pageSource, /nowCatalog\.movies\.length/);
+  assert.match(pageSource, /upcomingCatalog\.movies\.length/);
+  assert.match(pageSource, /tracking-\[1px\]/);
 });
