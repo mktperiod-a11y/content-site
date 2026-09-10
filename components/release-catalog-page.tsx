@@ -118,24 +118,24 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
         navigation={
           <nav aria-label="주요 기능" className="flex h-14 items-center gap-1.5">
             <Link
-              className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
-              href="/"
-            >
-              영화 찾기
-            </Link>
-            <Link
-              className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
-              href="/?tab=compare"
-            >
-              가격 비교하기
-            </Link>
-            <Link
               aria-current="page"
               className="relative inline-flex h-10 items-center gap-1.5 rounded-xl bg-white/[0.09] px-4 text-[15px] font-bold text-brand after:absolute after:inset-x-0 after:bottom-[-8px] after:h-0.5 after:bg-brand"
               href={isUpcoming ? "/movies/upcoming" : "/movies/now"}
             >
               <CalendarDays className="size-4" />
               개봉작
+            </Link>
+            <Link
+              className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+              href="/search?tab=compare"
+            >
+              가격 비교하기
+            </Link>
+            <Link
+              className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+              href="/search"
+            >
+              영화 찾기
             </Link>
           </nav>
         }

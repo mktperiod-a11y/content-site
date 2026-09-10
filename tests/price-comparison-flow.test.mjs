@@ -8,7 +8,7 @@ const comparisonSource = await readFile(
 );
 
 const pageSource = await readFile(
-  new URL("../app/page.tsx", import.meta.url),
+  new URL("../app/search/page.tsx", import.meta.url),
   "utf8",
 );
 

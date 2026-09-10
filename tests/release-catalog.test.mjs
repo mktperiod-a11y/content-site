@@ -70,8 +70,8 @@ test("keeps release browsing in the primary navigation with clear return paths",
   assert.match(pageSource, /aria-label="주요 기능"/);
   assert.match(pageSource, /가격 비교하기/);
   assert.match(pageSource, /개봉작/);
-  assert.match(pageSource, /href="\/"/);
-  assert.match(pageSource, /href="\/\?tab=compare"/);
+  assert.match(pageSource, /href="\/search"/);
+  assert.match(pageSource, /href="\/search\?tab=compare"/);
 });
 
 test("aligns the release hero with the core tabs and summarizes both lists", () => {

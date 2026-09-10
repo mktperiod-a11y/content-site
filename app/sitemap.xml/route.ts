@@ -25,9 +25,9 @@ export async function GET() {
   const siteUrl = (process.env.PUBLIC_SITE_URL || FALLBACK_SITE_URL).replace(/\/$/, "");
   const movies = await getSitemapMovieCodes();
   const now = new Date();
+  // "/"는 /movies/now 로 리다이렉트하고 "/search"는 noindex라 둘 다 뺀다.
   const entries = [
-    urlEntry(siteUrl, "", now, "weekly", 1),
-    urlEntry(siteUrl, "/movies/now", now, "daily", 0.9),
+    urlEntry(siteUrl, "/movies/now", now, "daily", 1),
     urlEntry(siteUrl, "/movies/upcoming", now, "daily", 0.9),
     ...movies.map((movie) =>
       urlEntry(

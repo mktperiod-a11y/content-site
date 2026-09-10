@@ -17,7 +17,7 @@ export default function MovieNotFound() {
           작품 코드가 정확한지 확인하거나, 다시 검색해주세요.
         </p>
         <Button asChild className="mt-8 rounded-xl">
-          <Link href="/">
+          <Link href="/search">
             <ArrowLeft className="size-4" />
             다시 검색하기
           </Link>

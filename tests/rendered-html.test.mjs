@@ -10,7 +10,8 @@ test("renders development preview metadata", async () => {
   const { default: worker } = await import(workerUrl.href);
 
   const response = await worker.fetch(
-    new Request("http://localhost/", {
+    // "/"는 /movies/now 로 리다이렉트하므로 HTML 본문이 있는 경로로 확인한다.
+    new Request("http://localhost/search", {
       headers: { accept: "text/html" },
     }),
     {
