@@ -25,7 +25,7 @@ function formatUpdatedAt(value: number | null) {
   }).format(new Date(value));
 }
 
-function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
+function ReleaseMovieCard({ movie, view }: { movie: ReleaseMovie; view: ReleaseView }) {
   const subscription = movie.providers.filter((provider) => provider.type === "subscription");
   const extraCount = Math.max(subscription.length - 3, 0);
   const cardClassName =
@@ -42,8 +42,8 @@ function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
             src={movie.posterUrl}
           />
         ) : (
-          <div className="grid size-full place-items-center px-5 text-center text-sm font-medium text-muted-foreground">
-            <Clapperboard className="mb-2 size-8 opacity-40" />
+          <div className="flex size-full flex-col items-center justify-center gap-2 px-5 text-center text-sm font-medium text-muted-foreground">
+            <Clapperboard className="size-8 opacity-40" />
             <span>포스터 준비 중</span>
           </div>
         )}
@@ -93,7 +93,11 @@ function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
             </>
           ) : (
             <span className="text-xs font-medium text-muted-foreground">
-              {movie.movieCd ? "구독형 제공처는 상세에서 확인" : "작품 정보를 준비하고 있어요"}
+              {view === "upcoming"
+                ? "개봉 후 제공처가 확인돼요"
+                : movie.movieCd
+                  ? "구독형 제공처는 상세에서 확인"
+                  : "작품 정보를 준비하고 있어요"}
             </span>
           )}
         </div>
@@ -239,6 +243,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
               <ReleaseMovieCard
                 key={`${movie.movieCd ?? movie.titleKo}-${movie.openDate}`}
                 movie={movie}
+                view={view}
               />
             ))}
           </div>
