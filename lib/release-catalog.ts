@@ -32,7 +32,7 @@ export type ReleaseProvider = {
 };
 
 export type ReleaseMovie = {
-  movieCd: string;
+  movieCd: string | null;
   titleKo: string;
   titleEn: string;
   productionYear: string;
@@ -56,7 +56,7 @@ export type ReleaseCatalogResult = {
 };
 
 type MovieRow = {
-  movie_cd: string;
+  movie_cd: string | null;
   title_ko: string;
   normalized_title: string;
   title_en: string;
@@ -143,34 +143,64 @@ export async function getReleaseCatalog(
     const now = Date.now();
     const window = getReleaseWindow(new Date(now));
     const safeLimit = Math.min(Math.max(limit, 1), RELEASE_PAGE_LIMIT);
-    const datePredicate = view === "now"
-      ? `EXISTS (
-           SELECT 1 FROM theater_movies
-           WHERE theater_movies.normalized_title = movies.normalized_title
-         )`
-      : "open_date > ? AND open_date <= ?";
-    const order = view === "now" ? "DESC" : "ASC";
-    const bounds = view === "now" ? [] : [window.today, window.end];
+    const movieQuery = view === "now"
+      ? db
+          .prepare(
+            `WITH theater_titles AS (
+               SELECT normalized_title,
+                      MIN(title_ko) AS title_ko,
+                      MAX(open_date) AS open_date
+               FROM theater_movies
+               WHERE booking_available = 1
+               GROUP BY normalized_title
+             )
+             SELECT m.movie_cd,
+                    COALESCE(NULLIF(m.title_ko, ''), theater_titles.title_ko) AS title_ko,
+                    theater_titles.normalized_title,
+                    COALESCE(m.title_en, '') AS title_en,
+                    COALESCE(NULLIF(m.production_year, ''), SUBSTR(theater_titles.open_date, 1, 4), '') AS production_year,
+                    COALESCE(NULLIF(m.open_date, ''), theater_titles.open_date, '') AS open_date,
+                    COALESCE(m.genre_text, '') AS genre_text,
+                    COALESCE(m.nation_text, '') AS nation_text,
+                    COALESCE(m.directors_json, '[]') AS directors_json,
+                    m.tmdb_id,
+                    m.poster_url,
+                    m.vote_average,
+                    COALESCE(m.vote_count, 0) AS vote_count
+             FROM theater_titles
+             LEFT JOIN movies AS m ON m.movie_cd = (
+               SELECT candidate.movie_cd
+               FROM movies AS candidate
+               WHERE candidate.normalized_title = theater_titles.normalized_title
+               ORDER BY candidate.open_date DESC
+               LIMIT 1
+             )
+             ORDER BY open_date DESC, title_ko ASC
+             LIMIT ?`,
+          )
+          .bind(safeLimit)
+      : db
+          .prepare(
+            `SELECT movie_cd, title_ko, normalized_title, title_en, production_year, open_date,
+                    genre_text, nation_text, directors_json, tmdb_id, poster_url,
+                    vote_average, vote_count
+             FROM movies
+             WHERE open_date > ? AND open_date <= ?
+             ORDER BY open_date ASC, title_ko ASC
+             LIMIT ?`,
+          )
+          .bind(window.today, window.end, safeLimit);
 
     const [movieResult, sync, theaterRefresh] = await Promise.all([
-      db
-        .prepare(
-          `SELECT movie_cd, title_ko, normalized_title, title_en, production_year, open_date,
-                  genre_text, nation_text, directors_json, tmdb_id, poster_url,
-                  vote_average, vote_count
-           FROM movies
-           WHERE ${datePredicate}
-           ORDER BY open_date ${order}, title_ko ASC
-           LIMIT ?`,
-        )
-        .bind(...bounds, safeLimit)
-        .all<MovieRow>(),
+      movieQuery.all<MovieRow>(),
       getSyncRow(),
       getLatestTheaterRefresh(),
     ]);
 
     const rows = movieResult.results ?? [];
-    const movieCodes = rows.map((row) => row.movie_cd);
+    const movieCodes = rows
+      .map((row) => row.movie_cd)
+      .filter((movieCd): movieCd is string => Boolean(movieCd));
     const providersByMovie = new Map<string, ReleaseProvider[]>();
     const theatersByTitle = await getConfirmedTheatersByTitle(
       rows.map((row) => row.title_ko),
@@ -214,14 +244,13 @@ export async function getReleaseCatalog(
         posterUrl: row.poster_url,
         voteAverage: row.vote_average,
         voteCount: row.vote_count,
-        providers: providersByMovie.get(row.movie_cd) ?? [],
+        providers: row.movie_cd ? providersByMovie.get(row.movie_cd) ?? [] : [],
         theaters: theatersByTitle.get(row.normalized_title) ?? [],
       })),
-      lastSuccessAt: sync?.last_success_at ?? null,
-      stale:
-        !sync?.last_success_at ||
-        now - sync.last_success_at >= RELEASE_SYNC_INTERVAL_MS ||
-        theaterRefresh.stale,
+      lastSuccessAt: view === "now" ? theaterRefresh.lastSuccessAt : sync?.last_success_at ?? null,
+      stale: view === "now"
+        ? theaterRefresh.stale
+        : !sync?.last_success_at || now - sync.last_success_at >= RELEASE_SYNC_INTERVAL_MS,
       unavailable: false,
     };
   } catch (error) {

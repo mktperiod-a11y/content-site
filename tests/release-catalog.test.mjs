@@ -61,8 +61,9 @@ test("refreshes releases weekly and theater snapshots daily without deleting on 
 });
 
 test("uses theater-company snapshots rather than a 60-day window for current screenings", () => {
-  assert.match(catalogSource, /EXISTS \(\s*SELECT 1 FROM theater_movies/);
-  assert.match(catalogSource, /theater_movies\.normalized_title = movies\.normalized_title/);
+  assert.match(catalogSource, /WITH theater_titles AS/);
+  assert.match(catalogSource, /FROM theater_movies/);
+  assert.match(catalogSource, /LEFT JOIN movies AS m/);
   assert.match(pageSource, /국내 극장 3사 현재상영작 기준/);
   assert.match(pageSource, /TheaterStatusBadge/);
 });
@@ -71,6 +72,7 @@ test("renders crawlable release routes as an in-page chip switch", () => {
   assert.match(pageSource, /href="\/movies\/now"/);
   assert.match(pageSource, /href="\/movies\/upcoming"/);
   assert.match(pageSource, /aria-current=/);
+  assert.match(pageSource, /movie\.movieCd \?/);
   assert.match(pageSource, /href=\{`\/movie\/\$\{movie\.movieCd\}`\}/);
 });
 

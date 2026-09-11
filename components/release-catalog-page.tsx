@@ -29,12 +29,10 @@ function formatUpdatedAt(value: number | null) {
 function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
   const subscription = movie.providers.filter((provider) => provider.type === "subscription");
   const extraCount = Math.max(subscription.length - 3, 0);
-
-  return (
-    <Link
-      className="group flex min-h-full flex-col overflow-hidden rounded-2xl bg-card shadow-[0_16px_40px_rgba(20,32,51,0.08)] ring-1 ring-border/80 transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(20,32,51,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-muted"
-      href={`/movie/${movie.movieCd}`}
-    >
+  const cardClassName =
+    "group flex min-h-full flex-col overflow-hidden rounded-2xl bg-card shadow-[0_16px_40px_rgba(20,32,51,0.08)] ring-1 ring-border/80 transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(20,32,51,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-muted";
+  const cardContent = (
+    <>
       <div className="relative aspect-[2/3] overflow-hidden bg-secondary">
         {movie.posterUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN remote image.
@@ -99,12 +97,23 @@ function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
             </>
           ) : (
             <span className="text-xs font-medium text-muted-foreground">
-              구독형 제공처는 상세에서 확인
+              {movie.movieCd ? "구독형 제공처는 상세에서 확인" : "작품 정보를 준비하고 있어요"}
             </span>
           )}
         </div>
       </div>
+    </>
+  );
+
+  return movie.movieCd ? (
+    <Link
+      className={cardClassName}
+      href={`/movie/${movie.movieCd}`}
+    >
+      {cardContent}
     </Link>
+  ) : (
+    <article className={cardClassName}>{cardContent}</article>
   );
 }
 
@@ -154,7 +163,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
                 <CalendarDays className="size-4" />
                 개봉 정보는 주 1회 · 상영 여부는 하루 1회 갱신
               </span>
-              <h1 className="mt-4 break-keep text-4xl font-black leading-[1.12] tracking-[1px] text-on-dark-primary sm:text-6xl">
+              <h1 className="mt-4 text-[2rem] font-black leading-[1.16] tracking-[1px] text-on-dark-primary sm:break-keep sm:text-6xl sm:leading-[1.12]">
                 최신 개봉작과 예정작을
                 <br className="hidden sm:block" /> 한곳에서 살펴보세요
               </h1>
