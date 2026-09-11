@@ -18,4 +18,6 @@ export type EnrichedMovie = {
    */
   subscription: EnrichedProvider[] | null;
   rentOrBuyCount: number;
+  /** 현재 상영 목록에서 확인된 극장사. 가격 비교 탭에서는 사용하지 않는다. */
+  theaters: Array<"cgv" | "megabox" | "lotte">;
 };

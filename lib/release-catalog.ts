@@ -8,8 +8,13 @@ import {
   getTmdbWatchProvidersKR,
   type WatchProvider,
 } from "@/lib/tmdb";
+import {
+  getConfirmedTheatersByTitle,
+  getLatestTheaterRefresh,
+} from "@/lib/theater-catalog";
+import { normalizeTheaterTitle, type TheaterCode } from "@/lib/theater-sources";
 
-export const RELEASE_SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
+export const RELEASE_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 const RELEASE_LOCK_MS = 5 * 60 * 1000;
 const CURRENT_LOOKBACK_DAYS = 60;
 const UPCOMING_LOOKAHEAD_DAYS = 120;
@@ -40,6 +45,7 @@ export type ReleaseMovie = {
   voteAverage: number | null;
   voteCount: number;
   providers: ReleaseProvider[];
+  theaters: TheaterCode[];
 };
 
 export type ReleaseCatalogResult = {
@@ -52,6 +58,7 @@ export type ReleaseCatalogResult = {
 type MovieRow = {
   movie_cd: string;
   title_ko: string;
+  normalized_title: string;
   title_en: string;
   production_year: string;
   open_date: string;
@@ -136,14 +143,19 @@ export async function getReleaseCatalog(
     const now = Date.now();
     const window = getReleaseWindow(new Date(now));
     const safeLimit = Math.min(Math.max(limit, 1), RELEASE_PAGE_LIMIT);
-    const datePredicate = view === "now" ? "open_date BETWEEN ? AND ?" : "open_date > ? AND open_date <= ?";
+    const datePredicate = view === "now"
+      ? `EXISTS (
+           SELECT 1 FROM theater_movies
+           WHERE theater_movies.normalized_title = movies.normalized_title
+         )`
+      : "open_date > ? AND open_date <= ?";
     const order = view === "now" ? "DESC" : "ASC";
-    const bounds = view === "now" ? [window.start, window.today] : [window.today, window.end];
+    const bounds = view === "now" ? [] : [window.today, window.end];
 
-    const [movieResult, sync] = await Promise.all([
+    const [movieResult, sync, theaterRefresh] = await Promise.all([
       db
         .prepare(
-          `SELECT movie_cd, title_ko, title_en, production_year, open_date,
+          `SELECT movie_cd, title_ko, normalized_title, title_en, production_year, open_date,
                   genre_text, nation_text, directors_json, tmdb_id, poster_url,
                   vote_average, vote_count
            FROM movies
@@ -154,11 +166,15 @@ export async function getReleaseCatalog(
         .bind(...bounds, safeLimit)
         .all<MovieRow>(),
       getSyncRow(),
+      getLatestTheaterRefresh(),
     ]);
 
     const rows = movieResult.results ?? [];
     const movieCodes = rows.map((row) => row.movie_cd);
     const providersByMovie = new Map<string, ReleaseProvider[]>();
+    const theatersByTitle = await getConfirmedTheatersByTitle(
+      rows.map((row) => row.title_ko),
+    );
 
     if (movieCodes.length) {
       const placeholders = movieCodes.map(() => "?").join(",");
@@ -199,9 +215,13 @@ export async function getReleaseCatalog(
         voteAverage: row.vote_average,
         voteCount: row.vote_count,
         providers: providersByMovie.get(row.movie_cd) ?? [],
+        theaters: theatersByTitle.get(row.normalized_title) ?? [],
       })),
       lastSuccessAt: sync?.last_success_at ?? null,
-      stale: !sync?.last_success_at || now - sync.last_success_at >= RELEASE_SYNC_INTERVAL_MS,
+      stale:
+        !sync?.last_success_at ||
+        now - sync.last_success_at >= RELEASE_SYNC_INTERVAL_MS ||
+        theaterRefresh.stale,
       unavailable: false,
     };
   } catch (error) {
@@ -244,11 +264,12 @@ function upsertMovieStatement(movie: KobisMovieSummary, now: number) {
   return getD1()
     .prepare(
       `INSERT INTO movies
-         (movie_cd, title_ko, title_en, production_year, open_date, genre_text,
-          nation_text, directors_json, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+         (movie_cd, title_ko, normalized_title, title_en, production_year, open_date,
+          genre_text, nation_text, directors_json, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(movie_cd) DO UPDATE SET
          title_ko = excluded.title_ko,
+         normalized_title = excluded.normalized_title,
          title_en = excluded.title_en,
          production_year = excluded.production_year,
          open_date = excluded.open_date,
@@ -260,6 +281,7 @@ function upsertMovieStatement(movie: KobisMovieSummary, now: number) {
     .bind(
       movie.movieCd,
       movie.titleKo,
+      normalizeTheaterTitle(movie.titleKo),
       movie.titleEn,
       movie.prdtYear,
       movie.openDt,

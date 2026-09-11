@@ -14,6 +14,8 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
+  // 매일 03:00(KST). 개봉작은 내부 7일 TTL로 건너뛰고 극장 상영 정보만 매일 갱신한다.
+  triggers: { crons: ["0 18 * * *"] },
   d1_databases: d1
     ? [
         {

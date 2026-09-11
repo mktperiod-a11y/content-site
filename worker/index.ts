@@ -1,6 +1,8 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { syncReleaseCatalog } from "../lib/release-catalog";
+import { syncTheaterCatalog } from "../lib/theater-catalog";
 
 interface Env {
   ASSETS: Fetcher;
@@ -64,6 +66,18 @@ const worker = {
     }
 
     return handler.fetch(request, env, ctx);
+  },
+
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext) {
+    (globalThis as typeof globalThis & { __WHERE_TO_WATCH_DB__?: D1Database })
+      .__WHERE_TO_WATCH_DB__ = env.DB;
+    for (const key of ["KOBIS_API_KEY", "TMDB_API_KEY"] as const) {
+      const value = env[key];
+      if (value) process.env[key] = value;
+    }
+    ctx.waitUntil(
+      Promise.allSettled([syncReleaseCatalog(), syncTheaterCatalog()]).then(() => undefined),
+    );
   },
 };
 

@@ -17,6 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        <meta content="development" name="codex-preview" />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );

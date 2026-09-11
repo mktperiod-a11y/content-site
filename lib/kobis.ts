@@ -415,3 +415,4 @@ export function formatKobisRuntime(minutes: string) {
   if (remaining === 0) return `${hours}시간`;
   return `${hours}시간 ${remaining}분`;
 }
+

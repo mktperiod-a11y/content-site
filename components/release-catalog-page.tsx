@@ -3,6 +3,7 @@ import { CalendarDays, Clapperboard, Star } from "lucide-react";
 
 import { ReleaseRefresh } from "@/components/release-refresh";
 import { SiteHeader } from "@/components/site-header";
+import { TheaterStatusBadge } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
 import {
   getReleaseCatalog,
@@ -52,6 +53,9 @@ function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
         <span className="absolute left-3 top-3 rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
           {formatOpenDate(movie.openDate)}
         </span>
+        {movie.theaters.length > 0 && (
+          <TheaterStatusBadge className="absolute right-3 top-3" />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
@@ -61,7 +65,7 @@ function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
           </h2>
           {movie.voteAverage !== null && movie.voteCount > 0 && (
             <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-xs font-black text-foreground">
-              <Star className="size-3.5 fill-brand text-brand-muted-icon" />
+              <Star className="size-3.5 text-brand" fill="currentColor" />
               {movie.voteAverage.toFixed(1)}
             </span>
           )}
@@ -148,7 +152,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
             <div className="max-w-3xl">
               <span className="inline-flex items-center gap-2 text-sm font-bold text-brand">
                 <CalendarDays className="size-4" />
-                하루 한 번 갱신되는 국내 개봉 정보
+                개봉 정보는 주 1회 · 상영 여부는 하루 1회 갱신
               </span>
               <h1 className="mt-4 break-keep text-4xl font-black leading-[1.12] tracking-[1px] text-on-dark-primary sm:text-6xl">
                 최신 개봉작과 예정작을
@@ -208,7 +212,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-bold text-muted-foreground">
-              {isUpcoming ? "곧 만날 작품" : "최근 60일 기준"}
+              {isUpcoming ? "곧 만날 작품" : "국내 극장 3사 현재상영작 기준"}
             </p>
             <h2 className="mt-1 text-2xl font-black tracking-[-0.02em] sm:text-3xl">
               {isUpcoming ? "개봉을 앞둔 영화" : "지금 극장에서 만날 영화"}

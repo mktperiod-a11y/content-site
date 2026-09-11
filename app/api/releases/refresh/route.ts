@@ -1,9 +1,13 @@
 import { syncReleaseCatalog } from "@/lib/release-catalog";
+import { syncTheaterCatalog } from "@/lib/theater-catalog";
 
 export async function POST() {
   try {
-    const result = await syncReleaseCatalog();
-    return Response.json(result);
+    const [releases, theaters] = await Promise.all([
+      syncReleaseCatalog(),
+      syncTheaterCatalog(),
+    ]);
+    return Response.json({ releases, theaters });
   } catch (error) {
     console.error("Release catalog refresh failed", error);
     return Response.json(

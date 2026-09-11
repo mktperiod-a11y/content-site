@@ -6,8 +6,9 @@ import { ArrowLeft, Info, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
-import { KdiskFlow } from "@/components/kdisk-flow";
+import { TheaterBookingLinks } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
+import { getTheaterStatuses } from "@/lib/theater-catalog";
 import {
   KobisApiError,
   formatKobisOpenDate,
@@ -150,7 +151,10 @@ export default async function MovieDetailPage({
   const runtime = formatKobisRuntime(movie.runtimeMinutes);
   const genre = movie.genres.join("·");
 
-  const tmdb = await getTmdbBundleCached(movie.titleKo, movie.prdtYear, movie.titleEn);
+  const [tmdb, theaterStatus] = await Promise.all([
+    getTmdbBundleCached(movie.titleKo, movie.prdtYear, movie.titleEn),
+    getTheaterStatuses(movie.titleKo),
+  ]);
   const subscriptionProviders = tmdb.providers?.subscription ?? [];
   const hasAnyProvider =
     subscriptionProviders.length > 0 ||
@@ -160,6 +164,9 @@ export default async function MovieDetailPage({
   const providerLookupSucceeded = !tmdb.failed && tmdb.movie !== null;
   const showRating = tmdb.movie && tmdb.movie.voteCount > 0;
   const lowConfidenceRating = tmdb.movie ? tmdb.movie.voteCount < LOW_VOTE_COUNT_THRESHOLD : false;
+  const showTheaterLinks =
+    theaterStatus.initialized &&
+    theaterStatus.statuses.some((status) => status.availability !== "unavailable");
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -382,6 +389,12 @@ export default async function MovieDetailPage({
             </div>
 
             <div className="flex flex-col gap-5">
+              {showTheaterLinks && (
+                <article className="rounded-[1.6rem] border border-border bg-card px-6 py-6 shadow-[0_22px_70px_rgba(25,35,55,0.08)] sm:px-8">
+                  <TheaterBookingLinks statuses={theaterStatus.statuses} />
+                </article>
+              )}
+
               {hasAnyProvider && tmdb.providers ? (
                 <article className="overflow-hidden rounded-[1.6rem] border border-border bg-card shadow-[0_22px_70px_rgba(25,35,55,0.08)]">
                   <div className="border-b border-border px-6 py-5 sm:px-8">
@@ -409,7 +422,12 @@ export default async function MovieDetailPage({
                 </article>
               ) : providerLookupSucceeded ? (
                 <>
-                  <KdiskFlow title={movie.titleKo} />
+                  <article className="rounded-[1.6rem] border border-border bg-card px-6 py-6 sm:px-8">
+                    <p className="text-lg font-bold">현재 확인된 국내 제공처가 없어요.</p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      제공처 정보는 변경될 수 있습니다. 이용 전 각 서비스에서 다시 확인해주세요.
+                    </p>
+                  </article>
                   <div className="rounded-[1.6rem] border border-border bg-card px-6 py-5">
                     <TmdbAttribution justWatchLink={tmdb.providers?.link} />
                   </div>

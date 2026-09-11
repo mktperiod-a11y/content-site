@@ -65,3 +65,4 @@ test("keeps discovery and comparison independent", () => {
   assert.doesNotMatch(pageSource, /tab=compare&add/);
   assert.doesNotMatch(comparisonSource, /api\/movies\/lookup/);
 });
+

@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HeaderSearch } from "@/components/header-search";
 import { SiteHeader } from "@/components/site-header";
+import { TheaterStatusBadge } from "@/components/theater-booking-links";
 import { PriceComparison } from "@/app/price-comparison";
 import { fetchMovieSearch, isSearchable } from "@/lib/movie-search";
 import type { KobisMovieSummary } from "@/lib/kobis";
@@ -102,6 +103,9 @@ function ResultCard({
           <div className="grid size-full place-items-center bg-gradient-to-br from-slate-100 to-slate-200">
             <Clapperboard className="size-6 text-slate-400" />
           </div>
+        )}
+        {Boolean(enriched?.theaters.length) && (
+          <TheaterStatusBadge className="absolute right-1.5 top-1.5 max-w-[calc(100%-0.75rem)] px-2 py-1 text-[9px]" />
         )}
       </div>
 

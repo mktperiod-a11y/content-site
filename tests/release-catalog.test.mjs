@@ -26,21 +26,45 @@ const headerSource = await readFile(
   new URL("../components/site-header.tsx", import.meta.url),
   "utf8",
 );
+const theaterSource = await readFile(
+  new URL("../lib/theater-catalog.ts", import.meta.url),
+  "utf8",
+);
+const workerSource = await readFile(
+  new URL("../worker/index.ts", import.meta.url),
+  "utf8",
+);
+const viteSource = await readFile(
+  new URL("../vite.config.ts", import.meta.url),
+  "utf8",
+);
 
 test("stores movie, provider, and sync state records in D1", () => {
   assert.match(schemaSource, /sqliteTable\(\s*"movies"/);
   assert.match(schemaSource, /sqliteTable\(\s*"movie_providers"/);
   assert.match(schemaSource, /sqliteTable\("sync_state"/);
+  assert.match(schemaSource, /sqliteTable\(\s*"theater_movies"/);
   assert.match(schemaSource, /idx_movies_open_date/);
   assert.match(schemaSource, /idx_movie_providers_movie_type/);
 });
 
-test("refreshes at most once per 24 hours and keeps prior rows on failure", () => {
-  assert.match(catalogSource, /RELEASE_SYNC_INTERVAL_MS = 24 \* 60 \* 60 \* 1000/);
+test("refreshes releases weekly and theater snapshots daily without deleting on source failure", () => {
+  assert.match(catalogSource, /RELEASE_SYNC_INTERVAL_MS = 7 \* 24 \* 60 \* 60 \* 1000/);
+  assert.match(theaterSource, /THEATER_SYNC_INTERVAL_MS = 24 \* 60 \* 60 \* 1000/);
   assert.match(catalogSource, /acquireSyncLock/);
   assert.match(catalogSource, /last_success_at <= \?/);
   assert.doesNotMatch(catalogSource, /DELETE FROM movies/);
   assert.match(catalogSource, /status = 'error'/);
+  assert.match(theaterSource, /DELETE FROM theater_movies WHERE theater_code = \? AND checked_at < \?/);
+  assert.match(workerSource, /syncTheaterCatalog/);
+  assert.match(viteSource, /0 18 \* \* \*/);
+});
+
+test("uses theater-company snapshots rather than a 60-day window for current screenings", () => {
+  assert.match(catalogSource, /EXISTS \(\s*SELECT 1 FROM theater_movies/);
+  assert.match(catalogSource, /theater_movies\.normalized_title = movies\.normalized_title/);
+  assert.match(pageSource, /국내 극장 3사 현재상영작 기준/);
+  assert.match(pageSource, /TheaterStatusBadge/);
 });
 
 test("renders crawlable release routes as an in-page chip switch", () => {

@@ -185,3 +185,4 @@ export function HeaderSearch({ onSearch }: { onSearch?: (query: string) => void 
     </form>
   );
 }
+

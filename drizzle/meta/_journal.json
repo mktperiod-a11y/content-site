@@ -8,6 +8,13 @@
       "when": 1788503339118,
       "tag": "0000_lyrical_iron_monger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789027347931,
+      "tag": "0001_friendly_vin_gonzales",
+      "breakpoints": true
     }
   ]
 }

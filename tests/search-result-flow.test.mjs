@@ -111,7 +111,7 @@ test("offers the same search from the header on every page", () => {
   assert.match(movieSearchSource, /MIN_SEARCH_LENGTH = 2/);
 
   // 홈 밖에서는 검색 탭으로 넘겨주고, 홈은 자기 결과 영역을 직접 갱신한다.
-  assert.match(headerSearchSource, /router\.push\(`\/\?q=\$\{encodeURIComponent\(trimmed\)\}`\)/);
+  assert.match(headerSearchSource, /router\.push\(`\/search\?q=\$\{encodeURIComponent\(trimmed\)\}`\)/);
   assert.match(pageSource, /onSearch=\{handleHeaderSearch\}/);
   assert.match(pageSource, /params\.get\("q"\)/);
   assert.match(siteHeaderSource, /search \?\? <HeaderSearch \/>/);

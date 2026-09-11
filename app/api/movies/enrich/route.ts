@@ -1,5 +1,7 @@
 import { findTmdbMatch, getTmdbWatchProvidersKR } from "@/lib/tmdb";
 import type { EnrichedMovie } from "@/lib/enrichment";
+import { getConfirmedTheatersByTitle } from "@/lib/theater-catalog";
+import { normalizeTheaterTitle } from "@/lib/theater-sources";
 
 /**
  * 검색 결과 목록에 포스터와 국내 제공처 칩을 붙이기 위한 배치 조회.
@@ -29,6 +31,10 @@ export async function POST(request: Request) {
   const items = (body.items ?? []).slice(0, MAX_ITEMS);
   if (!items.length) return Response.json({ movies: [] });
 
+  const theatersByTitle = await getConfirmedTheatersByTitle(
+    items.map((item) => item.titleKo),
+  );
+
   const movies = await Promise.all(
     items.map(async (item): Promise<EnrichedMovie> => {
       const fallback: EnrichedMovie = {
@@ -38,6 +44,7 @@ export async function POST(request: Request) {
         voteCount: 0,
         subscription: null,
         rentOrBuyCount: 0,
+        theaters: theatersByTitle.get(normalizeTheaterTitle(item.titleKo)) ?? [],
       };
 
       try {
@@ -56,6 +63,7 @@ export async function POST(request: Request) {
             logoUrl: provider.logoUrl,
           })),
           rentOrBuyCount: (providers?.rent.length ?? 0) + (providers?.buy.length ?? 0),
+          theaters: fallback.theaters,
         };
       } catch {
         // 개별 작품 조회 실패가 목록 전체를 막지 않도록 한다.

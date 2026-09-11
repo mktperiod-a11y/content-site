@@ -19,3 +19,4 @@ export async function fetchMovieSearch(query: string, limit: number, signal: Abo
   }
   return body.movies ?? [];
 }
+
