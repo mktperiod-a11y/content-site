@@ -8,7 +8,10 @@ import {
   getTmdbWatchProvidersKR,
   type WatchProvider,
 } from "@/lib/tmdb";
-import { getLatestTheaterRefresh } from "@/lib/theater-catalog";
+import {
+  getLatestTheaterRefresh,
+  SYNC_RETRY_COOLDOWN_MS,
+} from "@/lib/theater-catalog";
 import { normalizeTheaterTitle } from "@/lib/theater-sources";
 
 export const RELEASE_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -514,14 +517,16 @@ export async function syncReleaseCatalog() {
     return { refreshed: true, count: movies.length };
   } catch (error) {
     const message = error instanceof Error ? error.message.slice(0, 500) : "Unknown sync error";
+    const failedAt = Date.now();
+    // 실패 직후 재시도를 막는다 (lib/theater-catalog.ts의 주석 참고).
     await db
       .prepare(
         `UPDATE sync_state
-         SET lock_until = 0, lock_token = NULL, status = 'error',
+         SET lock_until = ?, lock_token = NULL, status = 'error',
              last_error = ?, updated_at = ?
          WHERE sync_key = ? AND lock_token = ?`,
       )
-      .bind(message, Date.now(), SYNC_KEY, token)
+      .bind(failedAt + SYNC_RETRY_COOLDOWN_MS, message, failedAt, SYNC_KEY, token)
       .run();
     throw error;
   }

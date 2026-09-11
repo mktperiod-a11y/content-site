@@ -92,6 +92,25 @@ test("renders crawlable release routes as an in-page chip switch", () => {
   assert.match(pageSource, /href=\{`\/movie\/\$\{movie\.movieCd\}`\}/);
 });
 
+test("backs off instead of retrying a failed sync on every visit", () => {
+  // 실패 직후 잠금을 풀어버리면 stale이 계속 true라, 방문자가 페이지를 열 때마다
+  // /api/releases/refresh가 자동으로 돌며 외부 API를 다시 때린다.
+  assert.match(theaterSource, /export const SYNC_RETRY_COOLDOWN_MS/);
+  for (const source of [theaterSource, catalogSource]) {
+    // 실패 경로가 lock_until을 0으로 되돌리지 않는다.
+    assert.match(source, /SET lock_until = \?, lock_token = NULL, status = 'error'/);
+    assert.match(source, /failedAt \+ SYNC_RETRY_COOLDOWN_MS/);
+  }
+  assert.doesNotMatch(
+    theaterSource,
+    /SET lock_until = 0, lock_token = NULL, status = 'error'/,
+  );
+  assert.doesNotMatch(
+    catalogSource,
+    /SET lock_until = 0, lock_token = NULL, status = 'error'/,
+  );
+});
+
 test("does not skip a daily sync because the previous run finished late", () => {
   // last_success_at 은 수집이 끝난 시각이라 크론이 뜬 시각보다 늘 조금 뒤다.
   // TTL 을 정확히 24시간으로 재면 다음 날 크론이 몇 초 차이로 튕겨

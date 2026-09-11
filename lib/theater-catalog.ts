@@ -16,6 +16,14 @@ const THEATER_LOCK_MS = 5 * 60 * 1000;
  * 크론 지터와 수집 소요 시간을 흡수할 여유를 둔다.
  */
 const SYNC_SLACK_MS = 60 * 60 * 1000;
+/**
+ * 수집이 실패하면 lock_until을 이만큼 앞으로 잡아 재시도를 잠시 막는다.
+ * 실패 직후 잠금을 풀어버리면, stale 상태가 계속 true라서 방문자가 페이지를
+ * 열 때마다 /api/releases/refresh가 자동으로 돌고 외부 API를 다시 때린다.
+ * 상대가 장애일 때 우리가 부하를 더 얹는 셈이라, 짧은 쿨다운을 둔다.
+ * 수집 주기(24시간/7일)보다 훨씬 짧아 정상 갱신을 늦추지 않는다.
+ */
+export const SYNC_RETRY_COOLDOWN_MS = 10 * 60 * 1000;
 
 export type TheaterAvailability = "confirmed" | "unavailable" | "unknown";
 
@@ -141,14 +149,15 @@ async function syncOneTheater(code: TheaterCode) {
     return { code, refreshed: true, count: movies.length };
   } catch (error) {
     const message = error instanceof Error ? error.message.slice(0, 500) : "Unknown sync error";
+    const failedAt = Date.now();
     await db
       .prepare(
         `UPDATE sync_state
-         SET lock_until = 0, lock_token = NULL, status = 'error',
+         SET lock_until = ?, lock_token = NULL, status = 'error',
              last_error = ?, updated_at = ?
          WHERE sync_key = ? AND lock_token = ?`,
       )
-      .bind(message, Date.now(), syncKey(code), token)
+      .bind(failedAt + SYNC_RETRY_COOLDOWN_MS, message, failedAt, syncKey(code), token)
       .run();
     return { code, refreshed: false, reason: "source_error" as const, error: message };
   }
