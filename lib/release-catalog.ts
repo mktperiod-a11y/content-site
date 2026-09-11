@@ -153,7 +153,8 @@ export async function getReleaseCatalog(
             `WITH theater_titles AS (
                SELECT normalized_title,
                       MIN(title_ko) AS title_ko,
-                      MAX(open_date) AS open_date
+                      MAX(open_date) AS open_date,
+                      COUNT(DISTINCT theater_code) AS theater_count
                FROM theater_movies
                GROUP BY normalized_title
              )
@@ -178,7 +179,7 @@ export async function getReleaseCatalog(
                ORDER BY candidate.open_date DESC
                LIMIT 1
              )
-             ORDER BY open_date DESC, title_ko ASC
+             ORDER BY theater_titles.theater_count DESC, open_date DESC, title_ko ASC
              LIMIT ?`,
           )
           .bind(safeLimit)

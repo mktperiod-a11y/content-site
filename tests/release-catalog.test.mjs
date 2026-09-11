@@ -71,6 +71,12 @@ test("uses theater-company snapshots rather than a 60-day window for current scr
   assert.match(catalogSource, /LEFT JOIN movies AS m/);
   assert.doesNotMatch(catalogSource, /WHERE booking_available = 1/);
   assert.match(pageSource, /지금 극장에서 만날 영화/);
+  // 3사 모두에 걸린 와이드 릴리즈를 단관 상영작보다 먼저 보여준다.
+  assert.match(catalogSource, /COUNT\(DISTINCT theater_code\) AS theater_count/);
+  assert.match(
+    catalogSource,
+    /ORDER BY theater_titles\.theater_count DESC, open_date DESC/,
+  );
   assert.doesNotMatch(pageSource, /TheaterStatusBadge/);
   assert.match(searchPageSource, /TheaterStatusBadge/);
   assert.match(theaterSource, /ss\.last_success_at >= \?/);
