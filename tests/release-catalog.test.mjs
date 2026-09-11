@@ -70,7 +70,7 @@ test("uses theater-company snapshots rather than a 60-day window for current scr
   assert.match(catalogSource, /FROM theater_movies/);
   assert.match(catalogSource, /LEFT JOIN movies AS m/);
   assert.doesNotMatch(catalogSource, /WHERE booking_available = 1/);
-  assert.match(pageSource, /국내 극장 3사 현재상영작 기준/);
+  assert.match(pageSource, /지금 극장에서 만날 영화/);
   assert.doesNotMatch(pageSource, /TheaterStatusBadge/);
   assert.match(searchPageSource, /TheaterStatusBadge/);
   assert.match(theaterSource, /ss\.last_success_at >= \?/);

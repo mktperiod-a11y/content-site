@@ -375,12 +375,8 @@ function HomeContent() {
             <div className="glow glow-one" aria-hidden="true" />
             <div className="glow glow-two" aria-hidden="true" />
 
-            <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-16 lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14">
+            <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14">
               <div>
-                <p className="mb-5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
-                  <span className="size-2 rounded-full bg-brand shadow-[0_0_14px_#ffd84d]" />
-                  작품별 시청 가능한 곳을 한 번에
-                </p>
                 <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
                   이 영화,
                   <br />

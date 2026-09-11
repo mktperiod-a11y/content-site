@@ -10,7 +10,6 @@ import {
   Plus,
   Search,
   Sparkles,
-  WalletCards,
   X,
 } from "lucide-react";
 
@@ -316,15 +315,13 @@ export function PriceComparison() {
     <>
       <section className="relative overflow-hidden bg-ink text-white">
         <div className="glow glow-one" aria-hidden="true" />
-        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16">
+        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem]">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div>
-              <p className="mb-5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-brand">
-                <WalletCards className="size-4.5" />
-                구독 효용 계산기
-              </p>
-              <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
-                보고 싶은 작품으로<br />구독료를 비교해보세요
+              <h1 className="max-w-4xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
+                보고 싶은 작품으로
+                <br />
+                구독료를 비교해보세요
               </h1>
               <p className="mt-5 max-w-3xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg sm:leading-8">
                 최대 5편을 고르면 가장 많이 볼 수 있는 한 곳과

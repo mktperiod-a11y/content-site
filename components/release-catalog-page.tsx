@@ -10,6 +10,11 @@ import {
   type ReleaseView,
 } from "@/lib/release-catalog";
 
+/** 첫 화면에 한 번에 그리는 카드 수. 나머지는 "더 보기"로 펼친다. */
+const INITIAL_VISIBLE_COUNT = 20;
+const GRID_CLASS_NAME =
+  "mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5";
+
 function formatOpenDate(value: string) {
   if (!/^\d{8}$/.test(value)) return "개봉일 미정";
   return `${Number(value.slice(4, 6))}월 ${Number(value.slice(6, 8))}일`;
@@ -155,20 +160,18 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
       />
 
       <section className="overflow-hidden bg-ink text-white">
-        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16">
+        <div className="relative mx-auto flex max-w-6xl flex-col justify-center px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem]">
           <div className="glow glow-one" aria-hidden="true" />
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 text-sm font-bold text-brand">
-                <CalendarDays className="size-4" />
-                개봉 정보는 주 1회 · 상영 여부는 하루 1회 갱신
-              </span>
-              <h1 className="mt-4 text-[2rem] font-black leading-[1.16] tracking-[1px] text-on-dark-primary sm:break-keep sm:text-6xl sm:leading-[1.12]">
-                최신 개봉작과 예정작을
-                <br className="hidden sm:block" /> 한곳에서 살펴보세요
+              <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
+                지금 극장에 걸린 영화,
+                <br />
+                어디서 볼 수 있나요?
               </h1>
-              <p className="mt-5 max-w-2xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg">
-                개봉일과 포스터를 확인하고, 관심 있는 작품의 국내 OTT 제공처를 살펴보세요.
+              <p className="mt-5 max-w-2xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg sm:leading-8">
+                상영 중인 작품과 개봉을 앞둔 작품을 훑어보고, 관심 가는 영화의
+                국내 OTT 제공처까지 이어서 확인하세요.
               </p>
 
               <nav
@@ -220,10 +223,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
       <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-bold text-muted-foreground">
-              {isUpcoming ? "곧 만날 작품" : "국내 극장 3사 현재상영작 기준"}
-            </p>
-            <h2 className="mt-1 text-2xl font-black tracking-[-0.02em] sm:text-3xl">
+            <h2 className="text-2xl font-black tracking-[-0.02em] sm:text-3xl">
               {isUpcoming ? "개봉을 앞둔 영화" : "지금 극장에서 만날 영화"}
             </h2>
           </div>
@@ -238,15 +238,36 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
         </div>
 
         {catalog.movies.length ? (
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
-            {catalog.movies.map((movie) => (
-              <ReleaseMovieCard
-                key={`${movie.movieCd ?? movie.titleKo}-${movie.openDate}`}
-                movie={movie}
-                view={view}
-              />
-            ))}
-          </div>
+          <>
+            <div className={GRID_CLASS_NAME}>
+              {catalog.movies.slice(0, INITIAL_VISIBLE_COUNT).map((movie) => (
+                <ReleaseMovieCard
+                  key={`${movie.movieCd ?? movie.titleKo}-${movie.openDate}`}
+                  movie={movie}
+                  view={view}
+                />
+              ))}
+            </div>
+            {catalog.movies.length > INITIAL_VISIBLE_COUNT && (
+              <details className="group mt-6">
+                <summary className="mx-auto flex min-h-12 w-full max-w-xs cursor-pointer list-none items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-bold text-foreground transition-colors hover:border-brand-muted hover:bg-brand-soft">
+                  <span className="group-open:hidden">
+                    {catalog.movies.length - INITIAL_VISIBLE_COUNT}편 더 보기
+                  </span>
+                  <span className="hidden group-open:inline">접기</span>
+                </summary>
+                <div className={GRID_CLASS_NAME}>
+                  {catalog.movies.slice(INITIAL_VISIBLE_COUNT).map((movie) => (
+                    <ReleaseMovieCard
+                      key={`${movie.movieCd ?? movie.titleKo}-${movie.openDate}`}
+                      movie={movie}
+                      view={view}
+                    />
+                  ))}
+                </div>
+              </details>
+            )}
+          </>
         ) : (
           <div className="mt-8 flex min-h-64 flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card px-6 text-center">
             <Clapperboard className="size-9 text-muted-foreground/50" />

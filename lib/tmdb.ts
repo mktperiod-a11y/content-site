@@ -21,7 +21,9 @@ export class TmdbApiError extends Error {
 function getApiKey() {
   const key = process.env.TMDB_API_KEY;
   if (!key) {
-    throw new TmdbApiError("TMDB_API_KEY가 설정되지 않았어요.");
+    // 설정 누락은 운영자가 볼 로그에만 남긴다. 사용자에게 환경변수 이름을 보여주지 않는다.
+    console.error("TMDB_API_KEY is not configured");
+    throw new TmdbApiError("지금은 작품 정보를 불러올 수 없어요. 잠시 후 다시 시도해주세요.");
   }
   return key;
 }
