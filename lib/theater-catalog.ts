@@ -9,6 +9,13 @@ import {
 
 export const THEATER_SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const THEATER_LOCK_MS = 5 * 60 * 1000;
+/**
+ * last_success_at은 수집이 "끝난" 시각이라 크론이 뜬 시각보다 항상 조금 뒤다.
+ * 그래서 TTL을 정확히 24시간으로 재면 다음 날 같은 시각의 크론이 매번
+ * 몇 초 차이로 튕겨서 실제로는 이틀에 한 번만 수집된다.
+ * 크론 지터와 수집 소요 시간을 흡수할 여유를 둔다.
+ */
+const SYNC_SLACK_MS = 60 * 60 * 1000;
 
 export type TheaterAvailability = "confirmed" | "unavailable" | "unknown";
 
@@ -66,7 +73,7 @@ async function acquireLock(code: TheaterCode, now: number, token: string) {
       now + THEATER_LOCK_MS,
       token,
       now,
-      now - THEATER_SYNC_INTERVAL_MS,
+      now - (THEATER_SYNC_INTERVAL_MS - SYNC_SLACK_MS),
       now,
     )
     .run();

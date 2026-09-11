@@ -86,6 +86,51 @@ test("renders crawlable release routes as an in-page chip switch", () => {
   assert.match(pageSource, /href=\{`\/movie\/\$\{movie\.movieCd\}`\}/);
 });
 
+test("does not skip a daily sync because the previous run finished late", () => {
+  // last_success_at 은 수집이 끝난 시각이라 크론이 뜬 시각보다 늘 조금 뒤다.
+  // TTL 을 정확히 24시간으로 재면 다음 날 크론이 몇 초 차이로 튕겨
+  // 실제 수집이 이틀에 한 번만 돈다. 잠금 조건의 여유를 확인한다.
+  assert.match(theaterSource, /SYNC_SLACK_MS/);
+  assert.match(
+    theaterSource,
+    /now - \(THEATER_SYNC_INTERVAL_MS - SYNC_SLACK_MS\)/,
+  );
+  assert.match(
+    catalogSource,
+    /now - \(RELEASE_SYNC_INTERVAL_MS - SYNC_SLACK_MS\)/,
+  );
+
+  const DAY = 24 * 60 * 60 * 1000;
+  const SLACK = 60 * 60 * 1000;
+  const RUN_DURATION = 45 * 1000;
+  // 크론이 매일 같은 시각에 뜨고, 수집은 45초 걸린다고 본다.
+  const canAcquire = (lastSuccessAt, now, slack) =>
+    lastSuccessAt === null || lastSuccessAt <= now - (DAY - slack);
+
+  let lastSuccessAt = null;
+  const acquiredWithoutSlack = [];
+  for (let day = 0; day < 4; day += 1) {
+    const cronAt = day * DAY;
+    if (canAcquire(lastSuccessAt, cronAt, 0)) {
+      acquiredWithoutSlack.push(day);
+      lastSuccessAt = cronAt + RUN_DURATION;
+    }
+  }
+  // 여유가 없으면 격일로만 수집된다 (이게 버그였다).
+  assert.deepEqual(acquiredWithoutSlack, [0, 2]);
+
+  lastSuccessAt = null;
+  const acquiredWithSlack = [];
+  for (let day = 0; day < 4; day += 1) {
+    const cronAt = day * DAY;
+    if (canAcquire(lastSuccessAt, cronAt, SLACK)) {
+      acquiredWithSlack.push(day);
+      lastSuccessAt = cronAt + RUN_DURATION;
+    }
+  }
+  assert.deepEqual(acquiredWithSlack, [0, 1, 2, 3]);
+});
+
 test("keeps posterless upcoming cards from breaking apart", () => {
   // grid + place-items-center 는 자식 둘을 각각 다른 행에 중앙 정렬해
   // 포스터가 없는 카드에서 아이콘과 문구가 카드 높이만큼 벌어졌다.

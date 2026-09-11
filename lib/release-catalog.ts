@@ -16,6 +16,8 @@ import { normalizeTheaterTitle, type TheaterCode } from "@/lib/theater-sources";
 
 export const RELEASE_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 const RELEASE_LOCK_MS = 5 * 60 * 1000;
+/** 크론 지터와 수집 소요 시간을 흡수하는 여유 (lib/theater-catalog.ts 주석 참고) */
+const SYNC_SLACK_MS = 60 * 60 * 1000;
 const CURRENT_LOOKBACK_DAYS = 60;
 const UPCOMING_LOOKAHEAD_DAYS = 120;
 const CURRENT_PAGE_LIMIT = 200;
@@ -281,7 +283,7 @@ async function acquireSyncLock(now: number, token: string) {
       now + RELEASE_LOCK_MS,
       token,
       now,
-      now - RELEASE_SYNC_INTERVAL_MS,
+      now - (RELEASE_SYNC_INTERVAL_MS - SYNC_SLACK_MS),
       now,
     )
     .run();
