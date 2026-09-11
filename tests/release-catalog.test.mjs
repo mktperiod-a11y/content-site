@@ -173,7 +173,10 @@ test("keeps release browsing in the primary navigation with clear return paths",
 
 test("aligns the release hero with the core tabs and summarizes both lists", () => {
   assert.match(pageSource, /lg:grid-cols-\[minmax\(0,1fr\)_12rem\]/);
-  assert.match(pageSource, /nowCatalog\.movies\.length/);
-  assert.match(pageSource, /upcomingCatalog\.movies\.length/);
+  // 반대쪽 목록은 편수만 필요해 집계 한 번으로 대체했다(getReleaseCount).
+  assert.match(pageSource, /\{nowCount\}편/);
+  assert.match(pageSource, /\{upcomingCount\}편/);
+  assert.match(pageSource, /getReleaseCount\(isUpcoming \? "now" : "upcoming"\)/);
+  assert.match(catalogSource, /export async function getReleaseCount/);
   assert.match(pageSource, /tracking-\[1px\]/);
 });

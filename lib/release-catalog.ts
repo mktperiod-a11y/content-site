@@ -8,11 +8,8 @@ import {
   getTmdbWatchProvidersKR,
   type WatchProvider,
 } from "@/lib/tmdb";
-import {
-  getConfirmedTheatersByTitle,
-  getLatestTheaterRefresh,
-} from "@/lib/theater-catalog";
-import { normalizeTheaterTitle, type TheaterCode } from "@/lib/theater-sources";
+import { getLatestTheaterRefresh } from "@/lib/theater-catalog";
+import { normalizeTheaterTitle } from "@/lib/theater-sources";
 
 export const RELEASE_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 const RELEASE_LOCK_MS = 5 * 60 * 1000;
@@ -48,7 +45,6 @@ export type ReleaseMovie = {
   voteAverage: number | null;
   voteCount: number;
   providers: ReleaseProvider[];
-  theaters: TheaterCode[];
 };
 
 export type ReleaseCatalogResult = {
@@ -195,10 +191,17 @@ export async function getReleaseCatalog(
           )
           .bind(window.today, window.end, safeLimit);
 
-    const [movieResult, sync, theaterRefresh] = await Promise.all([
+    // 목록 갱신 시각은 view마다 출처가 다르다. 쓰지 않는 쪽은 조회하지 않는다.
+    const [movieResult, freshness] = await Promise.all([
       movieQuery.all<MovieRow>(),
-      getSyncRow(),
-      getLatestTheaterRefresh(),
+      view === "now"
+        ? getLatestTheaterRefresh()
+        : getSyncRow().then((sync) => ({
+            lastSuccessAt: sync?.last_success_at ?? null,
+            stale:
+              !sync?.last_success_at ||
+              now - sync.last_success_at >= RELEASE_SYNC_INTERVAL_MS,
+          })),
     ]);
 
     const rows = movieResult.results ?? [];
@@ -206,9 +209,6 @@ export async function getReleaseCatalog(
       .map((row) => row.movie_cd)
       .filter((movieCd): movieCd is string => Boolean(movieCd));
     const providersByMovie = new Map<string, ReleaseProvider[]>();
-    const theatersByTitle = await getConfirmedTheatersByTitle(
-      rows.map((row) => row.title_ko),
-    );
 
     if (movieCodes.length) {
       const placeholders = movieCodes.map(() => "?").join(",");
@@ -249,17 +249,54 @@ export async function getReleaseCatalog(
         voteAverage: row.vote_average,
         voteCount: row.vote_count,
         providers: row.movie_cd ? providersByMovie.get(row.movie_cd) ?? [] : [],
-        theaters: theatersByTitle.get(row.normalized_title) ?? [],
       })),
-      lastSuccessAt: view === "now" ? theaterRefresh.lastSuccessAt : sync?.last_success_at ?? null,
-      stale: view === "now"
-        ? theaterRefresh.stale
-        : !sync?.last_success_at || now - sync.last_success_at >= RELEASE_SYNC_INTERVAL_MS,
+      lastSuccessAt: freshness.lastSuccessAt,
+      stale: freshness.stale,
       unavailable: false,
     };
   } catch (error) {
     console.error("Failed to read release catalog", error);
     return { movies: [], lastSuccessAt: null, stale: true, unavailable: true };
+  }
+}
+
+/**
+ * 히어로의 "최신 N편 / 예정 M편" 표시에만 쓰는 집계.
+ *
+ * 화면에는 현재 보고 있는 목록과 반대쪽 편수가 같이 나오는데, 그 숫자 하나를
+ * 위해 getReleaseCatalog를 한 번 더 돌리면 목록·제공처·극장 조회까지 전부
+ * 따라온다. 같은 조건과 같은 상한(LIMIT)을 써서 목록 길이와 정확히 같은 값을
+ * 돌려주되, 조회는 한 번으로 끝낸다.
+ */
+export async function getReleaseCount(view: ReleaseView): Promise<number> {
+  try {
+    const db = getD1();
+    const window = getReleaseWindow();
+    const limit = view === "now" ? CURRENT_PAGE_LIMIT : UPCOMING_PAGE_LIMIT;
+    const row = view === "now"
+      ? await db
+          .prepare(
+            `SELECT COUNT(*) AS count FROM (
+               SELECT 1 FROM theater_movies GROUP BY normalized_title LIMIT ?
+             )`,
+          )
+          .bind(limit)
+          .first<{ count: number }>()
+      : await db
+          .prepare(
+            `SELECT COUNT(*) AS count FROM (
+               SELECT 1 FROM movies
+               WHERE open_date > ? AND open_date <= ?
+               LIMIT ?
+             )`,
+          )
+          .bind(window.today, window.end, limit)
+          .first<{ count: number }>();
+    return row?.count ?? 0;
+  } catch (error) {
+    // 목록 조회가 실패했을 때와 같게 0으로 떨어뜨린다.
+    console.error("Failed to count releases", error);
+    return 0;
   }
 }
 

@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
 import {
   getReleaseCatalog,
+  getReleaseCount,
   type ReleaseMovie,
   type ReleaseView,
 } from "@/lib/release-catalog";
@@ -124,11 +125,13 @@ function ReleaseMovieCard({ movie, view }: { movie: ReleaseMovie; view: ReleaseV
 
 export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
   const isUpcoming = view === "upcoming";
-  const [nowCatalog, upcomingCatalog] = await Promise.all([
-    getReleaseCatalog("now"),
-    getReleaseCatalog("upcoming"),
+  // 반대쪽 목록은 히어로에 편수만 쓰이므로 집계 한 번으로 끝낸다.
+  const [catalog, otherCount] = await Promise.all([
+    getReleaseCatalog(view),
+    getReleaseCount(isUpcoming ? "now" : "upcoming"),
   ]);
-  const catalog = isUpcoming ? upcomingCatalog : nowCatalog;
+  const nowCount = isUpcoming ? otherCount : catalog.movies.length;
+  const upcomingCount = isUpcoming ? catalog.movies.length : otherCount;
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -208,11 +211,11 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
               <dl className="mt-3 space-y-2.5 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-on-dark-secondary">최신</dt>
-                  <dd className="font-black text-brand">{nowCatalog.movies.length}편</dd>
+                  <dd className="font-black text-brand">{nowCount}편</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-on-dark-secondary">예정</dt>
-                  <dd className="font-black text-brand">{upcomingCatalog.movies.length}편</dd>
+                  <dd className="font-black text-brand">{upcomingCount}편</dd>
                 </div>
               </dl>
             </aside>
