@@ -1,6 +1,5 @@
 import { getSitemapMovieCodes } from "@/lib/release-catalog";
-
-const FALLBACK_SITE_URL = "https://where-to-watch-kr.so0yeon.chatgpt.site";
+import { getSiteUrl } from "@/lib/site";
 
 function escapeXml(value: string) {
   return value
@@ -22,7 +21,7 @@ function urlEntry(
 }
 
 export async function GET() {
-  const siteUrl = (process.env.PUBLIC_SITE_URL || FALLBACK_SITE_URL).replace(/\/$/, "");
+  const siteUrl = getSiteUrl();
   const movies = await getSitemapMovieCodes();
   const now = new Date();
   // 루트는 /movies/now 로 리다이렉트하고 검색 화면은 noindex라 둘 다 뺀다.

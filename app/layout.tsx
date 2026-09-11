@@ -1,12 +1,34 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { getSiteUrl } from "@/lib/site";
+
+const TITLE = "어디서 보지? | 작품별 OTT 제공처 찾기";
+const DESCRIPTION =
+  "보고 싶은 영화와 드라마를 검색하고 국내 OTT 구독·대여·구매 제공처를 확인하세요.";
 
 export const metadata: Metadata = {
-  title: "어디서 보지? | 작품별 OTT 제공처 찾기",
-  description: "보고 싶은 영화와 드라마를 검색하고 국내 OTT 구독·대여·구매 제공처를 확인하세요.",
+  // 하위 페이지가 상대 경로로 canonical·og:url을 써도 절대 주소로 풀리게 한다.
+  metadataBase: new URL(getSiteUrl()),
+  title: TITLE,
+  description: DESCRIPTION,
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
+  },
+  // 링크를 공유했을 때 미리보기가 뜨도록 한다. 각 페이지의 title/description을
+  // 그대로 물려받으므로 페이지별로 따로 적을 필요가 없다.
+  openGraph: {
+    type: "website",
+    siteName: "어디서 보지?",
+    locale: "ko_KR",
+    url: "/",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
   },
 };
 
