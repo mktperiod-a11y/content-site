@@ -3,7 +3,6 @@ import { CalendarDays, Clapperboard, Star } from "lucide-react";
 
 import { ReleaseRefresh } from "@/components/release-refresh";
 import { SiteHeader } from "@/components/site-header";
-import { TheaterStatusBadge } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
 import {
   getReleaseCatalog,
@@ -51,9 +50,6 @@ function ReleaseMovieCard({ movie }: { movie: ReleaseMovie }) {
         <span className="absolute left-3 top-3 rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
           {formatOpenDate(movie.openDate)}
         </span>
-        {movie.theaters.length > 0 && (
-          <TheaterStatusBadge className="absolute right-3 top-3" />
-        )}
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
@@ -240,7 +236,10 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
         {catalog.movies.length ? (
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
             {catalog.movies.map((movie) => (
-              <ReleaseMovieCard key={movie.movieCd} movie={movie} />
+              <ReleaseMovieCard
+                key={`${movie.movieCd ?? movie.titleKo}-${movie.openDate}`}
+                movie={movie}
+              />
             ))}
           </div>
         ) : (

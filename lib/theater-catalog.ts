@@ -187,23 +187,24 @@ export async function getTheaterStatuses(title: string) {
     const rows = movieResult.results ?? [];
     const states = new Map((stateResult.results ?? []).map((row) => [row.sync_key, row]));
     const now = Date.now();
-    const initialized = THEATER_CODES.some((code) => Boolean(states.get(syncKey(code))?.last_success_at));
+    const initialized = THEATER_CODES.some((code) => states.has(syncKey(code)));
 
     return {
       initialized,
       statuses: THEATER_CODES.map((code): TheaterStatus => {
         const row = rows.find((item) => item.theater_code === code);
-        if (row) {
-          return {
-            code,
-            availability: "confirmed",
-            bookingAvailable: Boolean(row.booking_available),
-          };
-        }
         const state = states.get(syncKey(code));
         const isFresh = Boolean(
           state?.last_success_at && now - state.last_success_at < THEATER_SYNC_INTERVAL_MS * 2,
         );
+        if (row) {
+          return {
+            code,
+            availability:
+              isFresh && state?.status !== "error" ? "confirmed" : "unknown",
+            bookingAvailable: Boolean(row.booking_available),
+          };
+        }
         return {
           code,
           availability: isFresh && state?.status !== "error" ? "unavailable" : "unknown",
@@ -224,12 +225,18 @@ export async function getConfirmedTheatersByTitle(titles: string[]) {
 
   try {
     const placeholders = normalized.map(() => "?").join(",");
+    const freshnessThreshold = Date.now() - THEATER_SYNC_INTERVAL_MS * 2;
     const rows = await getD1()
       .prepare(
-        `SELECT theater_code, normalized_title, booking_available
-         FROM theater_movies WHERE normalized_title IN (${placeholders})`,
+        `SELECT tm.theater_code, tm.normalized_title, tm.booking_available
+         FROM theater_movies AS tm
+         INNER JOIN sync_state AS ss
+           ON ss.sync_key = 'theater:' || tm.theater_code
+         WHERE tm.normalized_title IN (${placeholders})
+           AND ss.last_success_at >= ?
+           AND ss.status != 'error'`,
       )
-      .bind(...normalized)
+      .bind(...normalized, freshnessThreshold)
       .all<TheaterRow>();
     for (const row of rows.results ?? []) {
       const current = result.get(row.normalized_title) ?? [];
@@ -259,6 +266,7 @@ export async function getLatestTheaterRefresh() {
       lastSuccessAt: successes.length ? Math.min(...successes) : null,
       stale:
         successes.length !== THEATER_CODES.length ||
+        (rows.results ?? []).some((row) => row.status === "error") ||
         Date.now() - Math.min(...successes) >= THEATER_SYNC_INTERVAL_MS,
     };
   } catch {

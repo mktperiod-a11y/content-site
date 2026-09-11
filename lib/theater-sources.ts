@@ -133,7 +133,7 @@ export function parseMegaboxMovies(payload: unknown, today = koreaToday()): Thea
       titleKo,
       normalizedTitle,
       openDate,
-      bookingAvailable: isYes(value.bokdAbleYn || value.bokdAbleAt),
+      bookingAvailable: isYes(value.bokdAbleYn) || isYes(value.bokdAbleAt),
     }];
   });
 }

@@ -18,7 +18,8 @@ export const RELEASE_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 const RELEASE_LOCK_MS = 5 * 60 * 1000;
 const CURRENT_LOOKBACK_DAYS = 60;
 const UPCOMING_LOOKAHEAD_DAYS = 120;
-const RELEASE_PAGE_LIMIT = 24;
+const CURRENT_PAGE_LIMIT = 200;
+const UPCOMING_PAGE_LIMIT = 24;
 const ENRICHMENT_LIMIT_PER_VIEW = 24;
 const SYNC_KEY = "release_catalog";
 
@@ -136,13 +137,14 @@ async function getSyncRow(): Promise<SyncRow | null> {
 
 export async function getReleaseCatalog(
   view: ReleaseView,
-  limit = RELEASE_PAGE_LIMIT,
+  limit = view === "now" ? CURRENT_PAGE_LIMIT : UPCOMING_PAGE_LIMIT,
 ): Promise<ReleaseCatalogResult> {
   try {
     const db = getD1();
     const now = Date.now();
     const window = getReleaseWindow(new Date(now));
-    const safeLimit = Math.min(Math.max(limit, 1), RELEASE_PAGE_LIMIT);
+    const maxLimit = view === "now" ? CURRENT_PAGE_LIMIT : UPCOMING_PAGE_LIMIT;
+    const safeLimit = Math.min(Math.max(limit, 1), maxLimit);
     const movieQuery = view === "now"
       ? db
           .prepare(
@@ -151,7 +153,6 @@ export async function getReleaseCatalog(
                       MIN(title_ko) AS title_ko,
                       MAX(open_date) AS open_date
                FROM theater_movies
-               WHERE booking_available = 1
                GROUP BY normalized_title
              )
              SELECT m.movie_cd,

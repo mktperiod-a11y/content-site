@@ -14,6 +14,10 @@ const pageSource = await readFile(
   new URL("../components/release-catalog-page.tsx", import.meta.url),
   "utf8",
 );
+const searchPageSource = await readFile(
+  new URL("../app/search/page.tsx", import.meta.url),
+  "utf8",
+);
 const sitemapSource = await readFile(
   new URL("../app/sitemap.xml/route.ts", import.meta.url),
   "utf8",
@@ -61,11 +65,16 @@ test("refreshes releases weekly and theater snapshots daily without deleting on 
 });
 
 test("uses theater-company snapshots rather than a 60-day window for current screenings", () => {
+  assert.match(catalogSource, /CURRENT_PAGE_LIMIT = 200/);
   assert.match(catalogSource, /WITH theater_titles AS/);
   assert.match(catalogSource, /FROM theater_movies/);
   assert.match(catalogSource, /LEFT JOIN movies AS m/);
+  assert.doesNotMatch(catalogSource, /WHERE booking_available = 1/);
   assert.match(pageSource, /국내 극장 3사 현재상영작 기준/);
-  assert.match(pageSource, /TheaterStatusBadge/);
+  assert.doesNotMatch(pageSource, /TheaterStatusBadge/);
+  assert.match(searchPageSource, /TheaterStatusBadge/);
+  assert.match(theaterSource, /ss\.last_success_at >= \?/);
+  assert.match(theaterSource, /ss\.status != 'error'/);
 });
 
 test("renders crawlable release routes as an in-page chip switch", () => {
@@ -73,6 +82,7 @@ test("renders crawlable release routes as an in-page chip switch", () => {
   assert.match(pageSource, /href="\/movies\/upcoming"/);
   assert.match(pageSource, /aria-current=/);
   assert.match(pageSource, /movie\.movieCd \?/);
+  assert.match(pageSource, /movie\.movieCd \?\? movie\.titleKo/);
   assert.match(pageSource, /href=\{`\/movie\/\$\{movie\.movieCd\}`\}/);
 });
 

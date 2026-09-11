@@ -49,6 +49,16 @@ test("keeps Megabox current releases and removes future titles", () => {
   ]);
 });
 
+test("accepts either Megabox booking flag", () => {
+  const payload = {
+    totCnt: 1,
+    movieList: [
+      { movieNo: "1", movieNm: "상영작", rfilmDe: "20260902", movieStatCd: "MSC01", bokdAbleYn: "N", bokdAbleAt: "Y" },
+    ],
+  };
+  assert.equal(parseMegaboxMovies(payload, "20260910")[0]?.bookingAvailable, true);
+});
+
 test("removes Lotte ads, ended titles, and future titles", () => {
   const payload = {
     Movies: {
