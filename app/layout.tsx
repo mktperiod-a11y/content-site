@@ -3,6 +3,13 @@ import "./globals.css";
 import { getSiteUrl } from "@/lib/site";
 
 const TITLE = "어디서 보지? | 작품별 OTT 제공처 찾기";
+/** 원본은 scripts/og-image.html. 브라우저로 열어 1200x630으로 캡처하면 교체할 수 있다. */
+const OG_IMAGE = {
+  url: "/og.png",
+  width: 1200,
+  height: 630,
+  alt: "어디서 보지? — 이 영화, 어디서 볼 수 있나요?",
+};
 const DESCRIPTION =
   "보고 싶은 영화와 드라마를 검색하고 국내 OTT 구독·대여·구매 제공처를 확인하세요.";
 
@@ -24,11 +31,13 @@ export const metadata: Metadata = {
     url: "/",
     title: TITLE,
     description: DESCRIPTION,
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
+    images: [OG_IMAGE.url],
   },
 };
 
