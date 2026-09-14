@@ -28,6 +28,8 @@ const CURRENT_PAGE_LIMIT = 200;
 const UPCOMING_PAGE_LIMIT = 24;
 const ENRICHMENT_LIMIT_PER_VIEW = 24;
 const SYNC_KEY = "release_catalog";
+const RE_RELEASE_MIN_AGE_DAYS = 365;
+const RE_RELEASE_MIN_YEAR_GAP = 3;
 
 export type ReleaseView = "now" | "upcoming";
 
@@ -53,6 +55,7 @@ export type ReleaseMovie = {
   voteCount: number;
   providers: ReleaseProvider[];
   theaters: TheaterCode[];
+  isReRelease: boolean;
 };
 
 export type ReleaseCatalogResult = {
@@ -120,6 +123,49 @@ function getKoreaDateString(date: Date) {
 
 function addDays(date: Date, days: number) {
   return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+}
+
+function compactDateToUtc(value: string) {
+  if (!/^\d{8}$/.test(value)) return null;
+  const year = Number(value.slice(0, 4));
+  const month = Number(value.slice(4, 6));
+  const day = Number(value.slice(6, 8));
+  const timestamp = Date.UTC(year, month - 1, day);
+  const parsed = new Date(timestamp);
+
+  return parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day
+    ? timestamp
+    : null;
+}
+
+/**
+ * 극장 3사에 공통인 신뢰 가능한 재개봉 필드가 없어 보수적으로 추정한다.
+ * 이미 1년 이상 지난 개봉작이 다시 상영 중이거나, 제작연도와 현재 개봉일이
+ * 3년 이상 벌어진 경우만 재개봉으로 표시한다.
+ */
+export function isLikelyReRelease(
+  openDate: string,
+  productionYear: string,
+  today: string,
+) {
+  const openTimestamp = compactDateToUtc(openDate);
+  const todayTimestamp = compactDateToUtc(today);
+  if (openTimestamp === null || todayTimestamp === null || openTimestamp > todayTimestamp) {
+    return false;
+  }
+
+  const isOldRelease =
+    todayTimestamp - openTimestamp >= RE_RELEASE_MIN_AGE_DAYS * 24 * 60 * 60 * 1000;
+  const productionYearValue = /^\d{4}$/.test(productionYear)
+    ? Number(productionYear)
+    : null;
+  const hasLargeYearGap =
+    productionYearValue !== null &&
+    Number(openDate.slice(0, 4)) - productionYearValue >= RE_RELEASE_MIN_YEAR_GAP;
+
+  return isOldRelease || hasLargeYearGap;
 }
 
 export function getReleaseWindow(now = new Date()) {
@@ -261,6 +307,9 @@ export async function getReleaseCatalog(
         voteCount: row.vote_count,
         providers: row.movie_cd ? providersByMovie.get(row.movie_cd) ?? [] : [],
         theaters: theatersByTitle.get(normalizeTheaterTitle(row.title_ko)) ?? [],
+        isReRelease:
+          view === "now" &&
+          isLikelyReRelease(row.open_date, row.production_year, window.today),
       })),
       lastSuccessAt: freshness.lastSuccessAt,
       stale: freshness.stale,

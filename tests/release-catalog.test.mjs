@@ -80,9 +80,20 @@ test("uses theater-company snapshots rather than a 60-day window for current scr
   assert.match(catalogSource, /getConfirmedTheatersByTitle/);
   assert.match(catalogSource, /theaters: theatersByTitle\.get/);
   assert.match(pageSource, /TheaterChainBadges/);
-  assert.match(searchPageSource, /TheaterStatusBadge/);
+  assert.doesNotMatch(searchPageSource, /TheaterStatusBadge/);
   assert.match(theaterSource, /ss\.last_success_at >= \?/);
   assert.match(theaterSource, /ss\.status != 'error'/);
+});
+
+test("labels likely rereleases and keeps release-card metadata consistent", () => {
+  assert.match(catalogSource, /export function isLikelyReRelease/);
+  assert.match(catalogSource, /RE_RELEASE_MIN_AGE_DAYS = 365/);
+  assert.match(catalogSource, /RE_RELEASE_MIN_YEAR_GAP = 3/);
+  assert.match(pageSource, /movie\.isReRelease \? "재개봉"/);
+  assert.match(pageSource, /formatMovieMetadata/);
+  assert.match(pageSource, /연도 미상/);
+  assert.match(pageSource, /장르 미상/);
+  assert.doesNotMatch(pageSource, /movie\.directors\[0\]/);
 });
 
 test("renders crawlable release routes as an in-page chip switch", () => {

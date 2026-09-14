@@ -32,6 +32,13 @@ function formatUpdatedAt(value: number | null) {
   }).format(new Date(value));
 }
 
+function formatMovieMetadata(movie: ReleaseMovie) {
+  const productionYear = /^\d{4}$/.test(movie.productionYear)
+    ? `${movie.productionYear}년`
+    : "연도 미상";
+  return `${productionYear} · ${movie.genres[0] || "장르 미상"}`;
+}
+
 function ReleaseMovieCard({ movie, view }: { movie: ReleaseMovie; view: ReleaseView }) {
   const subscription = movie.providers.filter((provider) => provider.type === "subscription");
   const extraCount = Math.max(subscription.length - 3, 0);
@@ -55,7 +62,7 @@ function ReleaseMovieCard({ movie, view }: { movie: ReleaseMovie; view: ReleaseV
           </div>
         )}
         <span className="absolute left-3 top-3 rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
-          {formatOpenDate(movie.openDate)}
+          {movie.isReRelease ? "재개봉" : formatOpenDate(movie.openDate)}
         </span>
       </div>
 
@@ -73,8 +80,7 @@ function ReleaseMovieCard({ movie, view }: { movie: ReleaseMovie; view: ReleaseV
         </div>
 
         <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">
-          {[movie.directors[0], movie.genres[0], movie.nations[0]].filter(Boolean).join(" · ") ||
-            movie.productionYear}
+          {formatMovieMetadata(movie)}
         </p>
 
         {view === "now" && movie.theaters.length > 0 && (

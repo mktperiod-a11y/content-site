@@ -1,4 +1,3 @@
-import { Clapperboard } from "lucide-react";
 import type { TheaterStatus } from "@/lib/theater-catalog";
 import type { TheaterCode } from "@/lib/theater-sources";
 
@@ -14,34 +13,23 @@ export const THEATER_BOOKING_LINKS: ReadonlyArray<{
     label: "CGV에서 예매 확인",
     href: "https://cgv.co.kr/cnm/movieBook/movie",
     logoUrl: "https://img.cgv.co.kr/R2014/images/title/h1_cgv.png",
-    logoClassName: "h-4 w-auto",
+    logoClassName: "w-10",
   },
   {
     code: "megabox",
     label: "메가박스에서 예매 확인",
     href: "https://www.megabox.co.kr/booking",
     logoUrl: "https://img.megabox.co.kr/static/pc/images/common/ci/logo_new2.png",
-    logoClassName: "h-5 w-auto",
+    logoClassName: "w-14",
   },
   {
     code: "lotte",
     label: "롯데시네마에서 예매 확인",
     href: "https://www.lottecinema.co.kr/NLCHS/Ticketing",
     logoUrl: "https://www.lottecinema.co.kr/NLCHS/Content/images/common/logo.png",
-    logoClassName: "h-4 w-auto",
+    logoClassName: "w-[4.5rem]",
   },
 ] as const;
-
-export function TheaterStatusBadge({ className = "" }: { className?: string }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-[11px] font-black text-ink shadow-sm ${className}`}
-    >
-      <Clapperboard aria-hidden="true" className="size-3.5" />
-      극장 상영 중
-    </span>
-  );
-}
 
 const THEATER_CHAIN_BADGES: ReadonlyArray<{
   code: TheaterCode;
@@ -125,9 +113,9 @@ export function TheaterBookingLinks({
             rel="noopener noreferrer"
             target="_blank"
           >
-            <span className={`grid shrink-0 place-items-center ${compact ? "w-8" : "w-12"}`}>
+            <span className={`grid shrink-0 place-items-center ${compact ? "h-5 w-16" : "h-6 w-20"}`}>
               {/* eslint-disable-next-line @next/next/no-img-element -- 각 극장사가 제공하는 공식 워드마크입니다. */}
-              <img alt="" className={`${theater.logoClassName} max-w-full object-contain`} src={theater.logoUrl} />
+              <img alt="" className={`${theater.logoClassName} max-h-full max-w-full object-contain`} src={theater.logoUrl} />
             </span>
             <span>{theater.label}</span>
             {stateByCode.get(theater.code)?.availability === "unknown" && (
