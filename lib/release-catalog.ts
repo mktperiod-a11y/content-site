@@ -9,10 +9,14 @@ import {
   type WatchProvider,
 } from "@/lib/tmdb";
 import {
+  getConfirmedTheatersByTitle,
   getLatestTheaterRefresh,
   SYNC_RETRY_COOLDOWN_MS,
 } from "@/lib/theater-catalog";
-import { normalizeTheaterTitle } from "@/lib/theater-sources";
+import {
+  normalizeTheaterTitle,
+  type TheaterCode,
+} from "@/lib/theater-sources";
 
 export const RELEASE_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 const RELEASE_LOCK_MS = 5 * 60 * 1000;
@@ -48,6 +52,7 @@ export type ReleaseMovie = {
   voteAverage: number | null;
   voteCount: number;
   providers: ReleaseProvider[];
+  theaters: TheaterCode[];
 };
 
 export type ReleaseCatalogResult = {
@@ -212,6 +217,9 @@ export async function getReleaseCatalog(
       .map((row) => row.movie_cd)
       .filter((movieCd): movieCd is string => Boolean(movieCd));
     const providersByMovie = new Map<string, ReleaseProvider[]>();
+    const theatersByTitle = view === "now"
+      ? await getConfirmedTheatersByTitle(rows.map((row) => row.title_ko))
+      : new Map<string, TheaterCode[]>();
 
     if (movieCodes.length) {
       const placeholders = movieCodes.map(() => "?").join(",");
@@ -252,6 +260,7 @@ export async function getReleaseCatalog(
         voteAverage: row.vote_average,
         voteCount: row.vote_count,
         providers: row.movie_cd ? providersByMovie.get(row.movie_cd) ?? [] : [],
+        theaters: theatersByTitle.get(normalizeTheaterTitle(row.title_ko)) ?? [],
       })),
       lastSuccessAt: freshness.lastSuccessAt,
       stale: freshness.stale,

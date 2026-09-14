@@ -77,7 +77,9 @@ test("uses theater-company snapshots rather than a 60-day window for current scr
     catalogSource,
     /ORDER BY theater_titles\.theater_count DESC, open_date DESC/,
   );
-  assert.doesNotMatch(pageSource, /TheaterStatusBadge/);
+  assert.match(catalogSource, /getConfirmedTheatersByTitle/);
+  assert.match(catalogSource, /theaters: theatersByTitle\.get/);
+  assert.match(pageSource, /TheaterChainBadges/);
   assert.match(searchPageSource, /TheaterStatusBadge/);
   assert.match(theaterSource, /ss\.last_success_at >= \?/);
   assert.match(theaterSource, /ss\.status != 'error'/);

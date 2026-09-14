@@ -3,6 +3,7 @@ import { CalendarDays, Clapperboard, Star } from "lucide-react";
 
 import { ReleaseRefresh } from "@/components/release-refresh";
 import { SiteHeader } from "@/components/site-header";
+import { TheaterChainBadges } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
 import {
   getReleaseCatalog,
@@ -75,6 +76,10 @@ function ReleaseMovieCard({ movie, view }: { movie: ReleaseMovie; view: ReleaseV
           {[movie.directors[0], movie.genres[0], movie.nations[0]].filter(Boolean).join(" · ") ||
             movie.productionYear}
         </p>
+
+        {view === "now" && movie.theaters.length > 0 && (
+          <TheaterChainBadges className="mt-3" theaters={movie.theaters} />
+        )}
 
         <div className="mt-auto flex min-h-9 flex-wrap items-end gap-1.5 pt-4">
           {subscription.length ? (

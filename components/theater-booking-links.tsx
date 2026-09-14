@@ -43,6 +43,56 @@ export function TheaterStatusBadge({ className = "" }: { className?: string }) {
   );
 }
 
+const THEATER_CHAIN_BADGES: ReadonlyArray<{
+  code: TheaterCode;
+  label: string;
+  className: string;
+}> = [
+  {
+    code: "cgv",
+    label: "CGV",
+    className: "bg-red-50 text-red-700 ring-red-200",
+  },
+  {
+    code: "megabox",
+    label: "메가박스",
+    className: "bg-violet-50 text-violet-800 ring-violet-200",
+  },
+  {
+    code: "lotte",
+    label: "롯데시네마",
+    className: "bg-rose-50 text-rose-800 ring-rose-200",
+  },
+];
+
+export function TheaterChainBadges({
+  className = "",
+  theaters,
+}: {
+  className?: string;
+  theaters: readonly TheaterCode[];
+}) {
+  const visible = THEATER_CHAIN_BADGES.filter((theater) => theaters.includes(theater.code));
+  if (!visible.length) return null;
+
+  return (
+    <div
+      aria-label={`현재 상영 극장: ${visible.map((theater) => theater.label).join(", ")}`}
+      className={`flex flex-wrap gap-1.5 ${className}`}
+    >
+      {visible.map((theater) => (
+        <span
+          aria-hidden="true"
+          className={`inline-flex h-6 items-center rounded-full px-2 text-[10px] font-black ring-1 ring-inset ${theater.className}`}
+          key={theater.code}
+        >
+          {theater.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function TheaterBookingLinks({
   className = "",
   theaters = [],
