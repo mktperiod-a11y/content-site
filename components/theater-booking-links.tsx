@@ -114,8 +114,17 @@ export function TheaterBookingLinks({
             target="_blank"
           >
             <span className={`grid shrink-0 place-items-center ${compact ? "h-5 w-16" : "h-6 w-20"}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- 각 극장사가 제공하는 공식 워드마크입니다. */}
-              <img alt="" className={`${theater.logoClassName} max-h-full max-w-full object-contain`} src={theater.logoUrl} />
+              {theater.code === "cgv" ? (
+                <span
+                  aria-hidden="true"
+                  className="text-[1.05rem] font-black italic leading-none tracking-[-0.08em] text-[#e31b35]"
+                >
+                  CGV
+                </span>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- 각 극장사가 제공하는 공식 워드마크입니다.
+                <img alt="" className={`${theater.logoClassName} max-h-full max-w-full object-contain`} src={theater.logoUrl} />
+              )}
             </span>
             <span>{theater.label}</span>
             {stateByCode.get(theater.code)?.availability === "unknown" && (

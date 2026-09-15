@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 import { TheaterBookingLinks } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
+import { getStoredTmdbId, persistEnrichment } from "@/lib/enrichment-cache";
 import { getTheaterStatuses } from "@/lib/theater-catalog";
 import {
   KobisApiError,
@@ -22,6 +23,7 @@ import {
   getTmdbMovie,
   getTmdbReviews,
   getTmdbWatchProvidersKR,
+  type TmdbMatch,
   type TmdbMovie,
   type TmdbReview,
   type WatchProvider,
@@ -40,6 +42,7 @@ const getMovieInfoCached = cache(async (movieCd: string) => {
 });
 
 type TmdbBundle = {
+  match: TmdbMatch | null;
   movie: TmdbMovie | null;
   providers: WatchProvidersKR | null;
   reviews: TmdbReview[];
@@ -52,10 +55,23 @@ type TmdbBundle = {
  * TMDB 쪽이 실패해도 KOBIS 기본정보는 그대로 보여줘야 하므로 예외를 삼킨다.
  */
 const getTmdbBundleCached = cache(
-  async (titleKo: string, year: string, titleEn: string): Promise<TmdbBundle> => {
-    const empty: TmdbBundle = { movie: null, providers: null, reviews: [], failed: false };
+  async (
+    titleKo: string,
+    year: string,
+    titleEn: string,
+    storedTmdbId: number | null,
+  ): Promise<TmdbBundle> => {
+    const empty: TmdbBundle = {
+      match: null,
+      movie: null,
+      providers: null,
+      reviews: [],
+      failed: false,
+    };
     try {
-      const match = await findTmdbMatch(titleKo, year, titleEn);
+      const match = storedTmdbId
+        ? { id: storedTmdbId, posterUrl: null, voteAverage: 0, voteCount: 0 }
+        : await findTmdbMatch(titleKo, year, titleEn);
       if (!match) return empty;
 
       const [movie, providers, reviews] = await Promise.all([
@@ -63,7 +79,15 @@ const getTmdbBundleCached = cache(
         getTmdbWatchProvidersKR(match.id),
         getTmdbReviews(match.id),
       ]);
-      return { movie, providers, reviews, failed: false };
+      const resolvedMatch = movie
+        ? {
+            id: movie.id,
+            posterUrl: movie.posterUrl,
+            voteAverage: movie.voteAverage,
+            voteCount: movie.voteCount,
+          }
+        : match;
+      return { match: resolvedMatch, movie, providers, reviews, failed: false };
     } catch {
       return { ...empty, failed: true };
     }
@@ -119,7 +143,10 @@ export default async function MovieDetailPage({
   params: Promise<PageParams>;
 }) {
   const { movieCd } = await params;
-  const { data: movie, error } = await getMovieInfoCached(movieCd);
+  const [{ data: movie, error }, storedTmdbId] = await Promise.all([
+    getMovieInfoCached(movieCd),
+    getStoredTmdbId(movieCd),
+  ]);
 
   if (error) {
     return (
@@ -152,9 +179,25 @@ export default async function MovieDetailPage({
   const genre = movie.genres.join("·");
 
   const [tmdb, theaterStatus] = await Promise.all([
-    getTmdbBundleCached(movie.titleKo, movie.prdtYear, movie.titleEn),
+    getTmdbBundleCached(movie.titleKo, movie.prdtYear, movie.titleEn, storedTmdbId),
     getTheaterStatuses(movie.titleKo),
   ]);
+
+  if (!storedTmdbId && tmdb.match) {
+    await persistEnrichment(
+      {
+        movieCd,
+        titleKo: movie.titleKo,
+        titleEn: movie.titleEn,
+        year: movie.prdtYear,
+        openDate: movie.openDt,
+      },
+      tmdb.match,
+      tmdb.providers,
+    ).catch((cacheError) => {
+      console.error("상세 화면 TMDB 보강 결과 저장 실패", cacheError);
+    });
+  }
   const subscriptionProviders = tmdb.providers?.subscription ?? [];
   const hasAnyProvider =
     subscriptionProviders.length > 0 ||
@@ -236,6 +279,7 @@ export default async function MovieDetailPage({
                 <img
                   alt={`${movie.titleKo} 포스터`}
                   className="block w-full"
+                  fetchPriority="high"
                   src={tmdb.movie.posterUrl}
                 />
               ) : (

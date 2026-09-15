@@ -107,7 +107,7 @@ export function HeaderSearch({ onSearch }: { onSearch?: (query: string) => void 
 
   return (
     <form
-      className="relative w-full sm:w-48 md:w-64 lg:w-80"
+      className="relative w-full"
       data-ga-event="header_search_submit"
       onSubmit={(event) => {
         event.preventDefault();
@@ -185,4 +185,3 @@ export function HeaderSearch({ onSearch }: { onSearch?: (query: string) => void 
     </form>
   );
 }
-

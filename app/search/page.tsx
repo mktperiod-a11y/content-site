@@ -174,12 +174,16 @@ function HomeContent() {
 
   function handleTabChange(value: string) {
     if (value !== "search" && value !== "compare") return;
+    const previousScrollY = window.scrollY;
     setActiveTab(value);
 
     const url = new URL(window.location.href);
     if (value === "compare") url.searchParams.set("tab", "compare");
     else url.searchParams.delete("tab");
     window.history.replaceState({}, "", url);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.scrollTo({ top: previousScrollY, behavior: "auto" }));
+    });
   }
 
   /** 헤더 전역 검색창의 제출 — 검색 탭으로 돌아와 아래 결과 영역을 그대로 쓴다. */
@@ -306,6 +310,7 @@ function HomeContent() {
             titleKo: movie.titleKo,
             titleEn: movie.titleEn,
             year: movie.prdtYear,
+            openDate: movie.openDt,
           })),
         }),
       });
@@ -345,6 +350,7 @@ function HomeContent() {
               <Link
                 className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
                 href="/movies/now"
+                scroll={false}
               >
                 <CalendarDays className="size-4" />
                 개봉작
@@ -371,7 +377,7 @@ function HomeContent() {
             <div className="glow glow-one" aria-hidden="true" />
             <div className="glow glow-two" aria-hidden="true" />
 
-            <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14">
+            <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14 lg:pt-20">
               <div>
                 <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
                   이 영화,

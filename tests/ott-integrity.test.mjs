@@ -33,7 +33,8 @@ test("builds priced coverage from subscription providers only", () => {
 test("excludes failed lookups and unknown prices from recommendations", () => {
   assert.match(comparisonSource, /state: "unknown"/);
   assert.match(comparisonSource, /coverage\.planIds\.length > 0/);
-  assert.match(comparisonSource, /coverage\.planIds\.length === 0/);
+  assert.match(comparisonSource, /coverage\.unpricedProviders\.length > 0/);
+  assert.match(comparisonSource, /recommendationBlocked/);
 });
 
 test("labels the plan table as curated pricing rather than TMDB pricing", () => {

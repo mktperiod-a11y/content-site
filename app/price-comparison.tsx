@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
+  ArrowRight,
   Check,
   Crown,
-  ExternalLink,
   Loader2,
   Plus,
   Search,
@@ -19,52 +20,18 @@ import type { KobisMovieSummary } from "@/lib/kobis";
 import type { EnrichedMovie } from "@/lib/enrichment";
 
 const MAX_SELECTED = 5;
-const KDISK_HOME_URL = "https://m.kdisk.co.kr/";
-const ONDISK_HOME_URL = "https://m.ondisk.co.kr/";
-
 type SearchStatus = "idle" | "loading" | "success" | "error";
 
-function AlternativeServiceActions({ title }: { title: string }) {
-  function copyTitle() {
-    void navigator.clipboard?.writeText(title).catch(() => undefined);
-  }
-
+function AlternativeUsageLink() {
   return (
-    <aside aria-label="구독 외 다른 이용 방법" className="w-full">
-      <p className="text-sm font-bold text-muted-foreground">구독 외 다른 이용 방법</p>
-      <p className="mt-2 text-base leading-7 text-foreground">
-        &ldquo;{title}&rdquo; 작품명으로 직접 확인해보세요.
-      </p>
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row">
-        {[
-          ["KDisk에서 확인하기", KDISK_HOME_URL, "kdisk_compare_outbound_click"],
-          ["OnDisk에서도 확인", ONDISK_HOME_URL, "ondisk_compare_outbound_click"],
-        ].map(([label, url, eventName], index) => (
-          <a
-            className={
-              "flex h-12 flex-1 items-center justify-between rounded-xl px-4 text-sm font-bold transition-colors " +
-              (index === 0
-                ? "bg-brand text-ink hover:bg-brand-bright"
-                : "border border-border bg-card text-foreground hover:bg-secondary")
-            }
-            data-content-title={title}
-            data-ga-event={eventName}
-            href={url}
-            key={url}
-            onClick={copyTitle}
-            rel="noreferrer"
-            target="_blank"
-          >
-            {label}
-            <ExternalLink className="size-4" />
-          </a>
-        ))}
-      </div>
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">
-        버튼을 누르면 작품명이 복사돼요. 실제 보유 여부는 각 서비스 검색 결과에서
-        확인해주세요.
-      </p>
-    </aside>
+    <Link
+      className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-ink px-5 text-sm font-bold text-white transition-colors hover:bg-ink/90"
+      data-ga-event="alternative_usage_open"
+      href="/watch-options"
+    >
+      구독 외 이용 방식 알아보기
+      <ArrowRight className="size-4" />
+    </Link>
   );
 }
 
@@ -140,6 +107,7 @@ export function PriceComparison() {
               titleKo: movie.titleKo,
               titleEn: movie.titleEn,
               year: movie.prdtYear,
+              openDate: movie.openDt,
             })),
           }),
         });
@@ -162,6 +130,7 @@ export function PriceComparison() {
               voteCount: 0,
               subscription: null,
               rentOrBuyCount: 0,
+              theaters: [],
             };
           }
           return next;
@@ -227,10 +196,14 @@ export function PriceComparison() {
     () =>
       selected.filter((movie) => {
         const coverage = coverageByMovie.get(movie.movieCd);
-        return coverage?.state === "available" && coverage.planIds.length === 0;
+        return coverage?.state === "available" && coverage.unpricedProviders.length > 0;
       }),
     [selected, coverageByMovie],
   );
+
+  // 한 작품이라도 제공처 조회 또는 요금 연결이 불완전하면 일부 결과만으로
+  // 보수적인 추천을 만들지 않는다. 전체 입력을 확인했을 때만 순위를 보여준다.
+  const recommendationBlocked = unknownMovies.length > 0 || unpricedMovies.length > 0;
 
   const stillLoading = useMemo(
     () => selected.some((movie) => coverageByMovie.get(movie.movieCd)?.state === "loading"),
@@ -269,11 +242,11 @@ export function PriceComparison() {
       });
   }, [selected, coverageByMovie, enriched]);
 
-  const bestSingle = planStats[0];
+  const bestSingle = recommendationBlocked ? undefined : planStats[0];
 
   /** 커버 가능한 작품을 모두 볼 수 있는 최소비용 조합 */
   const bestCombination = useMemo(() => {
-    if (!coverableMovies.length) return null;
+    if (recommendationBlocked || !coverableMovies.length) return null;
 
     let best: { plans: OttPlan[]; price: number } | null = null;
 
@@ -294,7 +267,7 @@ export function PriceComparison() {
     }
 
     return best;
-  }, [coverableMovies, coverageByMovie]);
+  }, [coverableMovies, coverageByMovie, recommendationBlocked]);
 
   const availableSearchResults = searchResults.filter(
     (movie) => !selected.some((picked) => picked.movieCd === movie.movieCd),
@@ -315,7 +288,7 @@ export function PriceComparison() {
     <>
       <section className="relative overflow-hidden bg-ink text-white">
         <div className="glow glow-one" aria-hidden="true" />
-        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem]">
+        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:pt-20">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div>
               <h1 className="max-w-4xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
@@ -450,6 +423,8 @@ export function PriceComparison() {
               <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
                 {selected.length === 0
                   ? "보고 싶은 작품을 먼저 골라주세요"
+                  : recommendationBlocked
+                    ? "확인되지 않은 항목이 있어 추천하지 않아요"
                   : bestSingle
                     ? `${bestSingle.name}가 가장 효율적이에요`
                     : "구독형 OTT 추천을 만들 수 없어요"}
@@ -533,7 +508,7 @@ export function PriceComparison() {
                 </div>
               )}
 
-              {!bestSingle && selected.length > 0 && (
+              {!recommendationBlocked && !bestSingle && selected.length > 0 && (
                 <div
                   className={
                     "grid items-center gap-8 border-y border-border py-8 " +
@@ -576,13 +551,38 @@ export function PriceComparison() {
                       )}
                   </div>
 
-                  {unavailableMovies.length > 0 && (
-                    <AlternativeServiceActions title={unavailableMovies[0].titleKo} />
-                  )}
+                  {unavailableMovies.length > 0 && <AlternativeUsageLink />}
                 </div>
               )}
 
-              {planStats.length > 0 && (
+              {recommendationBlocked && (
+                <section className="rounded-[1.5rem] border border-border bg-card px-6 py-8 sm:px-8">
+                  <div className="flex items-start gap-4">
+                    <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground">
+                      <AlertCircle className="size-5" />
+                    </span>
+                    <div>
+                      <p className="text-xl font-bold">추천 결과를 표시하지 않아요.</p>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                        선택한 작품 중 제공처나 요금을 확인하지 못한 항목이 있어 일부 작품만으로
+                        추천하면 결과가 달라질 수 있습니다.
+                      </p>
+                      {unknownMovies.length > 0 && (
+                        <p className="mt-4 text-sm font-semibold text-foreground">
+                          제공처 확인 필요: {unknownMovies.map((movie) => movie.titleKo).join(", ")}
+                        </p>
+                      )}
+                      {unpricedMovies.length > 0 && (
+                        <p className="mt-1 text-sm font-semibold text-foreground">
+                          요금 확인 필요: {unpricedMovies.map((movie) => movie.titleKo).join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {!recommendationBlocked && planStats.length > 0 && (
                 <>
                   <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-border bg-card">
                     <div className="grid grid-cols-[1fr_auto] gap-4 border-b border-border px-5 py-4 sm:grid-cols-[1.1fr_1.7fr_0.7fr_0.7fr] sm:px-7">
@@ -698,34 +698,21 @@ export function PriceComparison() {
                     </div>
                   </div>
 
-                  <AlternativeServiceActions title={unavailableMovies[0].titleKo} />
+                  <AlternativeUsageLink />
                 </section>
               )}
 
-              {bestSingle && (unknownMovies.length > 0 || unpricedMovies.length > 0) && (
-                <div className="mt-5 border-l-2 border-border pl-4 text-sm leading-6 text-muted-foreground">
-                  {unknownMovies.length > 0 && (
-                    <p>
-                      제공처 확인 필요: {unknownMovies.map((movie) => movie.titleKo).join(", ")}
-                    </p>
-                  )}
-                  {unpricedMovies.length > 0 && (
-                    <p>
-                      요금 비교 제외: {unpricedMovies.map((movie) => movie.titleKo).join(", ")}
-                    </p>
-                  )}
+              {!recommendationBlocked && (
+                <div className="mt-5 flex items-start gap-3 rounded-2xl bg-accent/70 px-5 py-4 text-sm leading-6 text-accent-foreground">
+                  <Check className="mt-0.5 size-4 shrink-0" strokeWidth={2.8} />
+                  <p>
+                    <strong>추천 기준:</strong> 볼 수 있는 작품 수를 먼저 비교하고, 같은 경우 작품당
+                    비용과 월요금이 낮은 순서로 추천합니다. 제공처는 TMDB 기준이며 월 요금은{" "}
+                    {PRICES_VERIFIED_ON} 입력 기준입니다. 아직 공식 요금 검증 전이므로 결제 전 각
+                    서비스에서 확인해주세요.
+                  </p>
                 </div>
               )}
-
-              <div className="mt-5 flex items-start gap-3 rounded-2xl bg-accent/70 px-5 py-4 text-sm leading-6 text-accent-foreground">
-                <Check className="mt-0.5 size-4 shrink-0" strokeWidth={2.8} />
-                <p>
-                  <strong>추천 기준:</strong> 볼 수 있는 작품 수를 먼저 비교하고, 같은 경우 작품당
-                  비용과 월요금이 낮은 순서로 추천합니다. 제공처는 TMDB 기준이며 월 요금은{" "}
-                  {PRICES_VERIFIED_ON} 입력 기준입니다. 아직 공식 요금 검증 전이므로 결제 전 각
-                  서비스에서 확인해주세요.
-                </p>
-              </div>
             </>
           )}
         </div>
@@ -733,4 +720,3 @@ export function PriceComparison() {
     </>
   );
 }
-

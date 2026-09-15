@@ -14,6 +14,10 @@ const pageSource = await readFile(
   new URL("../components/release-catalog-page.tsx", import.meta.url),
   "utf8",
 );
+const posterSource = await readFile(
+  new URL("../components/release-movie-poster.tsx", import.meta.url),
+  "utf8",
+);
 const searchPageSource = await readFile(
   new URL("../app/search/page.tsx", import.meta.url),
   "utf8",
@@ -172,11 +176,19 @@ test("does not skip a daily sync because the previous run finished late", () => 
 test("keeps posterless upcoming cards from breaking apart", () => {
   // grid + place-items-center 는 자식 둘을 각각 다른 행에 중앙 정렬해
   // 포스터가 없는 카드에서 아이콘과 문구가 카드 높이만큼 벌어졌다.
-  assert.doesNotMatch(pageSource, /grid size-full place-items-center/);
-  assert.match(pageSource, /flex size-full flex-col items-center justify-center/);
+  assert.doesNotMatch(posterSource, /grid size-full place-items-center/);
+  assert.match(posterSource, /flex size-full flex-col items-center justify-center/);
   // 아직 개봉하지 않은 작품에 구독형 제공처 안내를 붙이지 않는다.
   assert.match(pageSource, /view === "upcoming"/);
   assert.match(pageSource, /개봉 후 제공처가 확인돼요/);
+});
+
+test("hydrates only nearby missing posters and keeps the release cards compact", () => {
+  assert.match(pageSource, /ReleaseMoviePoster/);
+  assert.match(posterSource, /IntersectionObserver/);
+  assert.match(posterSource, /rootMargin: "320px 0px"/);
+  assert.match(posterSource, /\/api\/movies\/enrich/);
+  assert.doesNotMatch(pageSource, /구독형 제공처는 상세에서 확인/);
 });
 
 test("publishes stored movie pages through the XML sitemap", () => {

@@ -28,11 +28,10 @@ export function SiteHeader({
         <span className="text-xs font-medium text-white/45">국내 제공처 기준</span>
       </div>
 
-      {/* 내비가 없는 페이지(작품 상세)에서는 검색창이 보이는 폭에서만 이 줄을 만든다. */}
-      <div className={`border-y border-white/10 ${navigation ? "" : "hidden sm:block"}`}>
-        <div className="mx-auto flex min-h-14 max-w-6xl items-center gap-4 px-5 sm:px-8">
-          {navigation}
-          <div className="ml-auto hidden shrink-0 sm:block">
+      <div className="border-y border-white/10">
+        <div className="mx-auto flex min-h-14 max-w-6xl flex-col gap-2 px-5 py-2 sm:flex-row sm:items-center sm:gap-4 sm:px-8 sm:py-0">
+          {navigation && <div className="w-full overflow-x-auto sm:w-auto">{navigation}</div>}
+          <div className="w-full sm:ml-auto sm:w-80 sm:shrink-0">
             {search ?? <HeaderSearch />}
           </div>
         </div>
@@ -40,4 +39,3 @@ export function SiteHeader({
     </header>
   );
 }
-

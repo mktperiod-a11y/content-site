@@ -75,6 +75,7 @@ export function tmdbImageUrl(path: string | null | undefined, size: string) {
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const CACHE_MAX_ENTRIES = 500;
 const memoryCache = new Map<string, { value: unknown; expiresAt: number }>();
+const pendingRequests = new Map<string, Promise<unknown>>();
 
 async function withCache<T>(key: string, load: () => Promise<T>): Promise<T> {
   const hit = memoryCache.get(key);
@@ -82,15 +83,23 @@ async function withCache<T>(key: string, load: () => Promise<T>): Promise<T> {
     return hit.value as T;
   }
 
-  const value = await load();
+  const pending = pendingRequests.get(key);
+  if (pending) return pending as Promise<T>;
 
-  if (memoryCache.size >= CACHE_MAX_ENTRIES) {
-    // 가장 오래된 항목부터 제거 (Map은 삽입 순서를 유지한다)
-    const oldestKey = memoryCache.keys().next().value;
-    if (oldestKey !== undefined) memoryCache.delete(oldestKey);
-  }
-  memoryCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
-  return value;
+  const request = load()
+    .then((value) => {
+      if (memoryCache.size >= CACHE_MAX_ENTRIES) {
+        // 가장 오래된 항목부터 제거 (Map은 삽입 순서를 유지한다)
+        const oldestKey = memoryCache.keys().next().value;
+        if (oldestKey !== undefined) memoryCache.delete(oldestKey);
+      }
+      memoryCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+      return value;
+    })
+    .finally(() => pendingRequests.delete(key));
+
+  pendingRequests.set(key, request);
+  return request;
 }
 
 /** 제목 비교용 정규화 (공백·문장부호 제거) */
@@ -186,31 +195,33 @@ export async function findTmdbMatch(
 }
 
 export async function getTmdbMovie(tmdbId: number): Promise<TmdbMovie | null> {
-  const json = (await fetchTmdbJson(`/movie/${tmdbId}`, { language: "ko-KR" })) as {
-    id: number;
-    title?: string;
-    original_title?: string;
-    overview?: string;
-    poster_path?: string | null;
-    backdrop_path?: string | null;
-    vote_average?: number;
-    vote_count?: number;
-    release_date?: string;
-  } | null;
+  return withCache(`movie:${tmdbId}`, async () => {
+    const json = (await fetchTmdbJson(`/movie/${tmdbId}`, { language: "ko-KR" })) as {
+      id: number;
+      title?: string;
+      original_title?: string;
+      overview?: string;
+      poster_path?: string | null;
+      backdrop_path?: string | null;
+      vote_average?: number;
+      vote_count?: number;
+      release_date?: string;
+    } | null;
 
-  if (!json) return null;
+    if (!json) return null;
 
-  return {
-    id: json.id,
-    title: json.title ?? "",
-    originalTitle: json.original_title ?? "",
-    overview: json.overview ?? "",
-    posterUrl: tmdbImageUrl(json.poster_path, "w500"),
-    backdropUrl: tmdbImageUrl(json.backdrop_path, "w1280"),
-    voteAverage: json.vote_average ?? 0,
-    voteCount: json.vote_count ?? 0,
-    releaseDate: json.release_date ?? "",
-  };
+    return {
+      id: json.id,
+      title: json.title ?? "",
+      originalTitle: json.original_title ?? "",
+      overview: json.overview ?? "",
+      posterUrl: tmdbImageUrl(json.poster_path, "w500"),
+      backdropUrl: tmdbImageUrl(json.backdrop_path, "w1280"),
+      voteAverage: json.vote_average ?? 0,
+      voteCount: json.vote_count ?? 0,
+      releaseDate: json.release_date ?? "",
+    };
+  });
 }
 
 export type WatchProvider = {
@@ -282,27 +293,29 @@ export type TmdbReview = {
  * 리뷰가 없는 작품에 가짜 리뷰를 만들지 않는다(기획 원칙 6-3).
  */
 export async function getTmdbReviews(tmdbId: number): Promise<TmdbReview[]> {
-  const json = (await fetchTmdbJson(`/movie/${tmdbId}/reviews`, {
-    language: "ko-KR",
-  })) as {
-    results?: Array<{
-      id: string;
-      author?: string;
-      content?: string;
-      created_at?: string;
-      url?: string;
-      author_details?: { rating?: number | null };
-    }>;
-  } | null;
+  return withCache(`reviews:${tmdbId}`, async () => {
+    const json = (await fetchTmdbJson(`/movie/${tmdbId}/reviews`, {
+      language: "ko-KR",
+    })) as {
+      results?: Array<{
+        id: string;
+        author?: string;
+        content?: string;
+        created_at?: string;
+        url?: string;
+        author_details?: { rating?: number | null };
+      }>;
+    } | null;
 
-  return (json?.results ?? []).map((review) => ({
-    id: review.id,
-    author: review.author ?? "익명",
-    content: review.content ?? "",
-    rating: review.author_details?.rating ?? null,
-    createdAt: review.created_at ?? "",
-    url: review.url ?? "",
-  }));
+    return (json?.results ?? []).map((review) => ({
+      id: review.id,
+      author: review.author ?? "익명",
+      content: review.content ?? "",
+      rating: review.author_details?.rating ?? null,
+      createdAt: review.created_at ?? "",
+      url: review.url ?? "",
+    }));
+  });
 }
 
 /** 평가 수가 이 값 미만이면 평점을 크게 강조하지 않는다(기획 원칙 6-3). */

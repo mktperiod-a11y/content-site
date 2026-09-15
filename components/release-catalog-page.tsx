@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, Clapperboard, Star } from "lucide-react";
 
 import { ReleaseRefresh } from "@/components/release-refresh";
+import { ReleaseMoviePoster } from "@/components/release-movie-poster";
 import { SiteHeader } from "@/components/site-header";
 import { TheaterChainBadges } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
@@ -39,28 +40,33 @@ function formatMovieMetadata(movie: ReleaseMovie) {
   return `${productionYear} · ${movie.genres[0] || "장르 미상"}`;
 }
 
-function ReleaseMovieCard({ movie, view }: { movie: ReleaseMovie; view: ReleaseView }) {
+function ReleaseMovieCard({
+  movie,
+  view,
+  priority = false,
+}: {
+  movie: ReleaseMovie;
+  view: ReleaseView;
+  priority?: boolean;
+}) {
   const subscription = movie.providers.filter((provider) => provider.type === "subscription");
-  const extraCount = Math.max(subscription.length - 3, 0);
+  const extraCount = Math.max(subscription.length - 2, 0);
+  const showProviderArea =
+    subscription.length > 0 || view === "upcoming" || movie.movieCd === null;
   const cardClassName =
     "group flex min-h-full flex-col overflow-hidden rounded-2xl bg-card shadow-[0_16px_40px_rgba(20,32,51,0.08)] ring-1 ring-border/80 transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(20,32,51,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-muted";
   const cardContent = (
     <>
       <div className="relative aspect-[2/3] overflow-hidden bg-secondary">
-        {movie.posterUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- TMDB CDN remote image.
-          <img
-            alt={`${movie.titleKo} 포스터`}
-            className="size-full object-cover transition duration-300 group-hover:scale-[1.025]"
-            loading="lazy"
-            src={movie.posterUrl}
-          />
-        ) : (
-          <div className="flex size-full flex-col items-center justify-center gap-2 px-5 text-center text-sm font-medium text-muted-foreground">
-            <Clapperboard className="size-8 opacity-40" />
-            <span>포스터 준비 중</span>
-          </div>
-        )}
+        <ReleaseMoviePoster
+          initialUrl={movie.posterUrl}
+          movieCd={movie.movieCd}
+          openDate={movie.openDate}
+          priority={priority}
+          titleEn={movie.titleEn}
+          titleKo={movie.titleKo}
+          year={movie.productionYear}
+        />
         <span className="absolute left-3 top-3 rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
           {movie.isReRelease ? "재개봉" : formatOpenDate(movie.openDate)}
         </span>
@@ -87,37 +93,37 @@ function ReleaseMovieCard({ movie, view }: { movie: ReleaseMovie; view: ReleaseV
           <TheaterChainBadges className="mt-3" theaters={movie.theaters} />
         )}
 
-        <div className="mt-auto flex min-h-9 flex-wrap items-end gap-1.5 pt-4">
-          {subscription.length ? (
-            <>
-              {subscription.slice(0, 3).map((provider) => (
-                <span
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-secondary px-2.5 text-xs font-bold text-secondary-foreground"
-                  key={provider.providerId}
-                >
-                  {provider.logoUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element -- TMDB provider logo.
-                    <img alt="" className="size-4 rounded" src={provider.logoUrl} />
-                  )}
-                  {provider.name}
-                </span>
-              ))}
-              {extraCount > 0 && (
-                <span className="inline-flex h-8 items-center rounded-full bg-secondary px-2.5 text-xs font-bold text-muted-foreground">
-                  +{extraCount}
-                </span>
-              )}
-            </>
-          ) : (
-            <span className="text-xs font-medium text-muted-foreground">
-              {view === "upcoming"
-                ? "개봉 후 제공처가 확인돼요"
-                : movie.movieCd
-                  ? "구독형 제공처는 상세에서 확인"
+        {showProviderArea && (
+          <div className="mt-auto flex min-h-8 flex-wrap items-end gap-1.5 pt-3">
+            {subscription.length ? (
+              <>
+                {subscription.slice(0, 2).map((provider) => (
+                  <span
+                    className="inline-flex h-8 items-center gap-1.5 rounded-full bg-secondary px-2.5 text-xs font-bold text-secondary-foreground"
+                    key={provider.providerId}
+                  >
+                    {provider.logoUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element -- TMDB provider logo.
+                      <img alt="" className="size-4 rounded" src={provider.logoUrl} />
+                    )}
+                    {provider.name}
+                  </span>
+                ))}
+                {extraCount > 0 && (
+                  <span className="inline-flex h-8 items-center rounded-full bg-secondary px-2.5 text-xs font-bold text-muted-foreground">
+                    +{extraCount}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="text-xs font-medium text-muted-foreground">
+                {view === "upcoming"
+                  ? "개봉 후 제공처가 확인돼요"
                   : "작품 정보를 준비하고 있어요"}
-            </span>
-          )}
-        </div>
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
@@ -153,6 +159,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
               aria-current="page"
               className="relative inline-flex h-10 items-center gap-1.5 rounded-xl bg-white/[0.09] px-4 text-[15px] font-bold text-brand after:absolute after:inset-x-0 after:bottom-[-8px] after:h-0.5 after:bg-brand"
               href={isUpcoming ? "/movies/upcoming" : "/movies/now"}
+              scroll={false}
             >
               <CalendarDays className="size-4" />
               개봉작
@@ -160,12 +167,14 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
             <Link
               className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
               href="/search?tab=compare"
+              scroll={false}
             >
               가격 비교하기
             </Link>
             <Link
               className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
               href="/search"
+              scroll={false}
             >
               영화 찾기
             </Link>
@@ -174,7 +183,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
       />
 
       <section className="overflow-hidden bg-ink text-white">
-        <div className="relative mx-auto flex max-w-6xl flex-col justify-center px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem]">
+        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:pt-20">
           <div className="glow glow-one" aria-hidden="true" />
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div className="max-w-3xl">
@@ -200,6 +209,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
                       : "text-on-dark-secondary hover:bg-white/10 hover:text-white"
                   }`}
                   href="/movies/now"
+                  scroll={false}
                 >
                   최신 개봉작
                 </Link>
@@ -211,6 +221,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
                       : "text-on-dark-secondary hover:bg-white/10 hover:text-white"
                   }`}
                   href="/movies/upcoming"
+                  scroll={false}
                 >
                   개봉 예정작
                 </Link>
@@ -254,10 +265,11 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
         {catalog.movies.length ? (
           <>
             <div className={GRID_CLASS_NAME}>
-              {catalog.movies.slice(0, INITIAL_VISIBLE_COUNT).map((movie) => (
+              {catalog.movies.slice(0, INITIAL_VISIBLE_COUNT).map((movie, index) => (
                 <ReleaseMovieCard
                   key={`${movie.movieCd ?? movie.titleKo}-${movie.openDate}`}
                   movie={movie}
+                  priority={index < 5}
                   view={view}
                 />
               ))}

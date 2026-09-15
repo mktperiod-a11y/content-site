@@ -12,6 +12,11 @@ const pageSource = await readFile(
   "utf8",
 );
 
+const watchOptionsSource = await readFile(
+  new URL("../app/watch-options/page.tsx", import.meta.url),
+  "utf8",
+);
+
 test("starts the calculator with an empty selection", () => {
   assert.match(comparisonSource, /useState<KobisMovieSummary\[\]>\(\[\]\)/);
   assert.match(comparisonSource, /MAX_SELECTED = 5/);
@@ -31,15 +36,28 @@ test("separates search, selected, recommendation, and no-result states", () => {
 
 test("distinguishes lookup failures and providers without curated prices", () => {
   assert.match(comparisonSource, /제공처 확인 필요/);
-  assert.match(comparisonSource, /요금 비교 제외/);
+  assert.match(comparisonSource, /요금 확인 필요/);
+  assert.match(comparisonSource, /coverage\.unpricedProviders\.length > 0/);
   assert.match(comparisonSource, /subscription: null/);
 });
 
-test("does not describe KDisk or OnDisk catalog availability as official", () => {
-  assert.doesNotMatch(comparisonSource, /KDisk·OnDisk의 공식 보유 여부/);
-  assert.match(comparisonSource, /실제 보유 여부는 각 서비스 검색 결과/);
-  assert.match(comparisonSource, /KDisk에서 확인하기/);
-  assert.match(comparisonSource, /OnDisk에서도 확인/);
+test("does not recommend a plan when any selected title remains unverified", () => {
+  assert.match(comparisonSource, /recommendationBlocked =/);
+  assert.match(comparisonSource, /unknownMovies\.length > 0 \|\| unpricedMovies\.length > 0/);
+  assert.match(comparisonSource, /확인되지 않은 항목이 있어 추천하지 않아요/);
+  assert.match(comparisonSource, /!recommendationBlocked/);
+});
+
+test("defers alternative services to a generic, copyright-safe comparison page", () => {
+  assert.match(comparisonSource, /href="\/watch-options"/);
+  assert.doesNotMatch(comparisonSource, /KDisk에서 확인하기/);
+  assert.doesNotMatch(comparisonSource, /OnDisk에서도 확인/);
+  assert.match(watchOptionsSource, /구독형 OTT/);
+  assert.match(watchOptionsSource, /작품 대여·구매/);
+  assert.match(watchOptionsSource, /극장·VOD/);
+  assert.match(watchOptionsSource, /작품별 콘텐츠 이용 서비스/);
+  assert.match(watchOptionsSource, /실제 제공 여부와 이용 조건은 KDisk 검색 결과/);
+  assert.doesNotMatch(watchOptionsSource, /titleKo|movieTitle|searchTerm/);
 });
 
 test("renders the main navigation as prominent primary tabs", () => {
@@ -65,4 +83,3 @@ test("keeps discovery and comparison independent", () => {
   assert.doesNotMatch(pageSource, /tab=compare&add/);
   assert.doesNotMatch(comparisonSource, /api\/movies\/lookup/);
 });
-

@@ -1,5 +1,10 @@
 import { findTmdbMatch, getTmdbWatchProvidersKR } from "@/lib/tmdb";
 import type { EnrichedMovie } from "@/lib/enrichment";
+import {
+  getCachedEnrichments,
+  persistEnrichment,
+  type EnrichmentCacheItem,
+} from "@/lib/enrichment-cache";
 import { getConfirmedTheatersByTitle } from "@/lib/theater-catalog";
 import { normalizeTheaterTitle } from "@/lib/theater-sources";
 
@@ -13,12 +18,7 @@ import { normalizeTheaterTitle } from "@/lib/theater-sources";
 
 const MAX_ITEMS = 12;
 
-type EnrichRequestItem = {
-  movieCd: string;
-  titleKo: string;
-  titleEn?: string;
-  year?: string;
-};
+type EnrichRequestItem = EnrichmentCacheItem;
 
 export async function POST(request: Request) {
   let body: { items?: EnrichRequestItem[] };
@@ -31,9 +31,10 @@ export async function POST(request: Request) {
   const items = (body.items ?? []).slice(0, MAX_ITEMS);
   if (!items.length) return Response.json({ movies: [] });
 
-  const theatersByTitle = await getConfirmedTheatersByTitle(
-    items.map((item) => item.titleKo),
-  );
+  const [theatersByTitle, cached] = await Promise.all([
+    getConfirmedTheatersByTitle(items.map((item) => item.titleKo)),
+    getCachedEnrichments(items),
+  ]);
 
   const movies = await Promise.all(
     items.map(async (item): Promise<EnrichedMovie> => {
@@ -47,11 +48,22 @@ export async function POST(request: Request) {
         theaters: theatersByTitle.get(normalizeTheaterTitle(item.titleKo)) ?? [],
       };
 
+      const cachedMovie = cached.get(item.movieCd);
+      if (cachedMovie) return { ...cachedMovie, theaters: fallback.theaters };
+
       try {
         const match = await findTmdbMatch(item.titleKo, item.year, item.titleEn);
-        if (!match) return fallback;
+        if (!match) {
+          await persistEnrichment(item, null, null).catch((error) => {
+            console.error("TMDB 미매칭 결과 저장 실패", error);
+          });
+          return fallback;
+        }
 
         const providers = await getTmdbWatchProvidersKR(match.id);
+        await persistEnrichment(item, match, providers).catch((error) => {
+          console.error("TMDB 보강 결과 저장 실패", error);
+        });
         return {
           movieCd: item.movieCd,
           posterUrl: match.posterUrl,
