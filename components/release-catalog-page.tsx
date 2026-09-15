@@ -2,7 +2,6 @@ import Link from "next/link";
 import { CalendarDays, Clapperboard, Star } from "lucide-react";
 
 import { ReleaseRefresh } from "@/components/release-refresh";
-import { ReleaseMoviePoster } from "@/components/release-movie-poster";
 import { SiteHeader } from "@/components/site-header";
 import { TheaterChainBadges } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
@@ -58,15 +57,21 @@ function ReleaseMovieCard({
   const cardContent = (
     <>
       <div className="relative aspect-[2/3] overflow-hidden bg-secondary">
-        <ReleaseMoviePoster
-          initialUrl={movie.posterUrl}
-          movieCd={movie.movieCd}
-          openDate={movie.openDate}
-          priority={priority}
-          titleEn={movie.titleEn}
-          titleKo={movie.titleKo}
-          year={movie.productionYear}
-        />
+        {movie.posterUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- D1에 저장된 TMDB CDN 원격 이미지입니다.
+          <img
+            alt={`${movie.titleKo} 포스터`}
+            className="size-full object-cover transition duration-300 group-hover:scale-[1.025]"
+            fetchPriority={priority ? "high" : "auto"}
+            loading={priority ? "eager" : "lazy"}
+            src={movie.posterUrl}
+          />
+        ) : (
+          <div className="flex size-full flex-col items-center justify-center gap-2 px-5 text-center text-sm font-medium text-muted-foreground">
+            <Clapperboard className="size-8 opacity-40" />
+            <span>포스터 준비 중</span>
+          </div>
+        )}
         <span className="absolute left-3 top-3 rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
           {movie.isReRelease ? "재개봉" : formatOpenDate(movie.openDate)}
         </span>

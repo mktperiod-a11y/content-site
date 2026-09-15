@@ -116,3 +116,10 @@ test("offers the same search from the header on every page", () => {
   assert.match(pageSource, /params\.get\("q"\)/);
   assert.match(siteHeaderSource, /search \?\? <HeaderSearch \/>/);
 });
+
+test("keeps mobile navigation scrollable without showing a browser scrollbar", () => {
+  assert.match(siteHeaderSource, /overflow-x-auto/);
+  assert.match(siteHeaderSource, /\[scrollbar-width:none\]/);
+  assert.match(siteHeaderSource, /\[&::\-webkit-scrollbar\]:hidden/);
+  assert.match(siteHeaderSource, /sm:overflow-visible/);
+});

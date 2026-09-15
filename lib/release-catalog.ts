@@ -204,6 +204,7 @@ export async function getReleaseCatalog(
                SELECT normalized_title,
                       MIN(title_ko) AS title_ko,
                       MAX(open_date) AS open_date,
+                      MAX(poster_url) AS poster_url,
                       COUNT(DISTINCT theater_code) AS theater_count
                FROM theater_movies
                GROUP BY normalized_title
@@ -218,7 +219,7 @@ export async function getReleaseCatalog(
                     COALESCE(m.nation_text, '') AS nation_text,
                     COALESCE(m.directors_json, '[]') AS directors_json,
                     m.tmdb_id,
-                    m.poster_url,
+                    COALESCE(m.poster_url, theater_titles.poster_url) AS poster_url,
                     m.vote_average,
                     COALESCE(m.vote_count, 0) AS vote_count
              FROM theater_titles

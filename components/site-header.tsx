@@ -30,7 +30,11 @@ export function SiteHeader({
 
       <div className="border-y border-white/10">
         <div className="mx-auto flex min-h-14 max-w-6xl flex-col gap-2 px-5 py-2 sm:flex-row sm:items-center sm:gap-4 sm:px-8 sm:py-0">
-          {navigation && <div className="w-full overflow-x-auto sm:w-auto">{navigation}</div>}
+          {navigation && (
+            <div className="w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:w-auto sm:overflow-visible">
+              {navigation}
+            </div>
+          )}
           <div className="w-full sm:ml-auto sm:w-80 sm:shrink-0">
             {search ?? <HeaderSearch />}
           </div>

@@ -1,5 +1,5 @@
 import { syncReleaseCatalog } from "@/lib/release-catalog";
-import { syncTheaterCatalog } from "@/lib/theater-catalog";
+import { syncTheaterCatalog, syncTheaterPosters } from "@/lib/theater-catalog";
 
 export async function POST() {
   const [releaseResult, theaterResult] = await Promise.allSettled([
@@ -21,9 +21,18 @@ export async function POST() {
     );
   }
 
+  const posterResult = await Promise.resolve(syncTheaterPosters()).catch((error) => {
+    console.error("Theater poster refresh failed", error);
+    return null;
+  });
+
   return Response.json({
     releases: releaseResult.status === "fulfilled" ? releaseResult.value : null,
     theaters: theaterResult.status === "fulfilled" ? theaterResult.value : null,
-    partial: releaseResult.status === "rejected" || theaterResult.status === "rejected",
+    posters: posterResult,
+    partial:
+      releaseResult.status === "rejected" ||
+      theaterResult.status === "rejected" ||
+      posterResult === null,
   });
 }

@@ -2,7 +2,7 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { syncReleaseCatalog } from "../lib/release-catalog";
-import { syncTheaterCatalog } from "../lib/theater-catalog";
+import { syncTheaterCatalog, syncTheaterPosters } from "../lib/theater-catalog";
 
 interface Env {
   ASSETS: Fetcher;
@@ -76,7 +76,9 @@ const worker = {
       if (value) process.env[key] = value;
     }
     ctx.waitUntil(
-      Promise.allSettled([syncReleaseCatalog(), syncTheaterCatalog()]).then(() => undefined),
+      Promise.allSettled([syncReleaseCatalog(), syncTheaterCatalog()])
+        .then(() => syncTheaterPosters())
+        .then(() => undefined),
     );
   },
 };

@@ -1,4 +1,5 @@
 import { getD1 } from "@/db";
+import { findTmdbMatch } from "@/lib/tmdb";
 import {
   THEATER_CODES,
   THEATER_SOURCE_LOADERS,
@@ -9,6 +10,10 @@ import {
 
 export const THEATER_SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const THEATER_LOCK_MS = 5 * 60 * 1000;
+const THEATER_POSTER_LOCK_MS = 10 * 60 * 1000;
+const THEATER_POSTER_RETRY_MS = 30 * 24 * 60 * 60 * 1000;
+const THEATER_POSTER_BATCH_LIMIT = 120;
+const THEATER_POSTER_SYNC_KEY = "theater_posters";
 /**
  * last_success_at은 수집이 "끝난" 시각이라 크론이 뜬 시각보다 항상 조금 뒤다.
  * 그래서 TTL을 정확히 24시간으로 재면 다음 날 같은 시각의 크론이 매번
@@ -36,8 +41,14 @@ export type TheaterStatus = {
 type SyncRow = {
   sync_key: string;
   last_success_at: number | null;
+  lock_until?: number;
   lock_token: string | null;
   status: string;
+};
+
+type TheaterPosterTarget = {
+  normalized_title: string;
+  title_ko: string;
 };
 
 type TheaterRow = {
@@ -168,6 +179,173 @@ export async function syncTheaterCatalog() {
   return { results };
 }
 
+async function getPosterSyncState() {
+  return getD1()
+    .prepare(
+      `SELECT sync_key, last_success_at, lock_until, lock_token, status
+       FROM sync_state WHERE sync_key = ?`,
+    )
+    .bind(THEATER_POSTER_SYNC_KEY)
+    .first<SyncRow>();
+}
+
+async function acquirePosterLock(now: number, token: string) {
+  await getD1()
+    .prepare(
+      `INSERT INTO sync_state
+         (sync_key, last_success_at, lock_until, lock_token, status, last_error, updated_at)
+       VALUES (?, NULL, ?, ?, 'running', NULL, ?)
+       ON CONFLICT(sync_key) DO UPDATE SET
+         lock_until = excluded.lock_until,
+         lock_token = excluded.lock_token,
+         status = 'running',
+         last_error = NULL,
+         updated_at = excluded.updated_at
+       WHERE sync_state.lock_until < ?`,
+    )
+    .bind(THEATER_POSTER_SYNC_KEY, now + THEATER_POSTER_LOCK_MS, token, now, now)
+    .run();
+  return (await getPosterSyncState())?.lock_token === token;
+}
+
+async function getTheaterPosterTargets(now: number) {
+  const result = await getD1()
+    .prepare(
+      `SELECT normalized_title, MIN(title_ko) AS title_ko
+       FROM theater_movies
+       WHERE poster_url IS NULL
+         AND (
+           tmdb_status = 'pending'
+           OR tmdb_updated_at IS NULL
+           OR tmdb_updated_at <= ?
+         )
+       GROUP BY normalized_title
+       ORDER BY MAX(checked_at) DESC, normalized_title ASC
+       LIMIT ?`,
+    )
+    .bind(now - THEATER_POSTER_RETRY_MS, THEATER_POSTER_BATCH_LIMIT)
+    .all<TheaterPosterTarget>();
+  return result.results ?? [];
+}
+
+async function enrichTheaterPoster(target: TheaterPosterTarget, now: number) {
+  const db = getD1();
+  try {
+    // 극장 개봉일은 재개봉일일 수 있으므로 연도는 제한하지 않는다.
+    // findTmdbMatch가 정규화된 제목의 정확한 일치만 허용해 오매칭을 막는다.
+    const match = await findTmdbMatch(target.title_ko);
+    if (!match) {
+      await db
+        .prepare(
+          `UPDATE theater_movies
+           SET tmdb_status = 'not_found', tmdb_updated_at = ?
+           WHERE normalized_title = ?`,
+        )
+        .bind(now, target.normalized_title)
+        .run();
+      return "not_found" as const;
+    }
+
+    if (!match.posterUrl) {
+      await db
+        .prepare(
+          `UPDATE theater_movies
+           SET tmdb_status = 'not_found', tmdb_updated_at = ?
+           WHERE normalized_title = ?`,
+        )
+        .bind(now, target.normalized_title)
+        .run();
+      return "not_found" as const;
+    }
+
+    await db
+      .prepare(
+        `UPDATE theater_movies
+         SET poster_url = ?, tmdb_status = 'matched', tmdb_updated_at = ?
+         WHERE normalized_title = ?`,
+      )
+      .bind(match.posterUrl, now, target.normalized_title)
+      .run();
+    return "matched" as const;
+  } catch (error) {
+    console.error(`Failed to enrich theater poster ${target.normalized_title}`, error);
+    await db
+      .prepare(
+        `UPDATE theater_movies
+         SET tmdb_status = 'error', tmdb_updated_at = ?
+         WHERE normalized_title = ?`,
+      )
+      .bind(now, target.normalized_title)
+      .run();
+    return "error" as const;
+  }
+}
+
+/**
+ * 극장 카드 포스터를 방문자 요청과 분리해 D1에 미리 저장한다.
+ * 새 스냅샷에 추가된 제목과 재시도 기한이 지난 제목만 TMDB에서 보강한다.
+ */
+export async function syncTheaterPosters() {
+  const db = getD1();
+  const now = Date.now();
+  const token = crypto.randomUUID();
+  if (!(await acquirePosterLock(now, token))) {
+    return { refreshed: false, reason: "running" as const };
+  }
+
+  try {
+    const targets = await getTheaterPosterTargets(now);
+    const results: Array<"matched" | "not_found" | "error"> = [];
+    const concurrency = 8;
+    for (let index = 0; index < targets.length; index += concurrency) {
+      results.push(
+        ...(await Promise.all(
+          targets.slice(index, index + concurrency).map((target) =>
+            enrichTheaterPoster(target, now),
+          ),
+        )),
+      );
+    }
+
+    await db
+      .prepare(
+        `UPDATE sync_state
+         SET last_success_at = ?, lock_until = 0, lock_token = NULL,
+             status = 'idle', last_error = NULL, updated_at = ?
+         WHERE sync_key = ? AND lock_token = ?`,
+      )
+      .bind(now, now, THEATER_POSTER_SYNC_KEY, token)
+      .run();
+
+    return {
+      refreshed: true,
+      checked: targets.length,
+      matched: results.filter((result) => result === "matched").length,
+      notFound: results.filter((result) => result === "not_found").length,
+      errors: results.filter((result) => result === "error").length,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message.slice(0, 500) : "Unknown sync error";
+    const failedAt = Date.now();
+    await db
+      .prepare(
+        `UPDATE sync_state
+         SET lock_until = ?, lock_token = NULL, status = 'error',
+             last_error = ?, updated_at = ?
+         WHERE sync_key = ? AND lock_token = ?`,
+      )
+      .bind(
+        failedAt + SYNC_RETRY_COOLDOWN_MS,
+        message,
+        failedAt,
+        THEATER_POSTER_SYNC_KEY,
+        token,
+      )
+      .run();
+    throw error;
+  }
+}
+
 export async function getTheaterStatuses(title: string) {
   const normalizedTitle = normalizeTheaterTitle(title);
   const fallback = {
@@ -267,23 +445,29 @@ export async function getConfirmedTheatersByTitle(titles: string[]) {
 
 export async function getLatestTheaterRefresh() {
   try {
-    const placeholders = THEATER_CODES.map(() => "?").join(",");
+    const keys = [...THEATER_CODES.map(syncKey), THEATER_POSTER_SYNC_KEY];
+    const placeholders = keys.map(() => "?").join(",");
     const rows = await getD1()
       .prepare(
         `SELECT sync_key, last_success_at, lock_token, status
          FROM sync_state WHERE sync_key IN (${placeholders})`,
       )
-      .bind(...THEATER_CODES.map(syncKey))
+      .bind(...keys)
       .all<SyncRow>();
-    const successes = (rows.results ?? [])
+    const states = rows.results ?? [];
+    const theaterStates = states.filter((row) => row.sync_key.startsWith("theater:"));
+    const posterState = states.find((row) => row.sync_key === THEATER_POSTER_SYNC_KEY);
+    const successes = theaterStates
       .map((row) => row.last_success_at)
       .filter((value): value is number => typeof value === "number");
     return {
       lastSuccessAt: successes.length ? Math.min(...successes) : null,
       stale:
         successes.length !== THEATER_CODES.length ||
-        (rows.results ?? []).some((row) => row.status === "error") ||
-        Date.now() - Math.min(...successes) >= THEATER_SYNC_INTERVAL_MS,
+        theaterStates.some((row) => row.status === "error") ||
+        Date.now() - Math.min(...successes) >= THEATER_SYNC_INTERVAL_MS ||
+        !posterState?.last_success_at ||
+        posterState.status === "error",
     };
   } catch {
     return { lastSuccessAt: null, stale: true };

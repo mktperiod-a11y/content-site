@@ -15,6 +15,13 @@
       "when": 1789027347931,
       "tag": "0001_friendly_vin_gonzales",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789452091917,
+      "tag": "0002_condemned_paibok",
+      "breakpoints": true
     }
   ]
 }

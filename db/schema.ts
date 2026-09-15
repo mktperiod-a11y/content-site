@@ -68,6 +68,9 @@ export const theaterMovies = sqliteTable(
     titleKo: text("title_ko").notNull(),
     normalizedTitle: text("normalized_title").notNull(),
     openDate: text("open_date").notNull().default(""),
+    posterUrl: text("poster_url"),
+    tmdbStatus: text("tmdb_status").notNull().default("pending"),
+    tmdbUpdatedAt: integer("tmdb_updated_at"),
     bookingAvailable: integer("booking_available", { mode: "boolean" })
       .notNull()
       .default(true),
