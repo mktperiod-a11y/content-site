@@ -104,7 +104,19 @@ test("renders crawlable release routes as an in-page chip switch", () => {
   assert.match(pageSource, /aria-current=/);
   assert.match(pageSource, /movie\.movieCd \?/);
   assert.match(pageSource, /movie\.movieCd \?\? movie\.titleKo/);
-  assert.match(pageSource, /href=\{`\/movie\/\$\{movie\.movieCd\}`\}/);
+  assert.match(pageSource, /`\/movie\/\$\{movie\.movieCd\}`/);
+});
+
+test("never leaves a release card without somewhere to go", () => {
+  // 극장 목록에는 있는데 KOBIS에 매칭되지 않은 작품(재개봉·특별상영 등)은
+  // movieCd가 없다. 예전에는 그런 카드를 article로 렌더해 클릭이 아예 먹지
+  // 않았고, "제공처 확인 중" 문구가 붙는 카드가 정확히 그 카드였다.
+  assert.match(
+    pageSource,
+    /`\/search\?q=\$\{encodeURIComponent\(movie\.titleKo\)\}`/,
+  );
+  // 카드 본문을 감싸는 클릭 불가 컨테이너가 남아 있지 않다.
+  assert.doesNotMatch(pageSource, /<article className=\{cardClassName\}>/);
 });
 
 test("backs off instead of retrying a failed sync on every visit", () => {
