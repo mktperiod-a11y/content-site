@@ -10,8 +10,8 @@ import Link from "next/link";
  */
 
 const WATCH_OPTIONS_HREF = "/watch-options";
-const HEADLINE_TOP = "구독 말고";
-const HEADLINE_BOTTOM = "골라 보는 방법은?";
+const HEADLINE_TOP = "늘어만 가는";
+const HEADLINE_BOTTOM = "구독제가 지겹다면?";
 const CTA_LABEL = "확인하러 가기";
 
 /** 오른쪽에서 들어오는 주황 광원 */
