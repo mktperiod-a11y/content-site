@@ -35,7 +35,8 @@ export function SiteHeader({
               {navigation}
             </div>
           )}
-          <div className="w-full sm:ml-auto sm:w-80 sm:shrink-0">
+          {/* 모바일에서는 탭바와 같은 위계로 보여 혼란을 줘 숨긴다. 검색은 각 탭 안에서 한다. */}
+          <div className="hidden sm:ml-auto sm:block sm:w-80 sm:shrink-0">
             {search ?? <HeaderSearch />}
           </div>
         </div>
