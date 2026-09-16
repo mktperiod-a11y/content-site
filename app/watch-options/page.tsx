@@ -58,7 +58,7 @@ export default function WatchOptionsPage() {
             돌아가기
           </BackLink>
           <p className="mt-10 text-sm font-bold text-brand">구독 외 이용 방식</p>
-          <h1 className="mt-4 max-w-3xl break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[1.05] tracking-[-0.025em]">
+          <h1 className="mt-4 max-w-3xl break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[1.2] sm:leading-[1.05] tracking-[-0.025em]">
             콘텐츠를 이용하는 방법은
             <br />
             구독만 있는 것이 아니에요.

@@ -387,7 +387,7 @@ function HomeContent() {
 
             <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14 lg:pt-20">
               <div>
-                <h1 className="max-w-3xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
+                <h1 className="max-w-3xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[1.2] sm:leading-[0.99] tracking-[1px] text-on-dark-primary">
                   이 영화,
                   <br />
                   OTT에 있나요?

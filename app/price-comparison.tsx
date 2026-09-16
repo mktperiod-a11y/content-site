@@ -288,7 +288,7 @@ export function PriceComparison() {
         <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:pt-20">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div>
-              <h1 className="max-w-4xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
+              <h1 className="max-w-4xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[1.2] sm:leading-[0.99] tracking-[1px] text-on-dark-primary">
                 보고 싶은 작품으로
                 <br />
                 구독료를 비교해보세요
