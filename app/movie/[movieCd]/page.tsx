@@ -9,7 +9,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SponsoredBox } from "@/components/sponsored-slot";
 import { TheaterBookingLinks } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
-import { getStoredTmdbId, persistEnrichment } from "@/lib/enrichment-cache";
+import { getStoredTmdbState, persistEnrichment } from "@/lib/enrichment-cache";
 import { getTheaterStatuses } from "@/lib/theater-catalog";
 import {
   KobisApiError,
@@ -105,10 +105,13 @@ const getTmdbBundleById = cache(async (tmdbId: number): Promise<TmdbBundle> => {
  * Next는 generateMetadata가 끝난 뒤에야 본문을 렌더하므로, 본문에서 처음
  * 부르면 KOBIS 왕복이 끝날 때까지 TMDB가 시작조차 못 한다.
  */
+/** 한 요청 안에서 D1을 두 번 묻지 않도록 묶는다. */
+const getStoredTmdbStateCached = cache(getStoredTmdbState);
+
 const getSeededTmdbBundle = cache(
   async (movieCd: string): Promise<TmdbBundle | null> => {
-    const storedTmdbId = await getStoredTmdbId(movieCd);
-    return storedTmdbId ? getTmdbBundleById(storedTmdbId) : null;
+    const { tmdbId } = await getStoredTmdbStateCached(movieCd);
+    return tmdbId ? getTmdbBundleById(tmdbId) : null;
   },
 );
 
@@ -226,7 +229,10 @@ export default async function MovieDetailPage({
     getTheaterStatuses(movie.titleKo),
   ]);
 
-  if (!seededTmdb && tmdb.match) {
+  // 제공처까지 저장된 적이 없으면 이번에 가져온 결과로 캐시를 채운다.
+  // id만 미리 채워둔 작품(수집이 넣어둔 것)도 여기서 한 번은 완전해진다.
+  const { isFullyCached } = await getStoredTmdbStateCached(movieCd);
+  if (!isFullyCached && tmdb.match) {
     await persistEnrichment(
       {
         movieCd,

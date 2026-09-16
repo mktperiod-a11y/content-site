@@ -82,3 +82,44 @@ test("only asks KOBIS about titles that movies does not already cover", () => {
   assert.match(catalogSource, /kobis_updated_at <= \?/);
   assert.match(catalogSource, /const THEATER_KOBIS_BATCH_LIMIT = \d+/);
 });
+
+test("never marks a movie as provider-checked when only the id was looked up", async () => {
+  // getCachedEnrichments가 믿는 값은 'matched'와 'not_found' 뿐이다.
+  // id만 아는 행을 'matched'로 적으면, 제공처를 확인한 적이 없는데도
+  // 검색 결과가 "구독형에 없음"을 확정으로 말하게 된다.
+  const cacheSource = await readFile(
+    new URL("../lib/enrichment-cache.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(cacheSource, /TMDB_ID_ONLY_STATUS = "id_only"/);
+  assert.match(cacheSource, /TMDB_ID_NOT_FOUND_STATUS = "id_not_found"/);
+  assert.match(
+    cacheSource,
+    /tmdb_status !== "matched" && movie\.tmdb_status !== "not_found"\) continue/,
+  );
+  // 미리 채우는 쪽은 그 두 값을 쓰지 않는다.
+  assert.match(catalogSource, /TMDB_ID_ONLY_STATUS/);
+  assert.doesNotMatch(catalogSource, /SET tmdb_id = \?, tmdb_status = 'matched'/);
+});
+
+test("looks up the pre-filled id with the year so remakes cannot be picked", () => {
+  // 상세 페이지의 평점·줄거리·제공처가 이 id를 따라간다. 연도 없이 제목만으로
+  // 맞추면 같은 제목의 리메이크가 걸려 남의 작품 정보가 뜬다.
+  assert.match(
+    catalogSource,
+    /findTmdbMatch\(\s*target\.title_ko,\s*target\.production_year,\s*target\.title_en,\s*\)/,
+  );
+  // 이미 id가 있는 행은 덮어쓰지 않는다.
+  assert.match(catalogSource, /WHERE movie_cd = \? AND tmdb_id IS NULL/);
+  // 끝내 매칭되지 않는 작품이 배치를 독점하지 않도록 한 번도 시도하지 않은 것을 먼저 본다.
+  assert.match(catalogSource, /ORDER BY m\.tmdb_updated_at IS NOT NULL/);
+});
+
+test("leaves the list card's look alone while pre-filling", () => {
+  // 포스터·평점까지 쓰면 목록 카드 겉모습이 바뀐다. 필요한 건 id 하나뿐이다.
+  const storeBlock = catalogSource.slice(
+    catalogSource.indexOf("async function storeTmdbId"),
+    catalogSource.indexOf("export async function syncTheaterMovieTmdbIds"),
+  );
+  assert.doesNotMatch(storeBlock, /poster_url|vote_average|vote_count/);
+});

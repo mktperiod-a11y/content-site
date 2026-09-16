@@ -1,4 +1,8 @@
 import { getD1 } from "@/db";
+import {
+  TMDB_ID_NOT_FOUND_STATUS,
+  TMDB_ID_ONLY_STATUS,
+} from "@/lib/enrichment-cache";
 import { listKobisMoviesByTitle, type KobisMovieSummary } from "@/lib/kobis";
 import { findTmdbMatch } from "@/lib/tmdb";
 import {
@@ -24,6 +28,11 @@ const THEATER_KOBIS_LOCK_MS = 10 * 60 * 1000;
 const THEATER_KOBIS_RETRY_MS = 7 * 24 * 60 * 60 * 1000;
 /** 한 제목당 KOBIS 호출 1회. 한 번에 도는 양을 묶어둔다. */
 const THEATER_KOBIS_BATCH_LIMIT = 40;
+const THEATER_TMDB_SYNC_KEY = "theater_movie_tmdb";
+const THEATER_TMDB_LOCK_MS = 10 * 60 * 1000;
+const THEATER_TMDB_RETRY_MS = 7 * 24 * 60 * 60 * 1000;
+/** 한 작품당 TMDB 호출 1회. */
+const THEATER_TMDB_BATCH_LIMIT = 40;
 /**
  * last_success_at은 수집이 "끝난" 시각이라 크론이 뜬 시각보다 항상 조금 뒤다.
  * 그래서 TTL을 정확히 24시간으로 재면 다음 날 같은 시각의 크론이 매번
@@ -583,6 +592,168 @@ export async function syncTheaterKobisMatches() {
         THEATER_KOBIS_SYNC_KEY,
         token,
       )
+      .run();
+    throw error;
+  }
+}
+
+type TheaterTmdbTarget = {
+  movie_cd: string;
+  title_ko: string;
+  production_year: string;
+  title_en: string;
+};
+
+async function acquireTmdbIdLock(now: number, token: string) {
+  const db = getD1();
+  await db
+    .prepare(
+      `INSERT INTO sync_state
+         (sync_key, last_success_at, lock_until, lock_token, status, last_error, updated_at)
+       VALUES (?, NULL, ?, ?, 'running', NULL, ?)
+       ON CONFLICT(sync_key) DO UPDATE SET
+         lock_until = excluded.lock_until,
+         lock_token = excluded.lock_token,
+         status = 'running',
+         last_error = NULL,
+         updated_at = excluded.updated_at
+       WHERE sync_state.lock_until < ?`,
+    )
+    .bind(THEATER_TMDB_SYNC_KEY, now + THEATER_TMDB_LOCK_MS, token, now, now)
+    .run();
+  const state = await db
+    .prepare("SELECT lock_token FROM sync_state WHERE sync_key = ?")
+    .bind(THEATER_TMDB_SYNC_KEY)
+    .first<{ lock_token: string | null }>();
+  return state?.lock_token === token;
+}
+
+/**
+ * 지금 극장에 걸려 있는데 TMDB id를 아직 모르는 작품을 고른다.
+ * 한 번도 시도하지 않은 것을 먼저, 그다음 개봉일이 최근인 순으로 본다.
+ * 그러지 않으면 끝내 매칭되지 않는 작품들이 매번 배치를 차지해 새 작품이 밀린다.
+ */
+async function getTheaterTmdbTargets(now: number) {
+  const result = await getD1()
+    .prepare(
+      `SELECT m.movie_cd, m.title_ko, m.production_year, m.title_en
+       FROM movies AS m
+       WHERE m.tmdb_id IS NULL
+         AND EXISTS (
+               SELECT 1 FROM theater_movies AS tm
+               WHERE tm.normalized_title = m.normalized_title
+             )
+         AND (m.tmdb_updated_at IS NULL OR m.tmdb_updated_at <= ?)
+       ORDER BY m.tmdb_updated_at IS NOT NULL, m.open_date DESC
+       LIMIT ?`,
+    )
+    .bind(now - THEATER_TMDB_RETRY_MS, THEATER_TMDB_BATCH_LIMIT)
+    .all<TheaterTmdbTarget>();
+  return result.results ?? [];
+}
+
+async function storeTmdbId(target: TheaterTmdbTarget, now: number) {
+  const db = getD1();
+  try {
+    // 포스터 매칭과 달리 연도를 함께 넘긴다. 상세 페이지의 평점·줄거리·제공처가
+    // 이 id를 따라가므로, 같은 제목의 리메이크를 집으면 남의 작품 정보가 뜬다.
+    const match = await findTmdbMatch(
+      target.title_ko,
+      target.production_year,
+      target.title_en,
+    );
+    if (!match) {
+      await db
+        .prepare(
+          `UPDATE movies SET tmdb_status = ?, tmdb_updated_at = ?
+           WHERE movie_cd = ? AND tmdb_id IS NULL`,
+        )
+        .bind(TMDB_ID_NOT_FOUND_STATUS, now, target.movie_cd)
+        .run();
+      return "not_found" as const;
+    }
+
+    // 포스터·평점은 일부러 건드리지 않는다. 그것까지 쓰면 목록 카드의 겉모습이
+    // 바뀐다. 여기서 필요한 건 상세 진입을 빠르게 할 id 하나뿐이다.
+    await db
+      .prepare(
+        `UPDATE movies SET tmdb_id = ?, tmdb_status = ?, tmdb_updated_at = ?
+         WHERE movie_cd = ? AND tmdb_id IS NULL`,
+      )
+      .bind(match.id, TMDB_ID_ONLY_STATUS, now, target.movie_cd)
+      .run();
+    return "matched" as const;
+  } catch (error) {
+    console.error(`Failed to store TMDB id for ${target.movie_cd}`, error);
+    await db
+      .prepare(
+        `UPDATE movies SET tmdb_status = ?, tmdb_updated_at = ?
+         WHERE movie_cd = ? AND tmdb_id IS NULL`,
+      )
+      .bind("id_error", now, target.movie_cd)
+      .run();
+    return "error" as const;
+  }
+}
+
+/**
+ * 극장에 걸린 작품의 TMDB id를 미리 채운다.
+ *
+ * 상세 페이지는 id를 알면 TMDB 조회를 바로 시작하지만, 모르면 제목으로 먼저
+ * 찾아야 해서 느린 왕복이 한 번 더 붙는다. 그 왕복을 방문자가 아니라 수집이
+ * 대신 치른다. 제공처까지 저장하지는 않으므로 tmdb_status는 캐시가 신뢰하는
+ * 값('matched')을 쓰지 않는다 — 확인한 적 없는 제공처를 단정하면 안 된다.
+ */
+export async function syncTheaterMovieTmdbIds() {
+  const db = getD1();
+  const now = Date.now();
+  const token = crypto.randomUUID();
+  if (!(await acquireTmdbIdLock(now, token))) {
+    return { refreshed: false, reason: "running" as const };
+  }
+
+  try {
+    const targets = await getTheaterTmdbTargets(now);
+    const results: Array<"matched" | "not_found" | "error"> = [];
+    const concurrency = 8;
+    for (let index = 0; index < targets.length; index += concurrency) {
+      results.push(
+        ...(await Promise.all(
+          targets.slice(index, index + concurrency).map((target) =>
+            storeTmdbId(target, now),
+          ),
+        )),
+      );
+    }
+
+    await db
+      .prepare(
+        `UPDATE sync_state
+         SET last_success_at = ?, lock_until = 0, lock_token = NULL,
+             status = 'idle', last_error = NULL, updated_at = ?
+         WHERE sync_key = ? AND lock_token = ?`,
+      )
+      .bind(now, now, THEATER_TMDB_SYNC_KEY, token)
+      .run();
+
+    return {
+      refreshed: true,
+      checked: targets.length,
+      matched: results.filter((result) => result === "matched").length,
+      notFound: results.filter((result) => result === "not_found").length,
+      errors: results.filter((result) => result === "error").length,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message.slice(0, 500) : "Unknown sync error";
+    const failedAt = Date.now();
+    await db
+      .prepare(
+        `UPDATE sync_state
+         SET lock_until = ?, lock_token = NULL, status = 'error',
+             last_error = ?, updated_at = ?
+         WHERE sync_key = ? AND lock_token = ?`,
+      )
+      .bind(failedAt + SYNC_RETRY_COOLDOWN_MS, message, failedAt, THEATER_TMDB_SYNC_KEY, token)
       .run();
     throw error;
   }

@@ -2,6 +2,7 @@ import { syncReleaseCatalog } from "@/lib/release-catalog";
 import {
   syncTheaterCatalog,
   syncTheaterKobisMatches,
+  syncTheaterMovieTmdbIds,
   syncTheaterPosters,
 } from "@/lib/theater-catalog";
 
@@ -41,17 +42,24 @@ export async function POST(request: Request) {
     );
   }
 
-  // 둘 다 갓 저장된 극장 목록을 읽으므로 극장 수집 뒤에 돈다. 서로는 독립이라
-  // (포스터는 theater_movies.poster_url, 매칭은 movies) 함께 보낸다.
-  const [posterResult, kobisResult] = await Promise.all([
-    Promise.resolve(syncTheaterPosters()).catch((error) => {
-      console.error("Theater poster refresh failed", error);
+  // 아래 세 가지는 모두 갓 저장된 극장 목록을 읽으므로 극장 수집 뒤에 돈다.
+  async function run<T>(label: string, task: () => Promise<T>) {
+    try {
+      return await task();
+    } catch (error) {
+      console.error(`${label} failed`, error);
       return null;
-    }),
-    Promise.resolve(syncTheaterKobisMatches()).catch((error) => {
-      console.error("Theater KOBIS match refresh failed", error);
-      return null;
-    }),
+    }
+  }
+
+  // 포스터 보강과 KOBIS 매칭은 서로 독립이라 함께 보낸다.
+  // TMDB id 채우기만 KOBIS 매칭이 방금 넣은 작품까지 보도록 그 뒤에 잇는다.
+  const [posterResult, [kobisResult, tmdbIdResult]] = await Promise.all([
+    run("Theater poster refresh", syncTheaterPosters),
+    run("Theater KOBIS match refresh", syncTheaterKobisMatches).then(
+      async (kobis) =>
+        [kobis, await run("Theater TMDB id refresh", syncTheaterMovieTmdbIds)] as const,
+    ),
   ]);
 
   return Response.json({
@@ -59,10 +67,12 @@ export async function POST(request: Request) {
     theaters: theaterResult.status === "fulfilled" ? theaterResult.value : null,
     posters: posterResult,
     kobisMatches: kobisResult,
+    tmdbIds: tmdbIdResult,
     partial:
       releaseResult.status === "rejected" ||
       theaterResult.status === "rejected" ||
       posterResult === null ||
-      kobisResult === null,
+      kobisResult === null ||
+      tmdbIdResult === null,
   });
 }
