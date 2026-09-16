@@ -132,15 +132,30 @@ export async function getCachedEnrichments(items: EnrichmentCacheItem[]) {
   return result;
 }
 
-export async function getStoredTmdbId(movieCd: string) {
+/**
+ * 미리 채워둔 TMDB id는 있지만 제공처까지 저장된 상태는 아닌 행의 표시.
+ *
+ * getCachedEnrichments가 믿는 값('matched'/'not_found')을 피해야 한다.
+ * id만 아는 상태를 'matched'로 적으면 제공처를 확인한 적이 없는데도
+ * 검색 결과가 "구독처 없음"을 확정으로 말하게 된다.
+ */
+export const TMDB_ID_ONLY_STATUS = "id_only";
+/** 같은 이유로, id 조회에 실패한 것도 별도 값으로 남긴다. */
+export const TMDB_ID_NOT_FOUND_STATUS = "id_not_found";
+
+export async function getStoredTmdbState(movieCd: string) {
   try {
     const row = await getD1()
-      .prepare("SELECT tmdb_id FROM movies WHERE movie_cd = ?")
+      .prepare("SELECT tmdb_id, tmdb_status FROM movies WHERE movie_cd = ?")
       .bind(movieCd)
-      .first<{ tmdb_id: number | null }>();
-    return row?.tmdb_id ?? null;
+      .first<{ tmdb_id: number | null; tmdb_status: string }>();
+    return {
+      tmdbId: row?.tmdb_id ?? null,
+      /** 제공처까지 저장돼 있는지. 아니면 상세 조회 결과를 저장해 캐시를 채운다. */
+      isFullyCached: row?.tmdb_status === "matched",
+    };
   } catch {
-    return null;
+    return { tmdbId: null, isFullyCached: false };
   }
 }
 

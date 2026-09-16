@@ -5,6 +5,7 @@ import { syncReleaseCatalog } from "../lib/release-catalog";
 import {
   syncTheaterCatalog,
   syncTheaterKobisMatches,
+  syncTheaterMovieTmdbIds,
   syncTheaterPosters,
 } from "../lib/theater-catalog";
 
@@ -91,7 +92,15 @@ const worker = {
     ctx.waitUntil(
       Promise.allSettled([syncReleaseCatalog(), syncTheaterCatalog()])
         // 포스터 보강과 KOBIS 매칭은 갓 저장된 극장 목록을 읽으므로 그 뒤에 돈다.
-        .then(() => Promise.allSettled([syncTheaterPosters(), syncTheaterKobisMatches()]))
+        // TMDB id 채우기는 KOBIS 매칭이 넣은 작품까지 보도록 다시 그 뒤에 둔다.
+        .then(() =>
+          Promise.allSettled([
+            syncTheaterPosters(),
+            Promise.allSettled([syncTheaterKobisMatches()]).then(() =>
+              syncTheaterMovieTmdbIds(),
+            ),
+          ]),
+        )
         .then(() => undefined),
     );
   },
