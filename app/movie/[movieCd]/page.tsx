@@ -514,17 +514,12 @@ export default async function MovieDetailPage({
                   </div>
                 </article>
               ) : providerLookupSucceeded ? (
-                <>
-                  <article className="rounded-[1.6rem] border border-border bg-card px-6 py-6 sm:px-8">
-                    <p className="text-lg font-bold">현재 확인된 국내 제공처가 없어요.</p>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      제공처 정보는 변경될 수 있습니다. 이용 전 각 서비스에서 다시 확인해주세요.
-                    </p>
-                  </article>
-                  <div className="rounded-[1.6rem] border border-border bg-card px-6 py-5">
-                    <TmdbAttribution justWatchLink={tmdb.providers?.link} />
-                  </div>
-                </>
+                <article className="rounded-[1.6rem] border border-border bg-card px-6 py-6 sm:px-8">
+                  <p className="text-lg font-bold">현재 확인된 국내 제공처가 없어요.</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    제공처 정보는 변경될 수 있습니다. 이용 전 각 서비스에서 다시 확인해주세요.
+                  </p>
+                </article>
               ) : (
                 <article className="rounded-[1.6rem] border border-border bg-card px-6 py-8 sm:px-8">
                   <p className="text-lg font-bold">제공처 정보를 확인하지 못했어요.</p>
