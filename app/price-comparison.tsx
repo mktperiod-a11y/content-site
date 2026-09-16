@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   AlertCircle,
-  ArrowRight,
   Check,
   Crown,
   Loader2,
@@ -18,21 +16,17 @@ import { Input } from "@/components/ui/input";
 import { OTT_PLANS, PRICES_VERIFIED_ON, findPlanByTmdbName, formatWon, type OttPlan } from "@/lib/ott-plans";
 import type { KobisMovieSummary } from "@/lib/kobis";
 import type { EnrichedMovie } from "@/lib/enrichment";
+import { SponsoredBanner } from "@/components/sponsored-slot";
 
 const MAX_SELECTED = 5;
 type SearchStatus = "idle" | "loading" | "success" | "error";
 
+/**
+ * 구독형에서 확인되지 않는 작품이 있을 때 노출하는 제휴 구좌.
+ * 노출 시점은 문맥을 쓰되, 배너 자체는 작품을 가리키지 않는다.
+ */
 function AlternativeUsageLink() {
-  return (
-    <Link
-      className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-ink px-5 text-sm font-bold text-white transition-colors hover:bg-ink/90"
-      data-ga-event="alternative_usage_open"
-      href="/watch-options"
-    >
-      구독 외 이용 방식 알아보기
-      <ArrowRight className="size-4" />
-    </Link>
-  );
+  return <SponsoredBanner className="w-full" />;
 }
 
 /** 선택한 작품의 제공처 조회 상태 */
@@ -529,9 +523,6 @@ export function PriceComparison() {
                       <>
                         <p className="mt-5 text-lg font-semibold text-foreground">
                           {unavailableMovies.map((movie) => movie.titleKo).join(", ")}
-                        </p>
-                        <p className="mt-2 max-w-xl text-base leading-7 text-muted-foreground">
-                          다른 이용 방법에서 작품명으로 직접 확인해보세요.
                         </p>
                       </>
                     )}

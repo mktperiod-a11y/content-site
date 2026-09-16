@@ -6,6 +6,7 @@ import { ArrowLeft, Info, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
+import { SponsoredBox } from "@/components/sponsored-slot";
 import { TheaterBookingLinks } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
 import { getStoredTmdbId, persistEnrichment } from "@/lib/enrichment-cache";
@@ -485,6 +486,10 @@ export default async function MovieDetailPage({
                   </p>
                 </article>
               )}
+
+              {/* 제공처 확인 여부와 무관하게 늘 같은 자리에 두는 제휴 구좌.
+                  조건부로 띄우면 "제공처가 없어서 권한다"로 읽힌다. */}
+              <SponsoredBox />
             </div>
           </div>
         </div>
