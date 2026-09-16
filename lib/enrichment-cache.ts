@@ -142,6 +142,8 @@ export async function getCachedEnrichments(items: EnrichmentCacheItem[]) {
 export const TMDB_ID_ONLY_STATUS = "id_only";
 /** 같은 이유로, id 조회에 실패한 것도 별도 값으로 남긴다. */
 export const TMDB_ID_NOT_FOUND_STATUS = "id_not_found";
+/** 조회 중 오류가 난 경우. 역시 캐시가 신뢰하는 값이 아니다. */
+export const TMDB_ID_ERROR_STATUS = "id_error";
 
 export async function getStoredTmdbState(movieCd: string) {
   try {

@@ -1,5 +1,6 @@
 import { getD1 } from "@/db";
 import {
+  TMDB_ID_ERROR_STATUS,
   TMDB_ID_NOT_FOUND_STATUS,
   TMDB_ID_ONLY_STATUS,
 } from "@/lib/enrichment-cache";
@@ -690,7 +691,7 @@ async function storeTmdbId(target: TheaterTmdbTarget, now: number) {
         `UPDATE movies SET tmdb_status = ?, tmdb_updated_at = ?
          WHERE movie_cd = ? AND tmdb_id IS NULL`,
       )
-      .bind("id_error", now, target.movie_cd)
+      .bind(TMDB_ID_ERROR_STATUS, now, target.movie_cd)
       .run();
     return "error" as const;
   }
