@@ -102,12 +102,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { movieCd } = await params;
   const { data } = await getMovieInfoCached(movieCd);
+  // sitemap.xml이 실어 보내는 주소와 같은 형태로 정본을 알린다.
+  const canonical = `/movie/${encodeURIComponent(movieCd)}`;
   if (!data) {
-    return { title: "작품 정보 | 어디서 보지?" };
+    return { alternates: { canonical }, title: "작품 정보 | 어디서 보지?" };
   }
 
   const directorText = data.directors.length ? ` · ${data.directors.join(", ")} 감독` : "";
   return {
+    alternates: { canonical },
     title: `${data.titleKo} (${data.prdtYear}) 어디서 보지? | OTT 제공처 확인`,
     description: `${data.titleKo}${directorText}. 구독·대여·구매 등 국내 OTT 이용 방법을 확인하세요.`,
   };

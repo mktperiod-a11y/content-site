@@ -2,6 +2,7 @@ import { findTmdbMatch, getTmdbWatchProvidersKR } from "@/lib/tmdb";
 import type { EnrichedMovie } from "@/lib/enrichment";
 import {
   getCachedEnrichments,
+  isTrustedEnrichmentItem,
   persistEnrichment,
   type EnrichmentCacheItem,
 } from "@/lib/enrichment-cache";
@@ -28,7 +29,11 @@ export async function POST(request: Request) {
     return Response.json({ error: "잘못된 요청이에요." }, { status: 400 });
   }
 
-  const items = (body.items ?? []).slice(0, MAX_ITEMS);
+  // KOBIS 결과의 모양이 아닌 항목은 외부 API도 부르지 않고 저장도 하지 않는다.
+  // 이 엔드포인트는 공개되어 있고, 저장 결과가 개봉 예정작 목록과 사이트맵에 쓰인다.
+  const items = (Array.isArray(body.items) ? body.items : [])
+    .filter(isTrustedEnrichmentItem)
+    .slice(0, MAX_ITEMS);
   if (!items.length) return Response.json({ movies: [] });
 
   const [theatersByTitle, cached] = await Promise.all([

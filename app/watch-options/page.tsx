@@ -37,6 +37,7 @@ const OPTIONS = [
 ] as const;
 
 export const metadata = {
+  alternates: { canonical: "/watch-options" },
   title: "구독 외 이용 방식 | 어디서 보지?",
   description: "구독형 OTT 외에 작품을 이용할 수 있는 방식을 비교해보세요.",
 };

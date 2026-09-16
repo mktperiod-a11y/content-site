@@ -13,33 +13,41 @@ const OG_IMAGE = {
 const DESCRIPTION =
   "보고 싶은 영화와 드라마를 검색하고 국내 OTT 구독·대여·구매 제공처를 확인하세요.";
 
-export const metadata: Metadata = {
-  // 하위 페이지가 상대 경로로 canonical·og:url을 써도 절대 주소로 풀리게 한다.
-  metadataBase: new URL(getSiteUrl()),
-  title: TITLE,
-  description: DESCRIPTION,
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
-  // 링크를 공유했을 때 미리보기가 뜨도록 한다. 각 페이지의 title/description을
-  // 그대로 물려받으므로 페이지별로 따로 적을 필요가 없다.
-  openGraph: {
-    type: "website",
-    siteName: "어디서 보지?",
-    locale: "ko_KR",
-    url: "/",
+/**
+ * metadata를 상수로 두면 모듈이 평가되는 시점에 getSiteUrl()이 한 번만 실행된다.
+ * Worker는 요청이 들어온 뒤에야 env를 process.env로 옮기기 때문에, 그 상태로는
+ * PUBLIC_SITE_URL을 설정해도 og:url과 canonical이 기본 주소로 굳어버린다.
+ * 요청마다 계산하도록 generateMetadata로 돌린다 (출력 자체는 동일하다).
+ */
+export function generateMetadata(): Metadata {
+  return {
+    // 하위 페이지가 상대 경로로 canonical·og:url을 써도 절대 주소로 풀리게 한다.
+    metadataBase: new URL(getSiteUrl()),
     title: TITLE,
     description: DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE.url],
-  },
-};
+    icons: {
+      icon: "/favicon.svg",
+      shortcut: "/favicon.svg",
+    },
+    // 링크를 공유했을 때 미리보기가 뜨도록 한다. 각 페이지의 title/description을
+    // 그대로 물려받으므로 페이지별로 따로 적을 필요가 없다.
+    openGraph: {
+      type: "website",
+      siteName: "어디서 보지?",
+      locale: "ko_KR",
+      url: "/",
+      title: TITLE,
+      description: DESCRIPTION,
+      images: [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: TITLE,
+      description: DESCRIPTION,
+      images: [OG_IMAGE.url],
+    },
+  };
+}
 
 export default function RootLayout({
   children,
