@@ -14,6 +14,7 @@ import {
   SYNC_RETRY_COOLDOWN_MS,
 } from "@/lib/theater-catalog";
 import {
+  decodeTheaterTitle,
   normalizeTheaterTitle,
   type TheaterCode,
 } from "@/lib/theater-sources";
@@ -295,7 +296,9 @@ export async function getReleaseCatalog(
     return {
       movies: rows.map((row) => ({
         movieCd: row.movie_cd,
-        titleKo: row.title_ko,
+        // 이미 저장된 스냅샷에 HTML 엔티티가 남아 있어도 즉시 정상 표기한다.
+        // 다음 극장 수집부터는 파서 단계에서 디코딩된 값으로 덮어쓴다.
+        titleKo: decodeTheaterTitle(row.title_ko),
         titleEn: row.title_en,
         productionYear: row.production_year,
         openDate: row.open_date,
