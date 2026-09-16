@@ -159,15 +159,15 @@ export function SponsoredBanner({ className = "" }: { className?: string }) {
 
       <Disc className="right-[-8%] top-[-28%] aspect-square w-[30%]" />
       <Tile
-        className="right-[12%] top-[19%] aspect-square w-[13%]"
+        className="right-[10%] top-[16%] aspect-square w-[23%] sm:right-[12%] sm:top-[19%] sm:w-[13%]"
         style={{ transform: "rotate(-10deg)" }}
       />
       <Chip
-        className="bottom-[14%] right-[27%] aspect-square w-[3.4%]"
+        className="bottom-[12%] right-[30%] aspect-square w-[6%] sm:bottom-[14%] sm:right-[27%] sm:w-[3.4%]"
         style={{ transform: "rotate(-22deg)" }}
       />
       <Chip
-        className="right-[31%] top-[21%] aspect-square w-[2.2%] opacity-85"
+        className="right-[36%] top-[18%] aspect-square w-[4%] opacity-85 sm:right-[31%] sm:top-[21%] sm:w-[2.2%]"
         style={{ transform: "rotate(12deg)" }}
       />
 
