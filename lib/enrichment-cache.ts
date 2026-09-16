@@ -13,6 +13,37 @@ export type EnrichmentCacheItem = {
   openDate?: string;
 };
 
+/**
+ * 보강 요청에 담겨 오는 값이 KOBIS가 내려주는 모양인지 확인한다.
+ *
+ * /api/movies/enrich는 로그인 없이 열려 있는데, 여기로 들어온 항목은 movies
+ * 테이블에 그대로 저장된다. movies는 "개봉 예정작" 목록과 sitemap.xml의 원본이라,
+ * 아무 값이나 받아주면 없는 작품을 목록과 사이트맵에 밀어 넣을 수 있다.
+ * KOBIS 결과는 movieCd가 영숫자, 연도가 4자리, 개봉일이 8자리(또는 빈 문자열)라
+ * 정상 요청은 이 검사에 걸리지 않는다.
+ */
+const MOVIE_CD_PATTERN = /^[0-9A-Za-z]{1,16}$/;
+const MAX_TITLE_LENGTH = 200;
+
+export function isTrustedEnrichmentItem(item: EnrichmentCacheItem | undefined) {
+  if (!item || typeof item !== "object") return false;
+  if (typeof item.movieCd !== "string" || !MOVIE_CD_PATTERN.test(item.movieCd)) return false;
+  if (typeof item.titleKo !== "string" || !item.titleKo.trim()) return false;
+  if (item.titleKo.length > MAX_TITLE_LENGTH) return false;
+  if (item.titleEn !== undefined) {
+    if (typeof item.titleEn !== "string" || item.titleEn.length > MAX_TITLE_LENGTH) return false;
+  }
+  if (item.year !== undefined) {
+    if (typeof item.year !== "string" || (item.year && !/^\d{4}$/.test(item.year))) return false;
+  }
+  if (item.openDate !== undefined) {
+    if (typeof item.openDate !== "string" || (item.openDate && !/^\d{8}$/.test(item.openDate))) {
+      return false;
+    }
+  }
+  return true;
+}
+
 type MovieCacheRow = {
   movie_cd: string;
   poster_url: string | null;
@@ -118,6 +149,10 @@ export async function persistEnrichment(
   match: TmdbMatch | null,
   providers: WatchProvidersKR | null,
 ) {
+  // 저장 직전에 한 번 더 확인한다. 라우트가 걸러도, 다른 호출자가 생겼을 때
+  // movies 테이블에 검증되지 않은 값이 들어가지 않도록 한다.
+  if (!isTrustedEnrichmentItem(item)) return;
+
   const db = getD1();
   const now = Date.now();
 

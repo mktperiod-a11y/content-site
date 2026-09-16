@@ -12,6 +12,7 @@ interface Env {
   KOBIS_API_BASE?: string;
   TMDB_API_BASE?: string;
   TMDB_IMAGE_BASE?: string;
+  PUBLIC_SITE_URL?: string;
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {
@@ -32,6 +33,20 @@ interface ExecutionContext {
 // dangerouslyAllowSVG: true in next.config.js and uncomment below:
 // const imageConfig: ImageConfig = { dangerouslyAllowSVG: true };
 
+/**
+ * Sites 런타임이 넘겨주는 값 중 서버 코드가 process.env로 읽는 키.
+ * fetch와 scheduled가 같은 목록을 쓰게 해, 크론으로 도는 수집이 요청 경로와
+ * 다른 설정으로 동작하지 않도록 한다.
+ */
+const RUNTIME_ENV_KEYS = [
+  "KOBIS_API_KEY",
+  "TMDB_API_KEY",
+  "KOBIS_API_BASE",
+  "TMDB_API_BASE",
+  "TMDB_IMAGE_BASE",
+  "PUBLIC_SITE_URL",
+] as const;
+
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Server Components and route handlers read the request-scoped D1 binding
@@ -41,13 +56,7 @@ const worker = {
 
     // Sites runtime bindings are injected through env. Keep every secret server-side
     // and expose it only to server components and route handlers via process.env.
-    for (const key of [
-      "KOBIS_API_KEY",
-      "TMDB_API_KEY",
-      "KOBIS_API_BASE",
-      "TMDB_API_BASE",
-      "TMDB_IMAGE_BASE",
-    ] as const) {
+    for (const key of RUNTIME_ENV_KEYS) {
       const value = env[key];
       if (value) process.env[key] = value;
     }
@@ -71,7 +80,7 @@ const worker = {
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext) {
     (globalThis as typeof globalThis & { __WHERE_TO_WATCH_DB__?: D1Database })
       .__WHERE_TO_WATCH_DB__ = env.DB;
-    for (const key of ["KOBIS_API_KEY", "TMDB_API_KEY"] as const) {
+    for (const key of RUNTIME_ENV_KEYS) {
       const value = env[key];
       if (value) process.env[key] = value;
     }
