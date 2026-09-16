@@ -25,6 +25,40 @@ function asString(value: unknown) {
   return typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
 }
 
+const NAMED_HTML_ENTITIES: Record<string, string> = {
+  amp: "&",
+  apos: "'",
+  gt: ">",
+  lt: "<",
+  nbsp: " ",
+  quot: '"',
+};
+
+/**
+ * 극장사 응답의 영화 제목은 간혹 HTML 엔티티가 풀리지 않은 채 온다.
+ * 그대로 저장하면 React가 다시 이스케이프해 화면에 `&amp;`가 문자로 보이고,
+ * 정규화 제목에도 `amp`가 끼어 KOBIS 매칭까지 실패한다.
+ */
+export function decodeTheaterTitle(value: string) {
+  return value.replace(
+    /&(#x[0-9a-f]+|#\d+|amp|apos|gt|lt|nbsp|quot);/gi,
+    (entity, code: string) => {
+      const normalized = code.toLowerCase();
+      if (normalized in NAMED_HTML_ENTITIES) return NAMED_HTML_ENTITIES[normalized];
+
+      const number = normalized.startsWith("#x")
+        ? Number.parseInt(normalized.slice(2), 16)
+        : Number.parseInt(normalized.slice(1), 10);
+      if (!Number.isInteger(number) || number < 0 || number > 0x10ffff) return entity;
+      try {
+        return String.fromCodePoint(number);
+      } catch {
+        return entity;
+      }
+    },
+  );
+}
+
 function isYes(value: unknown) {
   return ["Y", "YES", "TRUE", "1"].includes(asString(value).toUpperCase());
 }
@@ -93,7 +127,7 @@ export function parseCgvCurrentMovies(payload: unknown): TheaterSourceMovie[] {
   return list.flatMap((value) => {
     if (!isRecord(value)) return [];
     const theaterMovieId = asString(value.movNo);
-    const titleKo = asString(value.movNm);
+    const titleKo = decodeTheaterTitle(asString(value.movNm));
     const normalizedTitle = normalizeTheaterTitle(titleKo);
     if (!theaterMovieId || !normalizedTitle) return [];
     return [{
@@ -122,7 +156,7 @@ export function parseMegaboxMovies(payload: unknown, today = koreaToday()): Thea
   return payload.movieList.flatMap((value) => {
     if (!isRecord(value)) return [];
     const theaterMovieId = asString(value.movieNo);
-    const titleKo = asString(value.movieNm);
+    const titleKo = decodeTheaterTitle(asString(value.movieNm));
     const normalizedTitle = normalizeTheaterTitle(titleKo);
     const openDate = normalizeTheaterDate(value.rfilmDe || value.rfilmDeReal);
     if (!theaterMovieId || !normalizedTitle || (openDate && openDate > today)) return [];
@@ -188,7 +222,7 @@ export function parseLotteMovies(payload: unknown, today = koreaToday()): Theate
   return getLotteItems(payload).flatMap((value) => {
     if (!isRecord(value)) return [];
     const theaterMovieId = asString(value.RepresentationMovieCode);
-    const titleKo = asString(value.MovieNameKR);
+    const titleKo = decodeTheaterTitle(asString(value.MovieNameKR));
     const normalizedTitle = normalizeTheaterTitle(titleKo);
     const openDate = normalizeTheaterDate(value.ReleaseDate);
     if (!theaterMovieId || !normalizedTitle || titleKo.toUpperCase() === "AD" || !openDate) return [];
