@@ -1,4 +1,5 @@
-import Link from "next/link";
+
+import { BackLink } from "@/components/back-link";
 import {
   ArrowLeft,
   ArrowRight,
@@ -49,13 +50,13 @@ export default function WatchOptionsPage() {
 
       <section className="bg-ink text-white">
         <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[27rem] lg:pt-16">
-          <Link
+          <BackLink
             className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/30 px-4 text-sm font-bold text-white transition-colors hover:border-brand hover:text-brand"
-            href="/search?tab=compare"
+            fallbackHref="/search?tab=compare"
           >
             <ArrowLeft className="size-4" />
-            가격 비교로 돌아가기
-          </Link>
+            돌아가기
+          </BackLink>
           <p className="mt-10 text-sm font-bold text-brand">구독 외 이용 방식</p>
           <h1 className="mt-4 max-w-3xl break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[1.05] tracking-[-0.025em]">
             콘텐츠를 이용하는 방법은
@@ -120,13 +121,13 @@ export default function WatchOptionsPage() {
           </a>
         </article>
 
-        <Link
+        <BackLink
           className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-foreground hover:text-brand-muted"
-          href="/search?tab=compare"
+          fallbackHref="/search?tab=compare"
         >
-          가격 비교 결과로 돌아가기
+          이전 화면으로 돌아가기
           <ArrowRight className="size-4" />
-        </Link>
+        </BackLink>
       </section>
     </main>
   );
