@@ -124,7 +124,7 @@ function ReleaseMovieCard({
               <span className="text-xs font-medium text-muted-foreground">
                 {view === "upcoming"
                   ? "개봉 후 제공처가 확인돼요"
-                  : "작품 정보를 준비하고 있어요"}
+                  : "검색에서 제공처 확인하기"}
               </span>
             )}
           </div>
@@ -133,15 +133,21 @@ function ReleaseMovieCard({
     </>
   );
 
-  return movie.movieCd ? (
+  // 극장 목록에는 있는데 KOBIS에 아직 매칭되지 않은 작품은 상세 주소가 없다.
+  // (KOBIS는 오늘 기준 -60일~+120일만 채우므로 재개봉·특별상영이 여기 걸린다.)
+  // 예전에는 그런 카드를 링크가 아닌 article로 두어 클릭이 아예 먹지 않았다.
+  // 막다른 카드로 두는 대신 검색 탭으로 보내 같은 제목을 KOBIS에서 바로 찾게 한다.
+  return (
     <Link
       className={cardClassName}
-      href={`/movie/${movie.movieCd}`}
+      href={
+        movie.movieCd
+          ? `/movie/${movie.movieCd}`
+          : `/search?q=${encodeURIComponent(movie.titleKo)}`
+      }
     >
       {cardContent}
     </Link>
-  ) : (
-    <article className={cardClassName}>{cardContent}</article>
   );
 }
 

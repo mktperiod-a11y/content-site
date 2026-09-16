@@ -1,5 +1,9 @@
 import { syncReleaseCatalog } from "@/lib/release-catalog";
-import { syncTheaterCatalog, syncTheaterPosters } from "@/lib/theater-catalog";
+import {
+  syncTheaterCatalog,
+  syncTheaterKobisMatches,
+  syncTheaterPosters,
+} from "@/lib/theater-catalog";
 
 /**
  * 이 엔드포인트는 목록이 낡았을 때 화면이 스스로 부르는 자리다(components/release-refresh.tsx).
@@ -37,18 +41,28 @@ export async function POST(request: Request) {
     );
   }
 
-  const posterResult = await Promise.resolve(syncTheaterPosters()).catch((error) => {
-    console.error("Theater poster refresh failed", error);
-    return null;
-  });
+  // 둘 다 갓 저장된 극장 목록을 읽으므로 극장 수집 뒤에 돈다. 서로는 독립이라
+  // (포스터는 theater_movies.poster_url, 매칭은 movies) 함께 보낸다.
+  const [posterResult, kobisResult] = await Promise.all([
+    Promise.resolve(syncTheaterPosters()).catch((error) => {
+      console.error("Theater poster refresh failed", error);
+      return null;
+    }),
+    Promise.resolve(syncTheaterKobisMatches()).catch((error) => {
+      console.error("Theater KOBIS match refresh failed", error);
+      return null;
+    }),
+  ]);
 
   return Response.json({
     releases: releaseResult.status === "fulfilled" ? releaseResult.value : null,
     theaters: theaterResult.status === "fulfilled" ? theaterResult.value : null,
     posters: posterResult,
+    kobisMatches: kobisResult,
     partial:
       releaseResult.status === "rejected" ||
       theaterResult.status === "rejected" ||
-      posterResult === null,
+      posterResult === null ||
+      kobisResult === null,
   });
 }

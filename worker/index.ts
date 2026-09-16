@@ -2,7 +2,11 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { syncReleaseCatalog } from "../lib/release-catalog";
-import { syncTheaterCatalog, syncTheaterPosters } from "../lib/theater-catalog";
+import {
+  syncTheaterCatalog,
+  syncTheaterKobisMatches,
+  syncTheaterPosters,
+} from "../lib/theater-catalog";
 
 interface Env {
   ASSETS: Fetcher;
@@ -86,7 +90,8 @@ const worker = {
     }
     ctx.waitUntil(
       Promise.allSettled([syncReleaseCatalog(), syncTheaterCatalog()])
-        .then(() => syncTheaterPosters())
+        // 포스터 보강과 KOBIS 매칭은 갓 저장된 극장 목록을 읽으므로 그 뒤에 돈다.
+        .then(() => Promise.allSettled([syncTheaterPosters(), syncTheaterKobisMatches()]))
         .then(() => undefined),
     );
   },

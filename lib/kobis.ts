@@ -310,6 +310,27 @@ export async function searchKobisMovies(
   });
 }
 
+/**
+ * 제목으로만 KOBIS를 한 번 검색한다.
+ *
+ * searchKobisMovies는 사용자 검색용이라 감독 검색까지 함께 던지지만, 극장 제목을
+ * KOBIS 레코드에 붙이는 데는 제목 검색 한 번이면 충분하다. 호출 수를 늘리지 않으려고
+ * 따로 뒀다. 어떤 결과를 채택할지(정규화 제목 정확 일치)는 호출하는 쪽이 정한다.
+ */
+export async function listKobisMoviesByTitle(title: string): Promise<KobisMovieSummary[]> {
+  const trimmed = title.normalize("NFKC").trim();
+  if (!trimmed) return [];
+
+  return withCache(`title:${trimmed.toLowerCase()}`, SEARCH_CACHE_TTL_MS, async () => {
+    const json = (await fetchKobisJson("movie/searchMovieList.json", {
+      movieNm: trimmed,
+      itemPerPage: String(SEARCH_CANDIDATE_LIMIT),
+    })) as SearchMovieListResponse;
+
+    return (json.movieListResult?.movieList ?? []).map(mapMovieSummary);
+  });
+}
+
 const RELEASE_PAGE_SIZE = 100;
 const MAX_RELEASE_PAGES = 50;
 

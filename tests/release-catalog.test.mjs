@@ -104,7 +104,19 @@ test("renders crawlable release routes as an in-page chip switch", () => {
   assert.match(pageSource, /aria-current=/);
   assert.match(pageSource, /movie\.movieCd \?/);
   assert.match(pageSource, /movie\.movieCd \?\? movie\.titleKo/);
-  assert.match(pageSource, /href=\{`\/movie\/\$\{movie\.movieCd\}`\}/);
+  assert.match(pageSource, /`\/movie\/\$\{movie\.movieCd\}`/);
+});
+
+test("never leaves a release card without somewhere to go", () => {
+  // 극장 목록에는 있는데 KOBIS에 매칭되지 않은 작품(재개봉·특별상영 등)은
+  // movieCd가 없다. 예전에는 그런 카드를 article로 렌더해 클릭이 아예 먹지
+  // 않았고, "제공처 확인 중" 문구가 붙는 카드가 정확히 그 카드였다.
+  assert.match(
+    pageSource,
+    /`\/search\?q=\$\{encodeURIComponent\(movie\.titleKo\)\}`/,
+  );
+  // 카드 본문을 감싸는 클릭 불가 컨테이너가 남아 있지 않다.
+  assert.doesNotMatch(pageSource, /<article className=\{cardClassName\}>/);
 });
 
 test("backs off instead of retrying a failed sync on every visit", () => {
@@ -189,7 +201,8 @@ test("serves release posters from D1 without per-card API calls", () => {
   assert.match(theaterSource, /export async function syncTheaterPosters/);
   assert.match(theaterSource, /findTmdbMatch\(target\.title_ko\)/);
   assert.match(theaterSource, /THEATER_POSTER_BATCH_LIMIT = 120/);
-  assert.match(workerSource, /\.then\(\(\) => syncTheaterPosters\(\)\)/);
+  // 포스터 보강은 갓 저장된 극장 목록을 읽으므로 극장 수집이 끝난 뒤에 돈다.
+  assert.match(workerSource, /syncTheaterCatalog\(\)\]\)[\s\S]*?syncTheaterPosters\(\)/);
   assert.match(theaterSource, /!posterState\?\.last_success_at/);
   assert.doesNotMatch(pageSource, /구독형 제공처는 상세에서 확인/);
 });
@@ -226,4 +239,20 @@ test("aligns the release hero with the core tabs and summarizes both lists", () 
   assert.match(pageSource, /getReleaseCount\(isUpcoming \? "now" : "upcoming"\)/);
   assert.match(catalogSource, /export async function getReleaseCount/);
   assert.match(pageSource, /tracking-\[1px\]/);
+});
+
+test("starts the detail page's TMDB lookup alongside the KOBIS one", async () => {
+  // Next는 generateMetadata가 끝난 뒤에야 본문을 렌더한다. 본문에서 처음 TMDB를
+  // 부르면 KOBIS 왕복이 끝날 때까지 시작조차 못 해 두 왕복이 직렬로 쌓인다.
+  const detailSource = await readFile(
+    new URL("../app/movie/[movieCd]/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(detailSource, /const getSeededTmdbBundle = cache\(/);
+  // generateMetadata에서 미리 띄운다.
+  assert.match(detailSource, /void getSeededTmdbBundle\(movieCd\)/);
+  // 본문은 같은 조회를 받아 쓴다 (cache()가 하나로 묶는다).
+  assert.match(detailSource, /getSeededTmdbBundle\(movieCd\),/);
+  // 저장된 id가 있으면 제목 검색 왕복을 건너뛴다.
+  assert.match(detailSource, /seededTmdb \?\? getTmdbBundleByTitle\(/);
 });
