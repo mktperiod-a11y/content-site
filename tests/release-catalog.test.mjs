@@ -201,7 +201,8 @@ test("serves release posters from D1 without per-card API calls", () => {
   assert.match(theaterSource, /export async function syncTheaterPosters/);
   assert.match(theaterSource, /findTmdbMatch\(target\.title_ko\)/);
   assert.match(theaterSource, /THEATER_POSTER_BATCH_LIMIT = 120/);
-  assert.match(workerSource, /\.then\(\(\) => syncTheaterPosters\(\)\)/);
+  // 포스터 보강은 갓 저장된 극장 목록을 읽으므로 극장 수집이 끝난 뒤에 돈다.
+  assert.match(workerSource, /syncTheaterCatalog\(\)\]\)[\s\S]*?syncTheaterPosters\(\)/);
   assert.match(theaterSource, /!posterState\?\.last_success_at/);
   assert.doesNotMatch(pageSource, /구독형 제공처는 상세에서 확인/);
 });

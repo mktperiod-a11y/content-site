@@ -1,4 +1,5 @@
 import { getD1 } from "@/db";
+import { listKobisMoviesByTitle, type KobisMovieSummary } from "@/lib/kobis";
 import { findTmdbMatch } from "@/lib/tmdb";
 import {
   THEATER_CODES,
@@ -14,6 +15,15 @@ const THEATER_POSTER_LOCK_MS = 10 * 60 * 1000;
 const THEATER_POSTER_RETRY_MS = 30 * 24 * 60 * 60 * 1000;
 const THEATER_POSTER_BATCH_LIMIT = 120;
 const THEATER_POSTER_SYNC_KEY = "theater_posters";
+const THEATER_KOBIS_SYNC_KEY = "theater_kobis";
+const THEATER_KOBIS_LOCK_MS = 10 * 60 * 1000;
+/**
+ * KOBIS에 없는 제목은 대체로 계속 없다. 다만 재개봉 편성이 뒤늦게 등록되는
+ * 경우가 있어 일주일마다 한 번은 다시 물어본다.
+ */
+const THEATER_KOBIS_RETRY_MS = 7 * 24 * 60 * 60 * 1000;
+/** 한 제목당 KOBIS 호출 1회. 한 번에 도는 양을 묶어둔다. */
+const THEATER_KOBIS_BATCH_LIMIT = 40;
 /**
  * last_success_at은 수집이 "끝난" 시각이라 크론이 뜬 시각보다 항상 조금 뒤다.
  * 그래서 TTL을 정확히 24시간으로 재면 다음 날 같은 시각의 크론이 매번
@@ -339,6 +349,238 @@ export async function syncTheaterPosters() {
         message,
         failedAt,
         THEATER_POSTER_SYNC_KEY,
+        token,
+      )
+      .run();
+    throw error;
+  }
+}
+
+type TheaterKobisTarget = {
+  normalized_title: string;
+  title_ko: string;
+  open_date: string;
+};
+
+async function acquireKobisLock(now: number, token: string) {
+  const db = getD1();
+  await db
+    .prepare(
+      `INSERT INTO sync_state
+         (sync_key, last_success_at, lock_until, lock_token, status, last_error, updated_at)
+       VALUES (?, NULL, ?, ?, 'running', NULL, ?)
+       ON CONFLICT(sync_key) DO UPDATE SET
+         lock_until = excluded.lock_until,
+         lock_token = excluded.lock_token,
+         status = 'running',
+         last_error = NULL,
+         updated_at = excluded.updated_at
+       WHERE sync_state.lock_until < ?`,
+    )
+    .bind(THEATER_KOBIS_SYNC_KEY, now + THEATER_KOBIS_LOCK_MS, token, now, now)
+    .run();
+  const state = await db
+    .prepare("SELECT lock_token FROM sync_state WHERE sync_key = ?")
+    .bind(THEATER_KOBIS_SYNC_KEY)
+    .first<{ lock_token: string | null }>();
+  return state?.lock_token === token;
+}
+
+/**
+ * 극장에는 걸려 있는데 movies에 대응 레코드가 없는 제목을 고른다.
+ * 이런 제목의 카드는 상세 주소가 없어 검색 탭으로 보낼 수밖에 없다.
+ */
+async function getTheaterKobisTargets(now: number) {
+  const result = await getD1()
+    .prepare(
+      `SELECT tm.normalized_title,
+              MIN(tm.title_ko) AS title_ko,
+              MAX(tm.open_date) AS open_date
+       FROM theater_movies AS tm
+       WHERE NOT EXISTS (
+               SELECT 1 FROM movies AS m
+               WHERE m.normalized_title = tm.normalized_title
+             )
+         AND (
+               tm.kobis_status = 'pending'
+               OR tm.kobis_updated_at IS NULL
+               OR tm.kobis_updated_at <= ?
+             )
+       GROUP BY tm.normalized_title
+       ORDER BY MAX(tm.checked_at) DESC, tm.normalized_title ASC
+       LIMIT ?`,
+    )
+    .bind(now - THEATER_KOBIS_RETRY_MS, THEATER_KOBIS_BATCH_LIMIT)
+    .all<TheaterKobisTarget>();
+  return result.results ?? [];
+}
+
+/**
+ * 후보 중 채택할 KOBIS 레코드를 고른다.
+ *
+ * 정규화한 제목이 **정확히** 같은 것만 본다. 부분 일치를 허용하면 "괴물"이
+ * "괴물들"을 물어오는 식의 오매칭이 생기고, 잘못 붙은 상세 페이지는 없는 것만
+ * 못하다. (포스터 매칭이 findTmdbMatch에서 쓰는 것과 같은 원칙이다.)
+ *
+ * 같은 제목이 여러 편이면 극장이 알려준 개봉일에 가장 가까운 편을 고른다.
+ * 리메이크·동명이인 작품에서 엉뚱한 연도를 집지 않기 위해서다.
+ */
+export function pickKobisMatch(
+  candidates: KobisMovieSummary[],
+  normalizedTitle: string,
+  theaterOpenDate: string,
+): KobisMovieSummary | null {
+  const exact = candidates.filter(
+    (movie) => normalizeTheaterTitle(movie.titleKo) === normalizedTitle,
+  );
+  if (!exact.length) return null;
+  if (exact.length === 1) return exact[0];
+
+  const target = /^\d{8}$/.test(theaterOpenDate) ? Number(theaterOpenDate) : null;
+  return exact.reduce((best, movie) => {
+    if (target === null) {
+      // 기준 날짜가 없으면 가장 최근 개봉작을 쓴다.
+      return movie.openDt > best.openDt ? movie : best;
+    }
+    const distance = (candidate: KobisMovieSummary) =>
+      /^\d{8}$/.test(candidate.openDt)
+        ? Math.abs(Number(candidate.openDt) - target)
+        : Number.MAX_SAFE_INTEGER;
+    return distance(movie) < distance(best) ? movie : best;
+  });
+}
+
+function markKobisStatus(normalizedTitle: string, status: string, now: number) {
+  return getD1()
+    .prepare(
+      `UPDATE theater_movies
+       SET kobis_status = ?, kobis_updated_at = ?
+       WHERE normalized_title = ?`,
+    )
+    .bind(status, now, normalizedTitle);
+}
+
+/**
+ * 채택한 KOBIS 레코드를 movies에 넣는다.
+ * lib/release-catalog.ts의 upsertMovieStatement와 같은 모양이지만, 두 모듈이
+ * 서로를 import하면 순환이 되어 여기서 따로 만든다. 한쪽을 고치면 다른 쪽도 본다.
+ */
+function upsertMatchedMovie(movie: KobisMovieSummary, now: number) {
+  return getD1()
+    .prepare(
+      `INSERT INTO movies
+         (movie_cd, title_ko, normalized_title, title_en, production_year, open_date,
+          genre_text, nation_text, directors_json, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(movie_cd) DO UPDATE SET
+         title_ko = excluded.title_ko,
+         normalized_title = excluded.normalized_title,
+         title_en = excluded.title_en,
+         production_year = excluded.production_year,
+         open_date = excluded.open_date,
+         genre_text = excluded.genre_text,
+         nation_text = excluded.nation_text,
+         directors_json = excluded.directors_json,
+         updated_at = excluded.updated_at`,
+    )
+    .bind(
+      movie.movieCd,
+      movie.titleKo,
+      normalizeTheaterTitle(movie.titleKo),
+      movie.titleEn,
+      movie.prdtYear,
+      movie.openDt,
+      movie.genreAlt,
+      movie.nationAlt,
+      JSON.stringify(movie.directors),
+      now,
+    );
+}
+
+async function matchOneTheaterTitle(target: TheaterKobisTarget, now: number) {
+  const db = getD1();
+  try {
+    const candidates = await listKobisMoviesByTitle(target.title_ko);
+    const match = pickKobisMatch(candidates, target.normalized_title, target.open_date);
+    if (!match) {
+      await markKobisStatus(target.normalized_title, "not_found", now).run();
+      return "not_found" as const;
+    }
+
+    await db.batch([
+      upsertMatchedMovie(match, now),
+      markKobisStatus(target.normalized_title, "matched", now),
+    ]);
+    return "matched" as const;
+  } catch (error) {
+    console.error(`Failed to match theater title ${target.normalized_title}`, error);
+    await markKobisStatus(target.normalized_title, "error", now).run();
+    return "error" as const;
+  }
+}
+
+/**
+ * 극장 상영작 중 KOBIS 레코드가 없는 제목을 찾아 movies에 채운다.
+ *
+ * 1탭 목록은 극장 3사에서 오는데 movies는 KOBIS를 오늘 기준 -60일~+120일
+ * 창으로만 채운다. 그 창 밖의 작품(재개봉·특별상영 등)은 조인할 레코드가 없어
+ * 상세 페이지로 넘어가지 못했다. 이 수집이 그 간극을 메운다.
+ */
+export async function syncTheaterKobisMatches() {
+  const db = getD1();
+  const now = Date.now();
+  const token = crypto.randomUUID();
+  if (!(await acquireKobisLock(now, token))) {
+    return { refreshed: false, reason: "running" as const };
+  }
+
+  try {
+    const targets = await getTheaterKobisTargets(now);
+    const results: Array<"matched" | "not_found" | "error"> = [];
+    // KOBIS는 응답이 느린 편이라 동시 실행을 낮게 잡는다.
+    const concurrency = 4;
+    for (let index = 0; index < targets.length; index += concurrency) {
+      results.push(
+        ...(await Promise.all(
+          targets.slice(index, index + concurrency).map((target) =>
+            matchOneTheaterTitle(target, now),
+          ),
+        )),
+      );
+    }
+
+    await db
+      .prepare(
+        `UPDATE sync_state
+         SET last_success_at = ?, lock_until = 0, lock_token = NULL,
+             status = 'idle', last_error = NULL, updated_at = ?
+         WHERE sync_key = ? AND lock_token = ?`,
+      )
+      .bind(now, now, THEATER_KOBIS_SYNC_KEY, token)
+      .run();
+
+    return {
+      refreshed: true,
+      checked: targets.length,
+      matched: results.filter((result) => result === "matched").length,
+      notFound: results.filter((result) => result === "not_found").length,
+      errors: results.filter((result) => result === "error").length,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message.slice(0, 500) : "Unknown sync error";
+    const failedAt = Date.now();
+    await db
+      .prepare(
+        `UPDATE sync_state
+         SET lock_until = ?, lock_token = NULL, status = 'error',
+             last_error = ?, updated_at = ?
+         WHERE sync_key = ? AND lock_token = ?`,
+      )
+      .bind(
+        failedAt + SYNC_RETRY_COOLDOWN_MS,
+        message,
+        failedAt,
+        THEATER_KOBIS_SYNC_KEY,
         token,
       )
       .run();

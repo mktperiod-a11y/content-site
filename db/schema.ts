@@ -71,6 +71,13 @@ export const theaterMovies = sqliteTable(
     posterUrl: text("poster_url"),
     tmdbStatus: text("tmdb_status").notNull().default("pending"),
     tmdbUpdatedAt: integer("tmdb_updated_at"),
+    /**
+     * 이 제목을 KOBIS에서 찾아봤는지. 극장에는 걸려 있지만 KOBIS 수집 창
+     * (오늘 -60일~+120일) 밖이라 movies에 없는 작품을 채워 넣기 위한 것으로,
+     * "찾아봤지만 없었다"를 남겨야 매 수집마다 같은 제목을 다시 묻지 않는다.
+     */
+    kobisStatus: text("kobis_status").notNull().default("pending"),
+    kobisUpdatedAt: integer("kobis_updated_at"),
     bookingAvailable: integer("booking_available", { mode: "boolean" })
       .notNull()
       .default(true),
