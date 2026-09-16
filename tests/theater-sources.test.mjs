@@ -2,11 +2,34 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  decodeTheaterTitle,
   normalizeTheaterTitle,
   parseCgvCurrentMovies,
   parseLotteMovies,
   parseMegaboxMovies,
 } from "../lib/theater-sources.ts";
+
+test("decodes HTML entities before a theater title is stored", () => {
+  const encoded = "디지몬 어드벤처 : 운명적 만남 &amp; 우리들의 워 게임!";
+  const decoded = "디지몬 어드벤처 : 운명적 만남 & 우리들의 워 게임!";
+  assert.equal(decodeTheaterTitle(encoded), decoded);
+
+  const payload = {
+    totCnt: 1,
+    movieList: [
+      {
+        movieNo: "26057200",
+        movieNm: encoded,
+        rfilmDe: "20260916",
+        movieStatCd: "MSC01",
+        bokdAbleYn: "Y",
+      },
+    ],
+  };
+  const movie = parseMegaboxMovies(payload, "20260916")[0];
+  assert.equal(movie?.titleKo, decoded);
+  assert.equal(movie?.normalizedTitle, normalizeTheaterTitle(decoded));
+});
 
 test("normalizes spacing and punctuation differences across theater chains", () => {
   assert.equal(
