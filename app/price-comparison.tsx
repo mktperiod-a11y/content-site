@@ -288,12 +288,12 @@ export function PriceComparison() {
         <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:pt-20">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div>
-              <h1 className="max-w-4xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
+              <h1 className="max-w-4xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
                 보고 싶은 작품으로
                 <br />
                 구독료를 비교해보세요
               </h1>
-              <p className="mt-5 max-w-3xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg sm:leading-8">
+              <p className="mt-5 max-w-3xl break-keep text-[15px] leading-6 text-on-dark-secondary sm:text-lg sm:leading-8">
                 최대 5편을 고르면 가장 많이 볼 수 있는 한 곳과
                 전부 보기 위한 최저가 조합을 바로 계산해드려요.
               </p>
@@ -316,16 +316,18 @@ export function PriceComparison() {
 
           <div className="mt-9 rounded-[1.4rem] bg-surface-dark-soft p-3 backdrop-blur sm:mt-10 sm:p-4">
             <div className="relative">
-              <Search className="absolute left-5 top-1/2 size-6 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400 sm:left-5 sm:size-6" />
               <Input
                 aria-label="비교할 영화 검색"
-                className="h-[4.5rem] rounded-2xl border-0 bg-white pl-14 pr-5 text-lg text-ink placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
+                className="h-14 rounded-2xl border-0 bg-white pl-11 pr-4 text-base text-ink placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand sm:h-[4.5rem] sm:pl-14 sm:pr-5 sm:text-lg"
                 disabled={selected.length >= MAX_SELECTED}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={
                   selected.length >= MAX_SELECTED
                     ? `최대 ${MAX_SELECTED}편을 선택했어요`
-                    : "영화 제목 또는 감독명으로 검색하세요"
+                    // 좁은 화면에서 잘리지 않는 길이. 글자 크기는 16px 아래로 내릴 수
+                    // 없다 — iOS 사파리가 그보다 작은 입력창에 포커스하면 화면을 확대한다.
+                    : "영화 제목 또는 감독명 검색"
                 }
                 value={searchTerm}
               />
@@ -417,7 +419,7 @@ export function PriceComparison() {
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-muted-foreground">추천 결과</p>
-              <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+              <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-3xl">
                 {selected.length === 0
                   ? "보고 싶은 작품을 먼저 골라주세요"
                   : recommendationBlocked
@@ -683,7 +685,7 @@ export function PriceComparison() {
                       <p className="text-sm font-bold text-rose-700">
                         구독형 OTT에서 확인되지 않아요
                       </p>
-                      <h3 className="mt-2 break-keep text-2xl font-bold leading-tight sm:text-3xl">
+                      <h3 className="mt-2 break-keep text-xl font-bold leading-tight sm:text-3xl">
                         {unavailableMovies.map((movie) => movie.titleKo).join(", ")}
                       </h3>
                       <p className="mt-2 text-base leading-7 text-muted-foreground">

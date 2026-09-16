@@ -198,12 +198,12 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
           <div className="glow glow-one" aria-hidden="true" />
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div className="max-w-3xl">
-              <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
+              <h1 className="max-w-3xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
                 지금 극장에 걸린 영화,
                 <br />
                 어디서 볼 수 있나요?
               </h1>
-              <p className="mt-5 max-w-2xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg sm:leading-8">
+              <p className="mt-5 max-w-2xl break-keep text-[15px] leading-6 text-on-dark-secondary sm:text-lg sm:leading-8">
                 상영 중인 작품과 개봉을 앞둔 작품을 훑어보고, 관심 가는 영화의
                 국내 OTT 제공처까지 이어서 확인하세요.
               </p>
@@ -259,7 +259,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
       <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-black tracking-[-0.02em] sm:text-3xl">
+            <h2 className="text-xl font-black tracking-[-0.02em] sm:text-3xl">
               {isUpcoming ? "개봉을 앞둔 영화" : "지금 극장에서 만날 영화"}
             </h2>
           </div>

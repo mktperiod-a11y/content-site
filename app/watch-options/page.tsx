@@ -58,12 +58,12 @@ export default function WatchOptionsPage() {
             돌아가기
           </BackLink>
           <p className="mt-10 text-sm font-bold text-brand">구독 외 이용 방식</p>
-          <h1 className="mt-4 max-w-3xl break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[1.05] tracking-[-0.025em]">
+          <h1 className="mt-4 max-w-3xl break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[1.05] tracking-[-0.025em]">
             콘텐츠를 이용하는 방법은
             <br />
             구독만 있는 것이 아니에요.
           </h1>
-          <p className="mt-6 max-w-3xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg">
+          <p className="mt-6 max-w-3xl break-keep text-[15px] leading-6 text-on-dark-secondary sm:text-lg">
             보고 싶은 작품과 이용 빈도에 따라 대여·구매, 극장·VOD, 작품별 이용 서비스가
             더 알맞을 수 있어요.
           </p>
@@ -72,7 +72,7 @@ export default function WatchOptionsPage() {
 
       <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16">
         <p className="text-sm font-semibold text-muted-foreground">이용 방식 비교</p>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+        <h2 className="mt-2 text-xl font-bold tracking-tight sm:text-3xl">
           이용 방식의 차이를 먼저 확인해보세요.
         </h2>
 

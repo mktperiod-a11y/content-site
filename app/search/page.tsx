@@ -387,12 +387,12 @@ function HomeContent() {
 
             <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:grid-cols-[1fr_0.58fr] lg:items-start lg:gap-14 lg:pt-20">
               <div>
-                <h1 className="max-w-3xl text-balance break-keep text-[clamp(2.4rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
+                <h1 className="max-w-3xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[0.99] tracking-[1px] text-on-dark-primary">
                   이 영화,
                   <br />
                   OTT에 있나요?
                 </h1>
-                <p className="mt-5 max-w-xl break-keep text-base leading-7 text-on-dark-secondary sm:text-lg sm:leading-8">
+                <p className="mt-5 max-w-xl break-keep text-[15px] leading-6 text-on-dark-secondary sm:text-lg sm:leading-8">
                   국내 주요 OTT의 보유 여부를 확인하고, 가장 합리적인 시청 방법을 찾아보세요.
                 </p>
 
@@ -406,7 +406,7 @@ function HomeContent() {
                   onSubmit={handleSubmit}
                 >
                   <div className="relative flex-1">
-                    <Search className="absolute left-4.5 top-1/2 size-5.5 -translate-y-1/2 text-slate-400" />
+                    <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400 sm:left-4.5 sm:size-5.5" />
                     <Input
                       role="combobox"
                       aria-activedescendant={
@@ -419,7 +419,7 @@ function HomeContent() {
                       aria-expanded={suggestionsOpen}
                       aria-haspopup="listbox"
                       aria-label="작품명 검색"
-                      className="h-16 rounded-2xl border-0 bg-white pl-13 pr-4 text-[17px] text-ink shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand"
+                      className="h-14 rounded-2xl border-0 bg-white pl-11 pr-4 text-base text-ink shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand sm:h-16 sm:pl-13 sm:text-[17px]"
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
                       onChange={(event) => {
                         setQuery(event.target.value);
@@ -530,7 +530,7 @@ function HomeContent() {
                   <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm font-semibold text-muted-foreground">검색 결과</p>
-                      <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+                      <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-3xl">
                         어떤 작품이든 제목부터 검색해보세요
                       </h2>
                     </div>
@@ -577,7 +577,7 @@ function HomeContent() {
                       <p className="text-sm font-medium text-muted-foreground">
                         &ldquo;{submittedQuery}&rdquo; 검색 결과
                       </p>
-                      <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+                      <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-3xl">
                         {results.length > 0 ? `${results.length}개 작품을 찾았어요` : "검색 결과가 없어요"}
                       </h2>
                     </div>
