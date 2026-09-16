@@ -352,7 +352,7 @@ function HomeContent() {
           navigation={
             <TabsList
               aria-label="주요 기능"
-              className="h-14 w-full justify-start gap-1.5 rounded-none bg-transparent p-0 sm:w-auto"
+              className="h-14! w-full justify-start gap-1.5 rounded-none bg-transparent p-0 sm:w-auto"
               variant="line"
             >
               <Link
@@ -364,13 +364,13 @@ function HomeContent() {
                 개봉작
               </Link>
               <TabsTrigger
-                className="h-10 flex-none rounded-xl border-0 bg-transparent px-4 text-[15px] font-bold text-white/55 shadow-none after:bottom-[-8px] after:bg-brand hover:bg-white/[0.05] hover:text-white data-[state=active]:border-transparent data-[state=active]:bg-white/[0.09] data-[state=active]:text-brand data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-white/[0.09]"
+                className="h-10 flex-none rounded-xl border-0 bg-transparent px-4 text-[15px] font-bold text-white/55 shadow-none after:bottom-[-8px] after:bg-brand hover:bg-white/[0.05] hover:text-white data-[state=active]:border-transparent data-[state=active]:bg-white/[0.09]! data-[state=active]:text-brand data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-white/[0.09]!"
                 value="compare"
               >
                 가격 비교하기
               </TabsTrigger>
               <TabsTrigger
-                className="h-10 flex-none rounded-xl border-0 bg-transparent px-4 text-[15px] font-bold text-white/55 shadow-none after:bottom-[-8px] after:bg-brand hover:bg-white/[0.05] hover:text-white data-[state=active]:border-transparent data-[state=active]:bg-white/[0.09] data-[state=active]:text-brand data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-white/[0.09]"
+                className="h-10 flex-none rounded-xl border-0 bg-transparent px-4 text-[15px] font-bold text-white/55 shadow-none after:bottom-[-8px] after:bg-brand hover:bg-white/[0.05] hover:text-white data-[state=active]:border-transparent data-[state=active]:bg-white/[0.09]! data-[state=active]:text-brand data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-white/[0.09]!"
                 value="search"
               >
                 영화 찾기
