@@ -28,6 +28,14 @@ const EXAMPLE_TITLE = "조제, 호랑이 그리고 물고기들";
 
 type SearchStatus = "idle" | "loading" | "success" | "error";
 
+/**
+ * 검색 결과 썸네일은 72~84px이라 카드용 w342를 그대로 받을 이유가 없다.
+ * 저장된 URL은 그대로 두고 이 목록에서만 더 작은 크기로 바꿔 받는다.
+ */
+function toThumbnailUrl(posterUrl: string) {
+  return posterUrl.replace("/w342/", "/w185/");
+}
+
 function ProviderChips({ enriched }: { enriched: EnrichedMovie | undefined }) {
   // 아직 조회 중 — 자리만 잡아두고 레이아웃이 흔들리지 않게 한다.
   if (!enriched) {
@@ -96,7 +104,7 @@ function ResultCard({
             alt={`${movie.titleKo} 포스터`}
             className="size-full object-cover transition duration-300 group-hover:scale-[1.035]"
             loading="lazy"
-            src={enriched.posterUrl}
+            src={toThumbnailUrl(enriched.posterUrl)}
           />
         ) : (
           <div className="grid size-full place-items-center bg-gradient-to-br from-slate-100 to-slate-200">

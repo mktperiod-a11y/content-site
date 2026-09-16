@@ -74,3 +74,19 @@ test("caches repeated searches and detail requests", () => {
   assert.match(kobisSource, /pendingRequests/);
   assert.match(kobisSource, /withCache/);
 });
+
+test("asks KOBIS twice first and only fans out when results are thin", () => {
+  // 조합 검색은 "제목 + 감독"을 함께 입력한 경우를 위한 보조 수단이다.
+  // 1단계에서 충분히 찾으면 KOBIS를 네 번 더 부를 이유가 없다.
+  assert.match(kobisSource, /SEARCH_FALLBACK_THRESHOLD/);
+  assert.match(kobisSource, /const \[titlePlan, directorPlan, \.\.\.comboPlans\] = plans/);
+  assert.match(kobisSource, /if \(merged\.size < SEARCH_FALLBACK_THRESHOLD\)/);
+});
+
+test("reads API base overrides at call time, not at module load", () => {
+  // Worker는 요청이 들어온 뒤에야 env를 process.env로 옮긴다.
+  // 모듈 최상단에서 읽으면 override가 반영되지 않는다.
+  assert.match(kobisSource, /function getKobisBase\(\)/);
+  assert.match(kobisSource, /\$\{getKobisBase\(\)\}/);
+  assert.doesNotMatch(kobisSource, /const KOBIS_BASE =\s*\n?\s*process\.env/);
+});

@@ -4,13 +4,26 @@
 
 // 기본값은 실제 KOBIS. KOBIS_API_BASE로 로컬 목 서버를 가리키면 네트워크 없이
 // 화면을 검증할 수 있다 (개발/테스트 용도).
-const KOBIS_BASE =
-  process.env.KOBIS_API_BASE || "https://www.kobis.or.kr/kobisopenapi/webservice/rest";
+const KOBIS_DEFAULT_BASE = "https://www.kobis.or.kr/kobisopenapi/webservice/rest";
+
+/**
+ * Worker는 요청이 들어온 뒤에야 env를 process.env로 복사한다. 모듈 최상단에서
+ * 읽으면 그 전에 평가돼 override가 반영되지 않으므로 호출 시점에 읽는다.
+ */
+function getKobisBase() {
+  return process.env.KOBIS_API_BASE || KOBIS_DEFAULT_BASE;
+}
 const REQUEST_TIMEOUT_MS = 8000;
 const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
 const DETAIL_CACHE_TTL_MS = 60 * 60 * 1000;
 const CACHE_MAX_ENTRIES = 300;
 const SEARCH_CANDIDATE_LIMIT = 30;
+/**
+ * 1단계(제목·감독) 결과가 이만큼 모이면 조합 검색은 건너뛴다.
+ * 조합 검색은 "제목과 감독을 함께 입력한" 경우를 위한 보조 수단이라,
+ * 이미 충분히 찾았으면 KOBIS를 네 번 더 부를 이유가 없다.
+ */
+const SEARCH_FALLBACK_THRESHOLD = 5;
 
 const memoryCache = new Map<string, { value: unknown; expiresAt: number }>();
 const pendingRequests = new Map<string, Promise<unknown>>();
@@ -56,7 +69,7 @@ function getApiKey() {
 
 async function fetchKobisJson(path: string, params: Record<string, string>) {
   const key = getApiKey();
-  const url = new URL(`${KOBIS_BASE}/${path}`);
+  const url = new URL(`${getKobisBase()}/${path}`);
   url.searchParams.set("key", key);
   for (const [name, value] of Object.entries(params)) {
     if (value) url.searchParams.set(name, value);
@@ -262,27 +275,36 @@ export async function searchKobisMovies(
 
     // KOBIS는 제목(movieNm)과 감독(directorNm)을 별도 필드로 검색해야 한다.
     // 둘 중 하나가 실패해도 나머지 검색 결과는 계속 보여준다.
-    const results = await Promise.allSettled(
-      buildKobisSearchPlans(trimmed).map((params) => searchBy(params)),
-    );
-    const fulfilled = results.filter(
-      (result): result is PromiseFulfilledResult<KobisMovieSummary[]> =>
-        result.status === "fulfilled",
-    );
-    if (!fulfilled.length) {
-      const rejected = results.find(
-        (result): result is PromiseRejectedResult => result.status === "rejected",
-      );
-      throw rejected?.reason;
-    }
-
     const merged = new Map<string, KobisMovieSummary>();
+    let anyFulfilled = false;
+    let firstRejection: unknown;
 
-    for (const result of fulfilled) {
-      for (const movie of result.value) {
-        if (!merged.has(movie.movieCd)) merged.set(movie.movieCd, movie);
+    async function runPlans(plans: KobisSearchParams[]) {
+      if (!plans.length) return;
+      const results = await Promise.allSettled(plans.map((params) => searchBy(params)));
+      for (const result of results) {
+        if (result.status === "rejected") {
+          if (firstRejection === undefined) firstRejection = result.reason;
+          continue;
+        }
+        anyFulfilled = true;
+        for (const movie of result.value) {
+          if (!merged.has(movie.movieCd)) merged.set(movie.movieCd, movie);
+        }
       }
     }
+
+    // 1단계: 제목·감독 검색만 던진다. 대부분의 검색이 여기서 끝난다.
+    const plans = buildKobisSearchPlans(trimmed);
+    const [titlePlan, directorPlan, ...comboPlans] = plans;
+    await runPlans([titlePlan, directorPlan].filter(Boolean));
+
+    // 2단계: 결과가 부족할 때만 "제목 + 감독" 조합 검색을 보탠다.
+    if (merged.size < SEARCH_FALLBACK_THRESHOLD) {
+      await runPlans(comboPlans);
+    }
+
+    if (!anyFulfilled) throw firstRejection;
 
     return rankKobisMovies(Array.from(merged.values()), trimmed).slice(0, safeLimit);
   });

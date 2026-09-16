@@ -7,8 +7,17 @@
 
 // 기본값은 실제 TMDB. TMDB_API_BASE로 로컬 목 서버를 가리키면 네트워크 없이
 // 화면을 검증할 수 있다 (개발/테스트 용도).
-const TMDB_BASE = process.env.TMDB_API_BASE || "https://api.themoviedb.org/3";
-const TMDB_IMAGE_BASE = process.env.TMDB_IMAGE_BASE || "https://image.tmdb.org/t/p";
+const TMDB_DEFAULT_BASE = "https://api.themoviedb.org/3";
+const TMDB_DEFAULT_IMAGE_BASE = "https://image.tmdb.org/t/p";
+
+/** 모듈 최상단에서 읽으면 Worker의 env 주입보다 빨라 override가 먹지 않는다. */
+function getTmdbBase() {
+  return process.env.TMDB_API_BASE || TMDB_DEFAULT_BASE;
+}
+
+function getTmdbImageBase() {
+  return process.env.TMDB_IMAGE_BASE || TMDB_DEFAULT_IMAGE_BASE;
+}
 const REQUEST_TIMEOUT_MS = 8000;
 
 export class TmdbApiError extends Error {
@@ -30,7 +39,7 @@ function getApiKey() {
 
 async function fetchTmdbJson(path: string, params: Record<string, string> = {}) {
   const key = getApiKey();
-  const url = new URL(`${TMDB_BASE}${path}`);
+  const url = new URL(`${getTmdbBase()}${path}`);
   url.searchParams.set("api_key", key);
   for (const [name, value] of Object.entries(params)) {
     if (value) url.searchParams.set(name, value);
@@ -64,7 +73,7 @@ async function fetchTmdbJson(path: string, params: Record<string, string> = {}) 
 
 export function tmdbImageUrl(path: string | null | undefined, size: string) {
   if (!path) return null;
-  return `${TMDB_IMAGE_BASE}/${size}${path}`;
+  return `${getTmdbImageBase()}/${size}${path}`;
 }
 
 // --- 간단한 인메모리 캐시 ---
