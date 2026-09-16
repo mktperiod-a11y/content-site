@@ -51,46 +51,76 @@ type TmdbBundle = {
   failed: boolean;
 };
 
+const EMPTY_TMDB_BUNDLE: TmdbBundle = {
+  match: null,
+  movie: null,
+  providers: null,
+  reviews: [],
+  failed: false,
+};
+
+/** 매칭된 TMDB id로 이미지·평점·줄거리·리뷰·제공처를 한꺼번에 가져온다. */
+async function loadTmdbBundle(match: TmdbMatch): Promise<TmdbBundle> {
+  const [movie, providers, reviews] = await Promise.all([
+    getTmdbMovie(match.id),
+    getTmdbWatchProvidersKR(match.id),
+    getTmdbReviews(match.id),
+  ]);
+  const resolvedMatch = movie
+    ? {
+        id: movie.id,
+        posterUrl: movie.posterUrl,
+        voteAverage: movie.voteAverage,
+        voteCount: movie.voteCount,
+      }
+    : match;
+  return { match: resolvedMatch, movie, providers, reviews, failed: false };
+}
+
 /**
- * KOBIS 작품을 TMDB에 매칭해 이미지·평점·줄거리·리뷰·제공처를 가져온다.
+ * 이미 저장된 TMDB id로 바로 조회한다.
+ *
+ * 이 경로는 KOBIS 응답을 기다릴 필요가 없다. 예전에는 하나의 함수가 두 경우를
+ * 다 처리하느라 KOBIS가 끝난 뒤에야 TMDB를 부를 수 있었고, 그래서 상세 진입이
+ * 느린 왕복 두 번을 직렬로 태웠다.
  * TMDB 쪽이 실패해도 KOBIS 기본정보는 그대로 보여줘야 하므로 예외를 삼킨다.
  */
-const getTmdbBundleCached = cache(
-  async (
-    titleKo: string,
-    year: string,
-    titleEn: string,
-    storedTmdbId: number | null,
-  ): Promise<TmdbBundle> => {
-    const empty: TmdbBundle = {
-      match: null,
-      movie: null,
-      providers: null,
-      reviews: [],
-      failed: false,
-    };
-    try {
-      const match = storedTmdbId
-        ? { id: storedTmdbId, posterUrl: null, voteAverage: 0, voteCount: 0 }
-        : await findTmdbMatch(titleKo, year, titleEn);
-      if (!match) return empty;
+const getTmdbBundleById = cache(async (tmdbId: number): Promise<TmdbBundle> => {
+  try {
+    return await loadTmdbBundle({
+      id: tmdbId,
+      posterUrl: null,
+      voteAverage: 0,
+      voteCount: 0,
+    });
+  } catch {
+    return { ...EMPTY_TMDB_BUNDLE, failed: true };
+  }
+});
 
-      const [movie, providers, reviews] = await Promise.all([
-        getTmdbMovie(match.id),
-        getTmdbWatchProvidersKR(match.id),
-        getTmdbReviews(match.id),
-      ]);
-      const resolvedMatch = movie
-        ? {
-            id: movie.id,
-            posterUrl: movie.posterUrl,
-            voteAverage: movie.voteAverage,
-            voteCount: movie.voteCount,
-          }
-        : match;
-      return { match: resolvedMatch, movie, providers, reviews, failed: false };
+/**
+ * 저장된 TMDB id가 있으면 그 조회를 시작한다. 없으면 null.
+ *
+ * cache()로 감싸 generateMetadata와 본문이 **같은 조회 하나**를 공유한다.
+ * Next는 generateMetadata가 끝난 뒤에야 본문을 렌더하므로, 본문에서 처음
+ * 부르면 KOBIS 왕복이 끝날 때까지 TMDB가 시작조차 못 한다.
+ */
+const getSeededTmdbBundle = cache(
+  async (movieCd: string): Promise<TmdbBundle | null> => {
+    const storedTmdbId = await getStoredTmdbId(movieCd);
+    return storedTmdbId ? getTmdbBundleById(storedTmdbId) : null;
+  },
+);
+
+/** 저장된 id가 없을 때만 쓰는 경로. 제목으로 TMDB를 먼저 찾아야 한다. */
+const getTmdbBundleByTitle = cache(
+  async (titleKo: string, year: string, titleEn: string): Promise<TmdbBundle> => {
+    try {
+      const match = await findTmdbMatch(titleKo, year, titleEn);
+      if (!match) return EMPTY_TMDB_BUNDLE;
+      return await loadTmdbBundle(match);
     } catch {
-      return { ...empty, failed: true };
+      return { ...EMPTY_TMDB_BUNDLE, failed: true };
     }
   },
 );
@@ -101,6 +131,10 @@ export async function generateMetadata({
   params: Promise<PageParams>;
 }): Promise<Metadata> {
   const { movieCd } = await params;
+  // 메타데이터 자체는 KOBIS만 있으면 되지만, 본문이 쓸 TMDB 조회를 여기서 함께
+  // 띄워둔다. 그러지 않으면 KOBIS 왕복과 TMDB 왕복이 통째로 직렬이 된다.
+  // 결과는 cache()를 통해 본문이 그대로 받는다.
+  void getSeededTmdbBundle(movieCd).catch(() => {});
   const { data } = await getMovieInfoCached(movieCd);
   // sitemap.xml이 실어 보내는 주소와 같은 형태로 정본을 알린다.
   const canonical = `/movie/${encodeURIComponent(movieCd)}`;
@@ -147,9 +181,14 @@ export default async function MovieDetailPage({
   params: Promise<PageParams>;
 }) {
   const { movieCd } = await params;
-  const [{ data: movie, error }, storedTmdbId] = await Promise.all([
+  // KOBIS를 먼저 띄워두고 기다리지 않는다. D1은 같은 워커 안이라 훨씬 빨라서,
+  // 저장된 TMDB id를 먼저 읽고 TMDB 조회까지 KOBIS와 나란히 굴릴 수 있다.
+  // (예전에는 KOBIS가 끝나야 TMDB가 시작돼 느린 왕복이 직렬로 쌓였다.)
+  // generateMetadata가 이미 시작해둔 조회를 받는다. null이면 저장된 id가 없어
+  // 제목으로 TMDB를 찾아야 하는 경우다(그 작품의 첫 방문).
+  const [{ data: movie, error }, seededTmdb] = await Promise.all([
     getMovieInfoCached(movieCd),
-    getStoredTmdbId(movieCd),
+    getSeededTmdbBundle(movieCd),
   ]);
 
   if (error) {
@@ -183,11 +222,11 @@ export default async function MovieDetailPage({
   const genre = movie.genres.join("·");
 
   const [tmdb, theaterStatus] = await Promise.all([
-    getTmdbBundleCached(movie.titleKo, movie.prdtYear, movie.titleEn, storedTmdbId),
+    seededTmdb ?? getTmdbBundleByTitle(movie.titleKo, movie.prdtYear, movie.titleEn),
     getTheaterStatuses(movie.titleKo),
   ]);
 
-  if (!storedTmdbId && tmdb.match) {
+  if (!seededTmdb && tmdb.match) {
     await persistEnrichment(
       {
         movieCd,

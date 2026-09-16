@@ -240,3 +240,19 @@ test("aligns the release hero with the core tabs and summarizes both lists", () 
   assert.match(catalogSource, /export async function getReleaseCount/);
   assert.match(pageSource, /tracking-\[1px\]/);
 });
+
+test("starts the detail page's TMDB lookup alongside the KOBIS one", async () => {
+  // Next는 generateMetadata가 끝난 뒤에야 본문을 렌더한다. 본문에서 처음 TMDB를
+  // 부르면 KOBIS 왕복이 끝날 때까지 시작조차 못 해 두 왕복이 직렬로 쌓인다.
+  const detailSource = await readFile(
+    new URL("../app/movie/[movieCd]/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(detailSource, /const getSeededTmdbBundle = cache\(/);
+  // generateMetadata에서 미리 띄운다.
+  assert.match(detailSource, /void getSeededTmdbBundle\(movieCd\)/);
+  // 본문은 같은 조회를 받아 쓴다 (cache()가 하나로 묶는다).
+  assert.match(detailSource, /getSeededTmdbBundle\(movieCd\),/);
+  // 저장된 id가 있으면 제목 검색 왕복을 건너뛴다.
+  assert.match(detailSource, /seededTmdb \?\? getTmdbBundleByTitle\(/);
+});
