@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { OTT_PLANS, PRICES_VERIFIED_ON, findPlanByTmdbName, formatWon, type OttPlan } from "@/lib/ott-plans";
 import type { KobisMovieSummary } from "@/lib/kobis";
 import type { EnrichedMovie } from "@/lib/enrichment";
+import { isSearchable } from "@/lib/movie-search";
 import { SponsoredBanner } from "@/components/sponsored-slot";
 
 const MAX_SELECTED = 5;
@@ -57,7 +58,9 @@ export function PriceComparison() {
     const controller = new AbortController();
 
     const timer = setTimeout(async () => {
-      if (!trimmed) {
+      // 헤더 검색·검색 탭과 같은 최소 길이를 쓴다. 한 글자로는 KOBIS가
+      // 의미 있는 결과를 주지 않는데, 여기만 빠져 있어 매 타이핑마다 호출됐다.
+      if (!isSearchable(trimmed)) {
         setSearchResults([]);
         setSearchStatus("idle");
         return;
@@ -353,7 +356,7 @@ export function PriceComparison() {
             {selected.length < MAX_SELECTED && (
               <div className="mt-4">
                 <p className="text-sm font-semibold text-on-dark-tertiary">
-                  {searchTerm.trim()
+                  {isSearchable(searchTerm)
                     ? `검색 결과 ${availableSearchResults.length}${searchResults.length === 8 ? "+" : ""}개`
                     : "작품을 검색해 최대 5편까지 선택해보세요"}
                 </p>
