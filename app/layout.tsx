@@ -57,7 +57,6 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <meta content="development" name="codex-preview" />
         {/*
           globals.css는 Pretendard를 지정하지만 폰트를 불러오는 곳이 없어서,
           Pretendard가 설치된 PC에서만 의도한 서체로 보였다. 동적 서브셋 CSS는
