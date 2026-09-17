@@ -10,6 +10,84 @@ Cloudflare Workers용이라 옮기는 게 아니라 **껍데기만 벗는 것**�
 
 ---
 
+## 방법 A — 브라우저만으로 (터미널 없이)
+
+Cloudflare 대시보드가 GitHub 저장소를 직접 빌드·배포합니다. 명령어를 칠 필요가
+없고, 이후에는 `main`에 푸시할 때마다 자동으로 다시 배포됩니다.
+
+### A-1. D1 데이터베이스 만들기
+
+대시보드 → **Storage & Databases → D1** → **Create**
+이름은 `where-to-watch`. 만들고 나면 상세 화면에 **Database ID**가 보입니다.
+복사해 두세요.
+
+### A-2. 테이블 만들기
+
+같은 D1 화면의 **Console** 탭을 엽니다. 저장소의 `drizzle/` 폴더에 있는 아래
+네 파일을 **GitHub 웹에서 열어 내용을 복사**한 뒤, 순서대로 붙여넣고 실행합니다.
+
+    1. drizzle/0000_lyrical_iron_monger.sql
+    2. drizzle/0001_friendly_vin_gonzales.sql
+    3. drizzle/0002_condemned_paibok.sql
+    4. drizzle/0003_silent_ted_forrester.sql
+
+파일 안의 `--> statement-breakpoint`는 SQL 주석이라 그대로 붙여넣어도 됩니다.
+순서를 지키는 것만 중요합니다.
+
+### A-3. 저장소 연결
+
+대시보드 → **Workers & Pages** → **Create** → **Import a repository**
+GitHub 계정을 연결하고 `mktperiod-a11y/content-site`를 고릅니다.
+
+빌드 설정을 이렇게 채웁니다.
+
+| 항목 | 값 |
+|---|---|
+| Project name | `where-to-watch` |
+| Build command | `npm run build` |
+| Deploy command | `npm run deploy` |
+| Root directory | (비워 둠) |
+
+### A-4. 빌드 환경변수
+
+같은 화면의 **Environment variables (build)** 에 추가합니다. 비밀값이 아닙니다.
+
+| 이름 | 값 |
+|---|---|
+| `CLOUDFLARE_D1_DATABASE_ID` | A-1에서 복사한 ID |
+| `CLOUDFLARE_D1_DATABASE_NAME` | `where-to-watch` |
+| `CLOUDFLARE_WORKER_NAME` | `where-to-watch` |
+| `NODE_VERSION` | `22` |
+
+`NODE_VERSION`이 없으면 빌드 이미지의 기본 Node가 낮아 설치부터 실패할 수
+있습니다. package.json이 22.13 이상을 요구합니다.
+
+### A-5. 배포하고 키 넣기
+
+**Save and Deploy**를 누르면 첫 배포가 돕니다. 끝나면 주소가 나옵니다.
+
+    https://where-to-watch.<계정이름>.workers.dev
+
+그다음 워커의 **Settings → Variables and Secrets** 에서 아래를 **Secret(암호화)**
+타입으로 추가합니다. 일반 변수(Text)가 아니라 Secret이어야 합니다.
+
+    KOBIS_API_KEY     발급받은 KOBIS 키
+    TMDB_API_KEY      발급받은 TMDB 키
+    PUBLIC_SITE_URL   위에서 받은 https://... 주소
+
+저장하면 워커가 다시 시작되면서 값이 반영됩니다.
+
+> 키를 저장소에 넣지 마세요. 한 번 커밋되면 나중에 지워도 히스토리에 남습니다.
+
+### A-6. 이후 배포
+
+`main`에 푸시하면 Cloudflare가 알아서 다시 빌드·배포합니다. 따로 할 일이
+없습니다.
+
+---
+
+## 방법 B — 터미널에서
+
 ## 준비 — 처음 한 번만
 
 ### 1. 로그인
