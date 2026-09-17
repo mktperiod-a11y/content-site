@@ -122,7 +122,7 @@ export default function WatchOptionsPage() {
         </article>
 
         <BackLink
-          className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-foreground hover:text-brand-muted"
+          className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-foreground hover:text-brand-muted"
           fallbackHref="/search?tab=compare"
         >
           이전 화면으로 돌아가기

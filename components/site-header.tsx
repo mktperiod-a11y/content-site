@@ -18,7 +18,10 @@ export function SiteHeader({
   return (
     <header className="bg-ink text-white">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-        <Link className="flex items-center gap-2.5 font-semibold tracking-tight" href="/">
+        <Link
+          className="flex min-h-11 items-center gap-2.5 font-semibold tracking-tight"
+          href="/"
+        >
           <span className="grid size-8 place-items-center rounded-xl bg-brand text-ink">
             <Clapperboard className="size-4.5" strokeWidth={2.4} />
           </span>
