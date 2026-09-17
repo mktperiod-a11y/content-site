@@ -4,9 +4,8 @@ import test from "node:test";
 /**
  * 워커가 HTML을 서버에서 그려 내보내는지 확인하는 스모크 테스트.
  *
- * 예전에는 Sites 미리보기용 <meta name="codex-preview">가 있는지로 확인했는데,
- * Cloudflare로 옮기면서 그 표식을 뺐다. 배포 환경에 딸린 흔적 대신 화면에
- * 실제로 들어가는 것으로 확인한다.
+ * Sites 미리보기용 <meta name="codex-preview">가 붙어 나가는지 함께 본다.
+ * 배포처가 Sites인 동안에는 이 표식이 유지돼야 한다.
  */
 test("server-renders the page shell as HTML", async () => {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -37,6 +36,9 @@ test("server-renders the page shell as HTML", async () => {
   // 헤더가 실제로 그려졌는지 — 클라이언트 자바스크립트 없이도 보여야 한다.
   assert.match(html, /어디서 보지\?/);
   assert.match(html, /<title[^>]*>[^<]*어디서 보지\?/);
-  // 배포 환경에 딸린 표식은 더 이상 내보내지 않는다.
-  assert.doesNotMatch(html, /codex-preview/i);
+  // Sites 미리보기 표식.
+  assert.match(
+    html,
+    /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i,
+  );
 });
