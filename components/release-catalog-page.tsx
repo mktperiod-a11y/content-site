@@ -80,7 +80,9 @@ function ReleaseMovieCard({
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="line-clamp-2 break-keep text-lg font-black leading-snug tracking-[-0.02em] text-foreground">
+          {/* 제목이 한 줄이어도 두 줄 높이를 비워 둔다. 그래야 아래 연도·극장 칩이
+              모든 카드에서 같은 높이에 놓인다. (text-lg × leading-snug × 2줄 ≈ 3.1rem) */}
+          <h2 className="line-clamp-2 min-h-[3.1rem] break-keep text-lg font-black leading-snug tracking-[-0.02em] text-foreground">
             {movie.titleKo}
           </h2>
           {movie.voteAverage !== null && movie.voteCount > 0 && (
