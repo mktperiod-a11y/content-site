@@ -293,6 +293,12 @@ if (D1_CONFIG) {
 const retried = {
   // '찾을 수 없음'도 다시 본다. 제목 규칙이 나아지면 바로 잡히고, 대상은
   // 포스터가 없는 상영작뿐이라 하루 수십 건 수준이다.
+  // 2026-09-30 부터 포스터는 제목과 연도가 함께 맞아야 붙는다. 그 전에 제목만으로
+  // 붙은 포스터는 다른 작품의 것일 수 있어 한 번 모두 다시 검사한다.
+  rechecked: sql.prepare(
+    `UPDATE theater_movies SET poster_url = NULL, tmdb_status = 'pending'
+     WHERE tmdb_status = 'matched' AND (tmdb_updated_at IS NULL OR tmdb_updated_at < ${Date.UTC(2026, 8, 30, 10, 0)})`,
+  ).run().changes,
   posters: sql.prepare(
     "UPDATE theater_movies SET tmdb_status = 'pending' WHERE poster_url IS NULL AND tmdb_status IN ('error', 'not_found')",
   ).run().changes,

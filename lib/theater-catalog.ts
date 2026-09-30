@@ -70,6 +70,10 @@ type SyncRow = {
 type TheaterPosterTarget = {
   normalized_title: string;
   title_ko: string;
+  /** 극장 개봉일(YYYYMMDD). 재개봉이면 원래 개봉보다 늦다. */
+  open_date: string | null;
+  /** 같은 제목으로 KOBIS 에 등록된 작품의 제작연도. 있으면 이것이 기준 연도다. */
+  production_year: string | null;
 };
 
 type TheaterRow = {
@@ -232,7 +236,10 @@ async function acquirePosterLock(now: number, token: string) {
 async function getTheaterPosterTargets(now: number) {
   const result = await getD1()
     .prepare(
-      `SELECT normalized_title, MIN(title_ko) AS title_ko
+      `SELECT normalized_title, MIN(title_ko) AS title_ko, MAX(open_date) AS open_date,
+              (SELECT MAX(m.production_year) FROM movies AS m
+               WHERE m.normalized_title = theater_movies.normalized_title
+                 AND m.production_year <> '') AS production_year
        FROM theater_movies
        WHERE poster_url IS NULL
          AND (
@@ -252,13 +259,16 @@ async function getTheaterPosterTargets(now: number) {
 async function enrichTheaterPoster(target: TheaterPosterTarget, now: number) {
   const db = getD1();
   try {
-    // 극장 개봉일은 재개봉일일 수 있으므로 연도는 제한하지 않는다.
-    // findTmdbMatch가 정규화된 제목의 정확한 일치만 허용해 오매칭을 막는다.
-    // "[응원상영]", "앙코르" 같은 상영 형태 표시 때문에 못 찾았다면, 표시를 뗀
-    // 제목으로 한 번 더 찾는다. 이때도 제목이 정확히 일치해야만 받아들인다.
+    // 제목만 맞추면 같은 이름의 다른 작품이 붙는다(2026년 한국 영화 "인턴"에
+    // 2015년 할리우드 "인턴" 포스터가 붙었다). 제목과 연도(±1년)가 함께 맞을
+    // 때만 받아들인다. 기준 연도는 KOBIS 제작연도가 있으면 그것을 쓴다 —
+    // 재개봉작도 KOBIS 에는 원래 제작연도가 있어 극장 개봉일보다 정확하다.
+    const year = target.production_year || target.open_date?.slice(0, 4) || undefined;
+    // "[응원상영]", "리마스터링" 같은 재상영 표시가 붙은 제목은 옛 작품일 수 있어,
+    // 표시를 뗀 제목으로 연도 없이 한 번 더 찾는다. 이때도 제목은 정확히 일치해야 한다.
     const stripped = stripScreeningTags(target.title_ko);
     const match =
-      (await findTmdbMatch(target.title_ko)) ??
+      (await findTmdbMatch(target.title_ko, year)) ??
       (stripped ? await findTmdbMatch(stripped) : null);
     if (!match) {
       await db
