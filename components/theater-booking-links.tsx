@@ -34,21 +34,26 @@ export const THEATER_BOOKING_LINKS: ReadonlyArray<{
 const THEATER_CHAIN_BADGES: ReadonlyArray<{
   code: TheaterCode;
   label: string;
+  /** 카드가 좁아 세 칩이 한 줄에 들어가지 않을 때 쓰는 줄임 이름. */
+  shortLabel: string;
   className: string;
 }> = [
   {
     code: "cgv",
     label: "CGV",
+    shortLabel: "CGV",
     className: "bg-red-50 text-red-700 ring-red-200",
   },
   {
     code: "megabox",
     label: "메가박스",
+    shortLabel: "메가",
     className: "bg-violet-50 text-violet-800 ring-violet-200",
   },
   {
     code: "lotte",
     label: "롯데시네마",
+    shortLabel: "롯데",
     className: "bg-rose-50 text-rose-800 ring-rose-200",
   },
 ];
@@ -63,20 +68,26 @@ export function TheaterChainBadges({
   const visible = THEATER_CHAIN_BADGES.filter((theater) => theaters.includes(theater.code));
   if (!visible.length) return null;
 
+  // 세 칩은 항상 한 줄에 둔다. 옆 카드와 같은 높이에 한 줄로 서야 목록이 정돈돼
+  // 보이기 때문이다. 바깥 div 를 컨테이너로 삼아, 전체 이름 세 개가 들어가는
+  // 폭(9.75rem)보다 좁으면 줄임 이름으로 바꾼다.
   return (
     <div
       aria-label={`현재 상영 극장: ${visible.map((theater) => theater.label).join(", ")}`}
-      className={`flex flex-wrap gap-1.5 ${className}`}
+      className={`@container ${className}`}
     >
-      {visible.map((theater) => (
-        <span
-          aria-hidden="true"
-          className={`inline-flex h-6 items-center rounded-full px-2 text-[10px] font-black ring-1 ring-inset ${theater.className}`}
-          key={theater.code}
-        >
-          {theater.label}
-        </span>
-      ))}
+      <div className="flex flex-nowrap gap-1">
+        {visible.map((theater) => (
+          <span
+            aria-hidden="true"
+            className={`inline-flex h-6 shrink-0 items-center whitespace-nowrap rounded-full px-1.5 text-[10px] font-black ring-1 ring-inset ${theater.className}`}
+            key={theater.code}
+          >
+            <span className="hidden @min-[9.75rem]:inline">{theater.label}</span>
+            <span className="@min-[9.75rem]:hidden">{theater.shortLabel}</span>
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

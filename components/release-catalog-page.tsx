@@ -102,34 +102,46 @@ function ReleaseMovieCard({
         )}
 
         {showProviderArea && (
-          <div className="mt-auto flex min-h-8 flex-wrap items-end gap-1.5 pt-3">
-            {subscription.length ? (
-              <>
-                {subscription.slice(0, 2).map((provider) => (
-                  <span
-                    className="inline-flex h-8 items-center gap-1.5 rounded-full bg-secondary px-2.5 text-xs font-bold text-secondary-foreground"
-                    key={provider.providerId}
-                  >
-                    {provider.logoUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element -- TMDB provider logo.
-                      <img alt="" className="size-4 rounded" src={provider.logoUrl} />
-                    )}
-                    {provider.name}
-                  </span>
-                ))}
-                {extraCount > 0 && (
-                  <span className="inline-flex h-8 items-center rounded-full bg-secondary px-2.5 text-xs font-bold text-muted-foreground">
-                    +{extraCount}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-xs font-medium text-muted-foreground">
-                {view === "upcoming"
-                  ? "개봉 후 제공처가 확인돼요"
-                  : "검색에서 제공처 확인하기"}
-              </span>
-            )}
+          // OTT 칩은 옆 카드와 같은 선(카드 아래)에 한 줄로 선다. 이름은 자르지 않고,
+          // 카드 폭에 두 곳이 온전히 들어가면(11.5rem 이상) 두 곳을, 아니면 한 곳만
+          // 보여주고 나머지는 "+N" 으로 묶는다.
+          <div className="@container mt-auto pt-3">
+            <div className="flex min-h-8 flex-nowrap items-end gap-1">
+              {subscription.length ? (
+                <>
+                  {subscription.slice(0, 2).map((provider, index) => (
+                    <span
+                      className={`h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-secondary px-2 text-[11px] font-bold text-secondary-foreground ${
+                        index === 0 ? "inline-flex" : "hidden @min-[11.5rem]:inline-flex"
+                      }`}
+                      key={provider.providerId}
+                    >
+                      {provider.logoUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element -- TMDB provider logo.
+                        <img alt="" className="size-3.5 shrink-0 rounded" src={provider.logoUrl} />
+                      )}
+                      {provider.name}
+                    </span>
+                  ))}
+                  {subscription.length > 1 && (
+                    <span className="inline-flex h-7 shrink-0 items-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground @min-[11.5rem]:hidden">
+                      +{subscription.length - 1}
+                    </span>
+                  )}
+                  {extraCount > 0 && (
+                    <span className="hidden h-7 shrink-0 items-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground @min-[11.5rem]:inline-flex">
+                      +{extraCount}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="text-xs font-medium text-muted-foreground">
+                  {view === "upcoming"
+                    ? "개봉 후 제공처가 확인돼요"
+                    : "검색에서 제공처 확인하기"}
+                </span>
+              )}
+            </div>
           </div>
         )}
       </div>
