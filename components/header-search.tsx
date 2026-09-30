@@ -129,7 +129,7 @@ export function HeaderSearch({ onSearch }: { onSearch?: (query: string) => void 
         aria-expanded={suggestionsOpen}
         aria-haspopup="listbox"
         aria-label="작품명 검색"
-        className="h-10 rounded-xl border-white/12 bg-white/[0.06] pl-9 pr-3 text-sm font-medium text-white shadow-none placeholder:text-white/40 focus-visible:border-brand/60 focus-visible:ring-2 focus-visible:ring-brand/35"
+        className="h-10 rounded-xl border-white/12 bg-white/[0.06] pl-9 pr-3 text-sm font-medium text-white shadow-none placeholder:text-white/60 focus-visible:border-brand/60 focus-visible:ring-2 focus-visible:ring-brand/35"
         onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
         onChange={(event) => {
           setQuery(event.target.value);
