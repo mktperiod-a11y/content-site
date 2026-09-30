@@ -199,7 +199,8 @@ test("serves release posters from D1 without per-card API calls", () => {
   assert.match(catalogSource, /MAX\(poster_url\) AS poster_url/);
   assert.match(catalogSource, /COALESCE\(m\.poster_url, theater_titles\.poster_url\)/);
   assert.match(theaterSource, /export async function syncTheaterPosters/);
-  assert.match(theaterSource, /findTmdbMatch\(target\.title_ko\)/);
+  // 제목과 연도가 함께 맞아야 한다(2026-09-30, 동명 작품 오매칭 방지).
+  assert.match(theaterSource, /findTmdbMatch\(target\.title_ko, year\)/);
   assert.match(theaterSource, /THEATER_POSTER_BATCH_LIMIT = 120/);
   // 포스터 보강은 갓 저장된 극장 목록을 읽으므로 극장 수집이 끝난 뒤에 돈다.
   assert.match(workerSource, /syncTheaterCatalog\(\)\]\)[\s\S]*?syncTheaterPosters\(\)/);

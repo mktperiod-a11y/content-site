@@ -116,8 +116,13 @@ function insertRowsSql(table, rows, columns) {
   );
 }
 
-function pushToD1(sql, tables) {
+function pushToD1(sql, tables, detailSince) {
   const lines = [];
+  // 상세 보관함은 이번 실행에서 새로 받은 행만 보낸다(수 MB 를 매번 다시 쓰지 않도록).
+  const detailRows = sql
+    .prepare("SELECT * FROM detail_cache WHERE kobis_fetched_at >= ? OR tmdb_fetched_at >= ?")
+    .all(detailSince, detailSince);
+  lines.push(...insertRowsSql("detail_cache", detailRows, columnsOf(sql, "detail_cache")));
   for (const table of PERSISTED) {
     lines.push(...insertRowsSql(table, tables[table], columnsOf(sql, table)));
   }
@@ -248,6 +253,22 @@ if (D1_CONFIG) {
   }
   console.log(`운영 D1(${D1_TARGET})에서 ${fromD1}행을 가져왔습니다.`);
 
+  // 상세 보관함도 가져온다. KOBIS 작품 정보는 7일 동안 다시 받지 않아도 되므로
+  // 이미 있는 것은 건너뛰게 된다. 표가 아직 없으면(배포 전) 조용히 넘어간다.
+  try {
+    const rows = readD1Table("detail_cache");
+    if (rows.length) {
+      const columns = columnsOf(sql, "detail_cache").filter((c) => c in rows[0]);
+      const insert = sql.prepare(
+        `INSERT OR REPLACE INTO detail_cache (${columns.join(",")}) VALUES (${columns.map(() => "?").join(",")})`,
+      );
+      for (const row of rows) insert.run(...columns.map((c) => row[c] ?? null));
+    }
+    console.log(`상세 보관함 ${rows.length}건을 가져왔습니다.`);
+  } catch {
+    console.warn("운영 D1 에 상세 보관함이 아직 없습니다. 먼저 'Cloudflare 배포'로 표를 만들어주세요.");
+  }
+
   // 개봉작 목록은 7일마다 새로 받는 설계다. 사이트가 최근에 받아뒀다면 그 시각을
   // 가져와 건너뛰게 한다. 그러지 않으면 매 실행마다 KOBIS 목록 수백 건을 새로
   // 받아, 하루에 여러 번 돌릴 때 KOBIS 응답이 느려져 실패했다.
@@ -272,6 +293,12 @@ if (D1_CONFIG) {
 const retried = {
   // '찾을 수 없음'도 다시 본다. 제목 규칙이 나아지면 바로 잡히고, 대상은
   // 포스터가 없는 상영작뿐이라 하루 수십 건 수준이다.
+  // 2026-09-30 부터 포스터는 제목과 연도가 함께 맞아야 붙는다. 그 전에 제목만으로
+  // 붙은 포스터는 다른 작품의 것일 수 있어 한 번 모두 다시 검사한다.
+  rechecked: sql.prepare(
+    `UPDATE theater_movies SET poster_url = NULL, tmdb_status = 'pending'
+     WHERE tmdb_status = 'matched' AND (tmdb_updated_at IS NULL OR tmdb_updated_at < ${Date.UTC(2026, 8, 30, 10, 0)})`,
+  ).run().changes,
   posters: sql.prepare(
     "UPDATE theater_movies SET tmdb_status = 'pending' WHERE poster_url IS NULL AND tmdb_status IN ('error', 'not_found')",
   ).run().changes,
@@ -376,8 +403,72 @@ console.log(`data/catalog.json 을 갱신했습니다.`);
 
 if (response.status >= 400) process.exit(1);
 
+/**
+ * 1탭에 보이는 영화(지금 상영작 + 개봉 예정작)의 상세 화면을 미리 한 번씩 연다.
+ * 상세 화면은 받은 KOBIS·TMDB 응답을 detail_cache 에 넣으므로, 여기서 연 만큼
+ * 방문자는 외부를 기다리지 않고 바로 본다. 수집 로직을 따로 옮겨 적지 않는다.
+ */
+const PREFETCH_LIMIT = 300;
+const PREFETCH_CONCURRENCY = 4;
+const prefetchStarted = Date.now();
+const ymd = (offsetDays) => {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" })
+    .formatToParts(new Date(Date.now() + offsetDays * 86400000))
+    .reduce((acc, part) => ((acc[part.type] = part.value), acc), {});
+  return `${parts.year}${parts.month}${parts.day}`;
+};
+const targets = sql
+  .prepare(
+    `SELECT movie_cd FROM (
+       SELECT m.movie_cd, m.open_date FROM movies AS m
+       WHERE EXISTS (SELECT 1 FROM theater_movies AS tm WHERE tm.normalized_title = m.normalized_title)
+       UNION
+       SELECT movie_cd, open_date FROM movies WHERE open_date > ? AND open_date <= ?
+     )
+     ORDER BY open_date DESC
+     LIMIT ?`,
+  )
+  .all(ymd(0), ymd(120), PREFETCH_LIMIT)
+  .map((row) => row.movie_cd);
+
+// 화면은 36시간까지 보관본을 쓰지만, 수집기는 하루 한 번 돌므로 20시간이 지난
+// TMDB 응답은 다시 받게 한다. 그래야 OTT 제공처가 매일 새로워진다.
+sql.prepare("UPDATE detail_cache SET tmdb_fetched_at = NULL WHERE tmdb_fetched_at < ?").run(
+  Date.now() - 20 * 60 * 60 * 1000,
+);
+
+let prefetchFailed = 0;
+for (let index = 0; index < targets.length; index += PREFETCH_CONCURRENCY) {
+  await Promise.all(
+    targets.slice(index, index + PREFETCH_CONCURRENCY).map(async (movieCd) => {
+      try {
+        const res = await worker.fetch(
+          new Request(`http://localhost/movie/${encodeURIComponent(movieCd)}`),
+          { ASSETS: { fetch: async () => new Response("not found", { status: 404 }) }, DB: db },
+          { waitUntil() {}, passThroughOnException() {} },
+        );
+        await res.arrayBuffer();
+        if (!res.ok) prefetchFailed += 1;
+      } catch {
+        prefetchFailed += 1;
+      }
+    }),
+  );
+}
+const prefetched = sql
+  .prepare(
+    `SELECT count(*) AS n FROM detail_cache
+     WHERE kobis_fetched_at >= ? OR tmdb_fetched_at >= ?`,
+  )
+  .get(prefetchStarted, prefetchStarted).n;
+const readyTotal = sql.prepare("SELECT count(*) AS n FROM detail_cache WHERE tmdb_json IS NOT NULL").get().n;
+console.log(
+  `상세 미리 열기: 대상 ${targets.length}편, 이번에 새로 받은 ${prefetched}편, 실패 ${prefetchFailed}편 (보관 중 ${readyTotal}편)`,
+);
+
 if (D1_CONFIG) {
-  const statements = pushToD1(sql, tables);
+  // 상세를 여는 동안 제공처 등이 새로 저장됐으므로 표를 다시 떠서 보낸다.
+  const statements = pushToD1(sql, dump(sql), prefetchStarted);
   console.log(`운영 D1(${D1_TARGET})에 ${statements}개 문장으로 반영했습니다.`);
 }
 

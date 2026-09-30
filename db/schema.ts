@@ -89,3 +89,17 @@ export const theaterMovies = sqliteTable(
     index("idx_theater_movies_checked").on(table.theaterCode, table.checkedAt),
   ],
 );
+
+/**
+ * 상세 화면이 외부에서 받아 온 응답을 그대로 담아 두는 보관함.
+ * 매일 수집기가 1탭 영화의 상세를 미리 채워, 방문자가 열 때 KOBIS·TMDB 를
+ * 기다리지 않게 한다. kobis_json / tmdb_json 은 각각 따로 갱신될 수 있다.
+ */
+export const detailCache = sqliteTable("detail_cache", {
+  movieCd: text("movie_cd").primaryKey(),
+  kobisJson: text("kobis_json"),
+  kobisFetchedAt: integer("kobis_fetched_at"),
+  tmdbId: integer("tmdb_id"),
+  tmdbJson: text("tmdb_json"),
+  tmdbFetchedAt: integer("tmdb_fetched_at"),
+});

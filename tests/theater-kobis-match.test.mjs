@@ -123,3 +123,13 @@ test("leaves the list card's look alone while pre-filling", () => {
   );
   assert.doesNotMatch(storeBlock, /poster_url|vote_average|vote_count/);
 });
+
+test("theater posters require the title and the year to match together", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = await readFile(new URL("../lib/theater-catalog.ts", import.meta.url), "utf8");
+  // 기준 연도는 KOBIS 제작연도가 먼저, 없으면 극장 개봉연도.
+  assert.match(source, /const year = target\.production_year \|\| target\.open_date\?\.slice\(0, 4\) \|\| undefined;/);
+  assert.match(source, /findTmdbMatch\(target\.title_ko, year\)/);
+  // 연도 없이 찾는 것은 재상영 표시를 뗀 제목일 때뿐이다.
+  assert.match(source, /stripped \? await findTmdbMatch\(stripped\) : null/);
+});
