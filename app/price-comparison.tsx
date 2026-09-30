@@ -316,10 +316,10 @@ export function PriceComparison() {
 
           <div className="mt-9 rounded-[1.4rem] bg-surface-dark-soft p-3 backdrop-blur sm:mt-10 sm:p-4">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400 sm:left-5 sm:size-6" />
+              <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-500 sm:left-5 sm:size-6" />
               <Input
                 aria-label="비교할 영화 검색"
-                className="h-14 rounded-2xl border-0 bg-white pl-11 pr-4 text-base text-ink placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand sm:h-[4.5rem] sm:pl-14 sm:pr-5 sm:text-lg"
+                className="h-14 rounded-2xl border-0 bg-white pl-11 pr-4 text-base text-ink placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-brand sm:h-[4.5rem] sm:pl-14 sm:pr-5 sm:text-lg"
                 disabled={selected.length >= MAX_SELECTED}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={
@@ -357,14 +357,14 @@ export function PriceComparison() {
 
             {selected.length < MAX_SELECTED && (
               <div className="mt-4">
-                <p className="text-sm font-semibold text-on-dark-tertiary">
+                <p className="text-sm font-semibold text-on-dark-secondary">
                   {isSearchable(searchTerm)
                     ? `검색 결과 ${availableSearchResults.length}${searchResults.length === 8 ? "+" : ""}개`
                     : "작품을 검색해 최대 5편까지 선택해보세요"}
                 </p>
 
                 {searchStatus === "loading" && (
-                  <p className="mt-3 flex items-center gap-2 text-sm text-on-dark-tertiary">
+                  <p className="mt-3 flex items-center gap-2 text-sm text-on-dark-secondary">
                     <Loader2 className="size-4 animate-spin" />
                     검색 중이에요...
                   </p>

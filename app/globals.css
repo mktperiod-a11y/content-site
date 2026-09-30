@@ -2,6 +2,14 @@
 @import "tw-animate-css";
 @import "../vendor/shadcn-tailwind-4.13.0.css";
 
+/*
+ * 이 사이트는 어두운 상단과 밝은 본문을 직접 조합한 고정 색 구성이다.
+ * Tailwind 의 dark: 는 기본값이 "기기가 다크 모드일 때"라서, 가져온 부품들이
+ * 기기 설정만 보고 입력칸을 반투명 회색으로, 활성 탭 글자를 진한 색으로 바꿔
+ * 버렸다. dark: 는 .dark 클래스를 직접 붙였을 때만 켜지도록 한다.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @utility scrollbar-thin {
   scrollbar-width: thin;
 }

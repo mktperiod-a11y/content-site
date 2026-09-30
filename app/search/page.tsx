@@ -396,7 +396,7 @@ function HomeContent() {
                   국내 주요 OTT의 보유 여부를 확인하고, 가장 합리적인 시청 방법을 찾아보세요.
                 </p>
 
-                <p className="mt-9 text-sm font-medium text-on-dark-tertiary sm:mt-10">
+                <p className="mt-9 text-sm font-medium text-on-dark-secondary sm:mt-10">
                   2글자 이상 입력하면 검색 결과가 보여요
                 </p>
 
@@ -406,7 +406,7 @@ function HomeContent() {
                   onSubmit={handleSubmit}
                 >
                   <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400 sm:left-4.5 sm:size-5.5" />
+                    <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-500 sm:left-4.5 sm:size-5.5" />
                     <Input
                       role="combobox"
                       aria-activedescendant={
@@ -419,7 +419,7 @@ function HomeContent() {
                       aria-expanded={suggestionsOpen}
                       aria-haspopup="listbox"
                       aria-label="작품명 검색"
-                      className="h-14 rounded-2xl border-0 bg-white pl-11 pr-4 text-base text-ink shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-brand sm:h-16 sm:pl-13 sm:text-[17px]"
+                      className="h-14 rounded-2xl border-0 bg-white pl-11 pr-4 text-base text-ink shadow-none placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-brand sm:h-16 sm:pl-13 sm:text-[17px]"
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
                       onChange={(event) => {
                         setQuery(event.target.value);
@@ -487,7 +487,7 @@ function HomeContent() {
 
                 <button
                   aria-label={`${EXAMPLE_TITLE} 예시 검색하기`}
-                  className="group mt-3 inline-flex w-fit max-w-full items-center gap-2 rounded-full bg-white/[0.035] px-4 py-2 text-left text-sm font-semibold text-on-dark-tertiary transition-colors hover:bg-white/[0.065] hover:text-on-dark-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  className="group mt-3 inline-flex w-fit max-w-full items-center gap-2 rounded-full bg-white/[0.035] px-4 py-2 text-left text-sm font-semibold text-on-dark-secondary transition-colors hover:bg-white/[0.065] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                   onClick={showExample}
                   type="button"
                 >
