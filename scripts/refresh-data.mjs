@@ -116,13 +116,46 @@ function insertRowsSql(table, rows, columns) {
   );
 }
 
-function pushToD1(sql, tables, detailSince) {
+function runSqlOnD1(lines) {
+  if (lines.length === 0) return 0;
+  const file = join(tmpdir(), `moviesiso-d1-${Date.now()}.sql`);
+  writeFileSync(file, lines.join("\n") + "\n");
+  try {
+    wranglerD1(["--file", file, "--yes"]);
+  } finally {
+    rmSync(file, { force: true });
+  }
+  return lines.length;
+}
+
+/**
+ * 상세 미리 받기 동안 바뀐 행만 D1 에 보낸다. 보관함은 이번에 새로 받은 행만
+ * 보내 수 MB 를 매번 다시 쓰지 않는다. 상세 화면이 제공처를 새로 저장한 영화는
+ * 제공처를 영화 단위로 지우고 다시 넣는다(persistEnrichment 와 같은 방식).
+ */
+function prefetchSql(sql, since) {
   const lines = [];
-  // 상세 보관함은 이번 실행에서 새로 받은 행만 보낸다(수 MB 를 매번 다시 쓰지 않도록).
   const detailRows = sql
     .prepare("SELECT * FROM detail_cache WHERE kobis_fetched_at >= ? OR tmdb_fetched_at >= ?")
-    .all(detailSince, detailSince);
+    .all(since, since);
   lines.push(...insertRowsSql("detail_cache", detailRows, columnsOf(sql, "detail_cache")));
+  const movies = sql
+    .prepare("SELECT * FROM movies WHERE updated_at >= ? OR tmdb_updated_at >= ?")
+    .all(since, since);
+  lines.push(...insertRowsSql("movies", movies, columnsOf(sql, "movies")));
+  const providerColumns = columnsOf(sql, "movie_providers");
+  const providersOf = sql.prepare("SELECT * FROM movie_providers WHERE movie_cd = ?");
+  for (const movie of movies) {
+    if (movie.tmdb_status !== "matched") continue;
+    lines.push(`DELETE FROM movie_providers WHERE movie_cd = ${sqlLiteral(movie.movie_cd)};`);
+    lines.push(...insertRowsSql("movie_providers", providersOf.all(movie.movie_cd), providerColumns));
+  }
+  return lines;
+}
+
+/** 수집 결과(개봉작·극장 상영작·포스터·매칭)를 D1 에 반영하는 문장. */
+function coreSql(sql, tables) {
+  const lines = [];
   for (const table of PERSISTED) {
     lines.push(...insertRowsSql(table, tables[table], columnsOf(sql, table)));
   }
@@ -145,14 +178,7 @@ function pushToD1(sql, tables, detailSince) {
       `UPDATE sync_state SET last_success_at = MAX(COALESCE(last_success_at, 0), ${Number(releaseState[0].last_success_at)}), updated_at = ${Date.now()} WHERE sync_key = 'release_catalog';`,
     );
   }
-  const file = join(tmpdir(), `moviesiso-d1-${Date.now()}.sql`);
-  writeFileSync(file, lines.join("\n") + "\n");
-  try {
-    wranglerD1(["--file", file, "--yes"]);
-  } finally {
-    rmSync(file, { force: true });
-  }
-  return lines.length;
+  return lines;
 }
 
 function requireKeys() {
@@ -403,13 +429,27 @@ console.log(`data/catalog.json 을 갱신했습니다.`);
 
 if (response.status >= 400) process.exit(1);
 
+// 수집 결과는 상세 미리 받기보다 먼저 저장한다. 미리 받기가 느려지거나 멈춰도
+// 포스터·극장 상영작·매칭 결과는 이미 사이트에 반영돼 있게 하기 위해서다.
+if (D1_CONFIG) {
+  const statements = runSqlOnD1(coreSql(sql, tables));
+  console.log(`운영 D1(${D1_TARGET})에 수집 결과를 ${statements}개 문장으로 반영했습니다.`);
+}
+
 /**
  * 1탭에 보이는 영화(지금 상영작 + 개봉 예정작)의 상세 화면을 미리 한 번씩 연다.
  * 상세 화면은 받은 KOBIS·TMDB 응답을 detail_cache 에 넣으므로, 여기서 연 만큼
  * 방문자는 외부를 기다리지 않고 바로 본다. 수집 로직을 따로 옮겨 적지 않는다.
+ *
+ * 전체를 끝까지 기다리지 않는다. 정해진 시간(기본 5분) 안에 연 만큼만 저장하고,
+ * 남은 것은 다음 날 받거나 방문자가 처음 열 때 받아 보관된다. KOBIS 는 짧게만
+ * 기다리고 다시 시도하지 않는다 — 느린 작품 하나가 전체를 붙잡지 않게 한다.
  */
 const PREFETCH_LIMIT = 300;
 const PREFETCH_CONCURRENCY = 4;
+const PREFETCH_BUDGET_MS = Number(process.env.PREFETCH_BUDGET_MS) || 5 * 60 * 1000;
+process.env.KOBIS_TIMEOUT_MS = "6000";
+process.env.KOBIS_RETRIES = "0";
 const prefetchStarted = Date.now();
 const ymd = (offsetDays) => {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" })
@@ -417,15 +457,20 @@ const ymd = (offsetDays) => {
     .reduce((acc, part) => ((acc[part.type] = part.value), acc), {});
   return `${parts.year}${parts.month}${parts.day}`;
 };
+// 사람들이 많이 여는 지금 상영작을 먼저(최근 개봉순), 개봉 예정작은 그다음(가까운 순).
+// 시간 예산이 모자라도 중요한 것부터 채워진다.
 const targets = sql
   .prepare(
     `SELECT movie_cd FROM (
-       SELECT m.movie_cd, m.open_date FROM movies AS m
+       SELECT m.movie_cd, m.open_date, 0 AS priority FROM movies AS m
        WHERE EXISTS (SELECT 1 FROM theater_movies AS tm WHERE tm.normalized_title = m.normalized_title)
        UNION
-       SELECT movie_cd, open_date FROM movies WHERE open_date > ? AND open_date <= ?
+       SELECT u.movie_cd, u.open_date, 1 AS priority FROM movies AS u
+       WHERE u.open_date > ? AND u.open_date <= ?
+         AND NOT EXISTS (SELECT 1 FROM theater_movies AS tm WHERE tm.normalized_title = u.normalized_title)
      )
-     ORDER BY open_date DESC
+     ORDER BY priority,
+              CASE WHEN priority = 0 THEN -CAST(open_date AS INTEGER) ELSE CAST(open_date AS INTEGER) END
      LIMIT ?`,
   )
   .all(ymd(0), ymd(120), PREFETCH_LIMIT)
@@ -438,7 +483,10 @@ sql.prepare("UPDATE detail_cache SET tmdb_fetched_at = NULL WHERE tmdb_fetched_a
 );
 
 let prefetchFailed = 0;
+let prefetchOpened = 0;
 for (let index = 0; index < targets.length; index += PREFETCH_CONCURRENCY) {
+  if (Date.now() - prefetchStarted > PREFETCH_BUDGET_MS) break;
+  prefetchOpened += Math.min(PREFETCH_CONCURRENCY, targets.length - index);
   await Promise.all(
     targets.slice(index, index + PREFETCH_CONCURRENCY).map(async (movieCd) => {
       try {
@@ -463,13 +511,21 @@ const prefetched = sql
   .get(prefetchStarted, prefetchStarted).n;
 const readyTotal = sql.prepare("SELECT count(*) AS n FROM detail_cache WHERE tmdb_json IS NOT NULL").get().n;
 console.log(
-  `상세 미리 열기: 대상 ${targets.length}편, 이번에 새로 받은 ${prefetched}편, 실패 ${prefetchFailed}편 (보관 중 ${readyTotal}편)`,
+  `상세 미리 열기: 대상 ${targets.length}편 중 ${prefetchOpened}편을 열었고` +
+    (prefetchOpened < targets.length ? `(시간 예산 초과로 ${targets.length - prefetchOpened}편은 다음으로)` : "") +
+    `, 새로 받은 ${prefetched}편, 실패 ${prefetchFailed}편, ${((Date.now() - prefetchStarted) / 1000).toFixed(0)}초 (보관 중 ${readyTotal}편)`,
 );
 
 if (D1_CONFIG) {
-  // 상세를 여는 동안 제공처 등이 새로 저장됐으므로 표를 다시 떠서 보낸다.
-  const statements = pushToD1(sql, dump(sql), prefetchStarted);
-  console.log(`운영 D1(${D1_TARGET})에 ${statements}개 문장으로 반영했습니다.`);
+  // 미리 받기는 부가 작업이라, 저장이 실패해도 앞서 반영한 수집 결과는 그대로다.
+  // 이 경우 실행은 "일부 실패"로 표시한다.
+  try {
+    const statements = runSqlOnD1(prefetchSql(sql, prefetchStarted));
+    console.log(`운영 D1(${D1_TARGET})에 미리 받은 상세를 ${statements}개 문장으로 반영했습니다.`);
+  } catch (error) {
+    console.error("미리 받은 상세를 D1 에 반영하지 못했습니다.", error);
+    missing.push("상세 미리 받기 저장");
+  }
 }
 
 if (missing.length > 0) {
