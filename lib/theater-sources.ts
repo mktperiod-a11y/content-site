@@ -144,7 +144,16 @@ export function parseCgvCurrentMovies(payload: unknown): TheaterSourceMovie[] {
 export async function listCgvCurrentMovies() {
   const payload = await fetchJson(
     "https://api.cgv.co.kr/met/dsp/scrDsp/searchScrDspCpotDtl?coCd=A420&unitCpotRelNo=1",
-    { headers: { Accept: "application/json", "User-Agent": USER_AGENT } },
+    {
+      // CGV 누리집이 이 목록을 부를 때 함께 보내는 출처 정보다. 없으면 403 으로 거절됐다.
+      headers: {
+        Accept: "application/json",
+        "Accept-Language": "ko-KR,ko;q=0.9",
+        Origin: "https://cgv.co.kr",
+        Referer: "https://cgv.co.kr/",
+        "User-Agent": USER_AGENT,
+      },
+    },
   );
   const movies = parseCgvCurrentMovies(payload);
   if (!movies.length) throw new Error("CGV 현재상영작 목록이 비어 있어요.");
