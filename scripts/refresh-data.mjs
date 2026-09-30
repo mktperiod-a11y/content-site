@@ -93,7 +93,11 @@ function wranglerD1(args) {
 }
 
 function readD1Table(table) {
-  const out = wranglerD1(["--json", "--command", `SELECT * FROM ${table}`]);
+  return readD1Rows(`SELECT * FROM ${table}`);
+}
+
+function readD1Rows(query) {
+  const out = wranglerD1(["--json", "--command", query]);
   // wrangler 가 JSON 앞뒤에 안내 문구를 붙이는 경우가 있어 배열 부분만 떼어 읽는다.
   const start = out.indexOf("[");
   return JSON.parse(out.slice(start))[0]?.results ?? [];
@@ -127,6 +131,13 @@ function pushToD1(sql, tables) {
   for (const [code, ids] of byChain) {
     lines.push(
       `DELETE FROM theater_movies WHERE theater_code = ${sqlLiteral(code)} AND theater_movie_id NOT IN (${ids.map(sqlLiteral).join(",")});`,
+    );
+  }
+  // 이번 실행이 개봉작 목록을 새로 받았다면 사이트도 그 시각을 알게 한다.
+  const releaseState = sql.prepare("SELECT * FROM sync_state WHERE sync_key = 'release_catalog'").all();
+  if (releaseState.length && releaseState[0].last_success_at) {
+    lines.push(
+      `UPDATE sync_state SET last_success_at = MAX(COALESCE(last_success_at, 0), ${Number(releaseState[0].last_success_at)}), updated_at = ${Date.now()} WHERE sync_key = 'release_catalog';`,
     );
   }
   const file = join(tmpdir(), `moviesiso-d1-${Date.now()}.sql`);
@@ -236,6 +247,20 @@ if (D1_CONFIG) {
     fromD1 += rows.length;
   }
   console.log(`운영 D1(${D1_TARGET})에서 ${fromD1}행을 가져왔습니다.`);
+
+  // 개봉작 목록은 7일마다 새로 받는 설계다. 사이트가 최근에 받아뒀다면 그 시각을
+  // 가져와 건너뛰게 한다. 그러지 않으면 매 실행마다 KOBIS 목록 수백 건을 새로
+  // 받아, 하루에 여러 번 돌릴 때 KOBIS 응답이 느려져 실패했다.
+  const releaseState = readD1Rows("SELECT * FROM sync_state WHERE sync_key = 'release_catalog'");
+  if (releaseState.length) {
+    const columns = columnsOf(sql, "sync_state").filter((c) => c in releaseState[0]);
+    sql.prepare(
+      `INSERT OR REPLACE INTO sync_state (${columns.join(",")}) VALUES (${columns.map(() => "?").join(",")})`,
+    ).run(...columns.map((c) => (c === "lock_until" ? 0 : c === "lock_token" ? null : releaseState[0][c] ?? null)));
+    console.log(
+      `개봉작 목록 마지막 수집: ${releaseState[0].last_success_at ? new Date(releaseState[0].last_success_at).toISOString() : "없음"}`,
+    );
+  }
 }
 
 /*
@@ -302,7 +327,9 @@ try {
   const report = JSON.parse(body);
   for (const [step, value] of Object.entries(report)) {
     if (value && typeof value === "object" && typeof value.checked === "number") {
-      if (value.checked > 0 && value.errors === value.checked) {
+      // 한두 건이 실패한 것은 일시적인 오류다. 키 문제는 시작 전 점검에서 이미
+      // 걸러지므로, 여기서는 여러 건이 모두 실패한 경우만 멈춘다.
+      if (value.checked >= 5 && value.errors === value.checked) {
         wipedOut.push(`${step} (${value.checked}건 전부 실패)`);
       }
     }
