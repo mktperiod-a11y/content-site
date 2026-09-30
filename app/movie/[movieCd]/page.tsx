@@ -111,6 +111,9 @@ const getTmdbBundleById = cache(async (tmdbId: number): Promise<TmdbBundle> => {
   }
 });
 
+/** 한 요청 안에서 D1을 두 번 묻지 않도록 묶는다. */
+const getStoredTmdbStateCached = cache(getStoredTmdbState);
+
 /**
  * 저장된 TMDB id가 있으면 그 조회를 시작한다. 없으면 null.
  *
@@ -118,9 +121,6 @@ const getTmdbBundleById = cache(async (tmdbId: number): Promise<TmdbBundle> => {
  * Next는 generateMetadata가 끝난 뒤에야 본문을 렌더하므로, 본문에서 처음
  * 부르면 KOBIS 왕복이 끝날 때까지 TMDB가 시작조차 못 한다.
  */
-/** 한 요청 안에서 D1을 두 번 묻지 않도록 묶는다. */
-const getStoredTmdbStateCached = cache(getStoredTmdbState);
-
 const getSeededTmdbBundle = cache(
   async (movieCd: string): Promise<TmdbBundle | null> => {
     const { tmdbId } = await getStoredTmdbStateCached(movieCd);
