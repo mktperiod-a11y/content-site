@@ -10,6 +10,7 @@ import {
   THEATER_CODES,
   THEATER_SOURCE_LOADERS,
   normalizeTheaterTitle,
+  stripScreeningTags,
   type TheaterCode,
   type TheaterSourceMovie,
 } from "@/lib/theater-sources";
@@ -253,7 +254,12 @@ async function enrichTheaterPoster(target: TheaterPosterTarget, now: number) {
   try {
     // 극장 개봉일은 재개봉일일 수 있으므로 연도는 제한하지 않는다.
     // findTmdbMatch가 정규화된 제목의 정확한 일치만 허용해 오매칭을 막는다.
-    const match = await findTmdbMatch(target.title_ko);
+    // "[응원상영]", "앙코르" 같은 상영 형태 표시 때문에 못 찾았다면, 표시를 뗀
+    // 제목으로 한 번 더 찾는다. 이때도 제목이 정확히 일치해야만 받아들인다.
+    const stripped = stripScreeningTags(target.title_ko);
+    const match =
+      (await findTmdbMatch(target.title_ko)) ??
+      (stripped ? await findTmdbMatch(stripped) : null);
     if (!match) {
       await db
         .prepare(

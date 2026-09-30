@@ -7,6 +7,7 @@ import {
   parseCgvCurrentMovies,
   parseLotteMovies,
   parseMegaboxMovies,
+  stripScreeningTags,
 } from "../lib/theater-sources.ts";
 
 test("decodes HTML entities before a theater title is stored", () => {
@@ -95,4 +96,19 @@ test("removes Lotte ads, ended titles, and future titles", () => {
   assert.deepEqual(parseLotteMovies(payload, "20260910").map((movie) => movie.titleKo), [
     "상영작",
   ]);
+});
+
+test("strips screening-format tags so TMDB can find the underlying film", () => {
+  assert.equal(stripScreeningTags("어벤져스-엔드게임 앙코르"), "어벤져스-엔드게임");
+  assert.equal(stripScreeningTags("(인피니티비전)어벤져스: 엔드게임 앙코르"), "어벤져스: 엔드게임");
+  assert.equal(stripScreeningTags("[응원상영] 킹 오브 프리즘"), "킹 오브 프리즘");
+  assert.equal(stripScreeningTags("[더빙] 주토피아 2 (4DX)"), "주토피아 2");
+  assert.equal(stripScreeningTags("인터스텔라 IMAX"), "인터스텔라");
+});
+
+test("returns null when a title has no screening tag to strip", () => {
+  assert.equal(stripScreeningTags("하얼빈"), null);
+  assert.equal(stripScreeningTags("귀향-언니야 이제 집에 가자"), null);
+  // 떼고 나면 한 글자만 남는 경우도 검색에 쓰지 않는다.
+  assert.equal(stripScreeningTags("[더빙] 1"), null);
 });
