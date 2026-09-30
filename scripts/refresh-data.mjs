@@ -10,7 +10,9 @@
  * 필요한 환경변수: KOBIS_API_KEY, TMDB_API_KEY
  */
 import { DatabaseSync } from "node:sqlite";
-import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -65,6 +67,76 @@ function dump(sql) {
     tables[table] = sql.prepare(`SELECT * FROM ${table} ORDER BY ${key}`).all();
   }
   return tables;
+}
+
+/**
+ * 운영 중인 Cloudflare D1 과 주고받는다.
+ *
+ * 무료 플랜의 워커는 요청 한 번에 외부 호출을 50번까지만 할 수 있어서,
+ * 사이트 안에서 도는 수집은 포스터·매칭 단계에서 한도에 걸려 대부분
+ * 실패했다. 무거운 수집은 제한이 없는 여기서 끝내고, 결과만 D1 에 채운다.
+ *
+ * D1_CONFIG 가 없으면(키 없이 돌리는 시험 등) 이 연동은 건너뛴다.
+ */
+const D1_CONFIG = process.env.D1_CONFIG;
+const D1_NAME = process.env.D1_NAME || "moviesiso";
+// 시험할 때는 local 로 두고 D1_PERSIST 에 로컬 상태 폴더를 준다.
+const D1_TARGET = process.env.D1_TARGET === "local" ? "local" : "remote";
+
+function wranglerD1(args) {
+  const extra = D1_TARGET === "local" && process.env.D1_PERSIST ? ["--persist-to", process.env.D1_PERSIST] : [];
+  return execFileSync(
+    "npx",
+    ["wrangler", "d1", "execute", D1_NAME, `--${D1_TARGET}`, "--config", D1_CONFIG, ...extra, ...args],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "inherit"] },
+  );
+}
+
+function readD1Table(table) {
+  const out = wranglerD1(["--json", "--command", `SELECT * FROM ${table}`]);
+  // wrangler 가 JSON 앞뒤에 안내 문구를 붙이는 경우가 있어 배열 부분만 떼어 읽는다.
+  const start = out.indexOf("[");
+  return JSON.parse(out.slice(start))[0]?.results ?? [];
+}
+
+function sqlLiteral(value) {
+  if (value === null || value === undefined) return "NULL";
+  if (typeof value === "number" || typeof value === "bigint") return String(value);
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function insertRowsSql(table, rows, columns) {
+  return rows.map(
+    (row) =>
+      `INSERT OR REPLACE INTO ${table} (${columns.join(",")}) VALUES (${columns.map((c) => sqlLiteral(row[c])).join(",")});`,
+  );
+}
+
+function pushToD1(sql, tables) {
+  const lines = [];
+  for (const table of PERSISTED) {
+    lines.push(...insertRowsSql(table, tables[table], columnsOf(sql, table)));
+  }
+  // 극장 상영작은 내려간 영화를 지워야 한다. 이번에 목록을 받아온 극장사만
+  // 정리하고, 받아오지 못한 극장사(예: CGV)는 D1 에 있는 그대로 둔다.
+  const byChain = new Map();
+  for (const row of tables.theater_movies) {
+    if (!byChain.has(row.theater_code)) byChain.set(row.theater_code, []);
+    byChain.get(row.theater_code).push(row.theater_movie_id);
+  }
+  for (const [code, ids] of byChain) {
+    lines.push(
+      `DELETE FROM theater_movies WHERE theater_code = ${sqlLiteral(code)} AND theater_movie_id NOT IN (${ids.map(sqlLiteral).join(",")});`,
+    );
+  }
+  const file = join(tmpdir(), `moviesiso-d1-${Date.now()}.sql`);
+  writeFileSync(file, lines.join("\n") + "\n");
+  try {
+    wranglerD1(["--file", file, "--yes"]);
+  } finally {
+    rmSync(file, { force: true });
+  }
+  return lines.length;
 }
 
 function requireKeys() {
@@ -148,6 +220,23 @@ await preflight();
 const sql = openDatabase();
 const restored = restore(sql);
 console.log(`이전 결과 ${restored}행을 복원했습니다.`);
+
+if (D1_CONFIG) {
+  // 운영 D1 이 기준이다. 사이트에서 상세를 열 때 새로 저장된 정보까지 가져와
+  // 이번 수집의 출발점으로 삼는다. 그래야 채워 넣을 때 그 정보를 덮어쓰지 않는다.
+  let fromD1 = 0;
+  for (const table of PERSISTED) {
+    const rows = readD1Table(table);
+    if (rows.length === 0) continue;
+    const columns = columnsOf(sql, table).filter((c) => c in rows[0]);
+    const insert = sql.prepare(
+      `INSERT OR REPLACE INTO ${table} (${columns.join(",")}) VALUES (${columns.map(() => "?").join(",")})`,
+    );
+    for (const row of rows) insert.run(...columns.map((c) => row[c] ?? null));
+    fromD1 += rows.length;
+  }
+  console.log(`운영 D1(${D1_TARGET})에서 ${fromD1}행을 가져왔습니다.`);
+}
 
 const prepare = (query) => {
   let bound = [];
@@ -238,6 +327,11 @@ writeFileSync(
 console.log(`data/catalog.json 을 갱신했습니다.`);
 
 if (response.status >= 400) process.exit(1);
+
+if (D1_CONFIG) {
+  const statements = pushToD1(sql, tables);
+  console.log(`운영 D1(${D1_TARGET})에 ${statements}개 문장으로 반영했습니다.`);
+}
 
 if (missing.length > 0) {
   // 받아온 만큼은 남겨야 하므로 저장을 마친 뒤에 알린다.
