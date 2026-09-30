@@ -209,11 +209,11 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
       />
 
       <section className="overflow-hidden bg-ink text-white">
-        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:min-h-[37.5rem] lg:pt-20">
+        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16 lg:pt-20">
           <div className="glow glow-one" aria-hidden="true" />
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_12rem] lg:items-start lg:gap-14">
             <div className="max-w-3xl">
-              <h1 className="max-w-3xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[1.2] sm:leading-[0.99] tracking-[1px] text-on-dark-primary">
+              <h1 className="max-w-3xl text-balance break-keep text-[clamp(1.9rem,6vw,4.6rem)] font-bold leading-[1.2] sm:leading-[0.99] tracking-normal text-on-dark-primary">
                 지금 극장에 걸린 영화,
                 <br />
                 어디서 볼 수 있나요?
