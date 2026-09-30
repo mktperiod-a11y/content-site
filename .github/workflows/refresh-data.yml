@@ -1,0 +1,50 @@
+name: 주간 영화 데이터 갱신
+
+# 매주 월요일 03:17 KST(일요일 18:17 UTC).
+# GitHub의 예약 실행은 정각에 몰려 밀리므로 분을 일부러 비켜 둔다.
+on:
+  schedule:
+    - cron: "17 18 * * 0"
+  workflow_dispatch:
+
+# 같은 워크플로가 겹쳐 돌면 서로의 커밋을 덮어쓴다.
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: 영화 정보 수집
+        env:
+          KOBIS_API_KEY: ${{ secrets.KOBIS_API_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: node scripts/refresh-data.mjs
+
+      - name: 변경분 커밋
+        run: |
+          if git diff --quiet -- data/catalog.json; then
+            echo "바뀐 내용이 없어 커밋하지 않습니다."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/catalog.json
+          git commit -m "chore(data): 주간 영화 정보 갱신 ($(date -u '+%Y-%m-%d'))"
+          git push
