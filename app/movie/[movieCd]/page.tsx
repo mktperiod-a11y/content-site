@@ -11,6 +11,12 @@ import { SiteHeader } from "@/components/site-header";
 import { SponsoredBox } from "@/components/sponsored-slot";
 import { TheaterBookingLinks } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
+import {
+  readFreshKobisDetail,
+  readFreshTmdbDetail,
+  saveKobisDetail,
+  saveTmdbDetail,
+} from "@/lib/detail-cache";
 import { getStoredTmdbState, persistEnrichment } from "@/lib/enrichment-cache";
 import { getTheaterStatuses } from "@/lib/theater-catalog";
 import {
@@ -36,8 +42,13 @@ import {
 type PageParams = { movieCd: string };
 
 const getMovieInfoCached = cache(async (movieCd: string) => {
+  // 수집기가 매일 미리 받아 둔 응답이 있으면 KOBIS 를 기다리지 않는다.
+  const stored = await readFreshKobisDetail<KobisMovieDetail>(movieCd);
+  if (stored) return { data: stored as KobisMovieDetail | null, error: null as string | null };
   try {
-    return { data: await getKobisMovieInfo(movieCd), error: null as string | null };
+    const data = await getKobisMovieInfo(movieCd);
+    if (data) await saveKobisDetail(movieCd, data);
+    return { data, error: null as string | null };
   } catch (error) {
     const message = error instanceof KobisApiError ? error.message : "작품 정보를 불러오지 못했어요.";
     return { data: null as KobisMovieDetail | null, error: message };
@@ -113,7 +124,13 @@ const getStoredTmdbStateCached = cache(getStoredTmdbState);
 const getSeededTmdbBundle = cache(
   async (movieCd: string): Promise<TmdbBundle | null> => {
     const { tmdbId } = await getStoredTmdbStateCached(movieCd);
-    return tmdbId ? getTmdbBundleById(tmdbId) : null;
+    if (!tmdbId) return null;
+    // 수집기가 매일 미리 받아 둔 응답이 있으면 TMDB 세 번의 왕복을 건너뛴다.
+    const stored = await readFreshTmdbDetail<TmdbBundle>(movieCd, tmdbId);
+    if (stored) return stored;
+    const bundle = await getTmdbBundleById(tmdbId);
+    if (!bundle.failed && bundle.movie) await saveTmdbDetail(movieCd, tmdbId, bundle);
+    return bundle;
   },
 );
 
@@ -233,6 +250,10 @@ export default async function MovieDetailPage({
 
   // 제공처까지 저장된 적이 없으면 이번에 가져온 결과로 캐시를 채운다.
   // id만 미리 채워둔 작품(수집이 넣어둔 것)도 여기서 한 번은 완전해진다.
+  if (!seededTmdb && tmdb.match && !tmdb.failed && tmdb.movie) {
+    await saveTmdbDetail(movieCd, tmdb.match.id, tmdb);
+  }
+
   const { isFullyCached } = await getStoredTmdbStateCached(movieCd);
   if (!isFullyCached && tmdb.match) {
     await persistEnrichment(
