@@ -32,10 +32,18 @@ jobs:
       - run: npm run build
 
       - name: 영화 정보 수집
+        id: collect
         env:
           KOBIS_API_KEY: ${{ secrets.KOBIS_API_KEY }}
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-        run: node scripts/refresh-data.mjs
+        run: |
+          set +e
+          node scripts/refresh-data.mjs
+          code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          # 2 는 "일부만 수집됨"이다. 받아온 만큼은 커밋해야 하므로
+          # 여기서 멈추지 않고, 커밋을 마친 뒤 마지막 단계에서 알린다.
+          if [ "$code" -ne 0 ] && [ "$code" -ne 2 ]; then exit "$code"; fi
 
       - name: 변경분 커밋
         run: |
@@ -52,3 +60,10 @@ jobs:
           # 수집이 도는 동안 main 이 움직였을 수 있다.
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: 수집 완결성 확인
+        if: steps.collect.outputs.code == '2'
+        run: |
+          echo "받아온 정보는 커밋했지만 일부 항목을 수집하지 못했습니다."
+          echo "어떤 항목인지는 '영화 정보 수집' 단계의 마지막 줄에 있습니다."
+          exit 1
