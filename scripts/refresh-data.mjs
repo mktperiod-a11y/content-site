@@ -245,8 +245,10 @@ if (D1_CONFIG) {
  * 풀어 이번 실행에서 바로 다시 시도한다. 앱의 재시도 규칙은 그대로 둔다.
  */
 const retried = {
+  // '찾을 수 없음'도 다시 본다. 제목 규칙이 나아지면 바로 잡히고, 대상은
+  // 포스터가 없는 상영작뿐이라 하루 수십 건 수준이다.
   posters: sql.prepare(
-    "UPDATE theater_movies SET tmdb_status = 'pending' WHERE poster_url IS NULL AND tmdb_status = 'error'",
+    "UPDATE theater_movies SET tmdb_status = 'pending' WHERE poster_url IS NULL AND tmdb_status IN ('error', 'not_found')",
   ).run().changes,
   kobis: sql.prepare(
     "UPDATE theater_movies SET kobis_status = 'pending' WHERE kobis_status = 'error'",

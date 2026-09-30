@@ -70,6 +70,43 @@ export function normalizeTheaterTitle(value: string) {
     .replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
+/**
+ * 극장사가 제목 앞뒤에 붙이는 상영 형태 표시. 작품 이름의 일부가 아니라
+ * TMDB 에서 제목이 일치하지 않는 원인이 된다.
+ */
+const SCREENING_TAG_WORDS = [
+  "앙코르", "재개봉", "리마스터링", "리마스터", "무삭제", "응원상영", "싱어롱",
+  "더빙", "자막", "라이브뷰잉", "인피니티비전", "IMAX", "4DX", "ULTRA 4DX",
+  "SCREENX", "스크린X", "MX4D", "돌비시네마", "돌비 애트모스", "돌비", "4K",
+];
+const TAG_PATTERN = SCREENING_TAG_WORDS
+  .map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+  .sort((a, b) => b.length - a.length)
+  .join("|");
+const LEADING_BRACKET = /^\s*[[(<【][^\])>】]{1,30}[\])>】]\s*/u;
+const TRAILING_BRACKET = /\s*[[(<【][^\])>】]{1,30}[\])>】]\s*$/u;
+const TRAILING_TAG = new RegExp(`[\\s\\-:·]*(?:${TAG_PATTERN})\\s*$`, "iu");
+
+/**
+ * TMDB 검색용으로 상영 형태 표시를 뗀 제목을 돌려준다. 떼어낼 것이 없으면
+ * null 이다. 원래 제목으로 찾지 못했을 때의 두 번째 시도에만 쓰므로,
+ * "(500)일의 썸머"처럼 괄호가 제목의 일부인 작품도 원래 제목에서 먼저 맞는다.
+ */
+export function stripScreeningTags(title: string) {
+  let current = title.normalize("NFKC").trim();
+  let previous;
+  do {
+    previous = current;
+    current = current
+      .replace(LEADING_BRACKET, "")
+      .replace(TRAILING_BRACKET, "")
+      .replace(TRAILING_TAG, "")
+      .trim();
+  } while (current !== previous);
+  if (current.length < 2 || current === title.normalize("NFKC").trim()) return null;
+  return current;
+}
+
 export function normalizeTheaterDate(value: unknown) {
   const raw = asString(value);
   const match = raw.match(/(\d{4})\D?(\d{2})\D?(\d{2})/);
