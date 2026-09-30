@@ -14,6 +14,22 @@ function getKobisBase() {
   return process.env.KOBIS_API_BASE || KOBIS_DEFAULT_BASE;
 }
 const REQUEST_TIMEOUT_MS = 8000;
+
+/**
+ * 화면이 부르는 요청은 오래 기다리게 둘 수 없어 기본값을 짧게 잡는다.
+ * 반면 주간 수집은 목록 전체를 한 번에 받아 오느라 더 오래 걸리므로,
+ * 그쪽에서만 환경변수로 여유를 준다(scripts/refresh-data.mjs).
+ */
+function getTimeoutMs() {
+  const raw = Number(process.env.KOBIS_TIMEOUT_MS);
+  return Number.isFinite(raw) && raw > 0 ? raw : REQUEST_TIMEOUT_MS;
+}
+
+/** 지연으로 실패했을 때만 다시 시도할 횟수. 기본은 재시도 없음. */
+function getRetryCount() {
+  const raw = Number(process.env.KOBIS_RETRIES);
+  return Number.isFinite(raw) && raw > 0 ? Math.min(raw, 5) : 0;
+}
 const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
 const DETAIL_CACHE_TTL_MS = 60 * 60 * 1000;
 const CACHE_MAX_ENTRIES = 300;
@@ -75,18 +91,31 @@ async function fetchKobisJson(path: string, params: Record<string, string>) {
     if (value) url.searchParams.set(name, value);
   }
 
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      // KOBIS 목록은 자주 갱신되므로 캐시하지 않는다.
-      cache: "no-store",
-    });
-  } catch (error) {
-    if (error instanceof Error && error.name === "TimeoutError") {
-      throw new KobisApiError("KOBIS 응답이 지연되고 있어요. 잠시 후 다시 시도해주세요.");
+  const timeoutMs = getTimeoutMs();
+  const attempts = getRetryCount() + 1;
+  let response: Response | undefined;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      response = await fetch(url, {
+        signal: AbortSignal.timeout(timeoutMs),
+        // KOBIS 목록은 자주 갱신되므로 캐시하지 않는다.
+        cache: "no-store",
+      });
+      break;
+    } catch (error) {
+      const timedOut = error instanceof Error && error.name === "TimeoutError";
+      if (!timedOut) {
+        throw new KobisApiError("KOBIS API에 연결할 수 없어요.");
+      }
+      if (attempt === attempts) {
+        throw new KobisApiError("KOBIS 응답이 지연되고 있어요. 잠시 후 다시 시도해주세요.");
+      }
+      // 지연은 대개 잠깐 몰렸을 때 난다. 간격을 두고 다시 부른다.
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
     }
-    throw new KobisApiError("KOBIS API에 연결할 수 없어요.");
+  }
+  if (!response) {
+    throw new KobisApiError("KOBIS 응답이 지연되고 있어요. 잠시 후 다시 시도해주세요.");
   }
 
   if (!response.ok) {
