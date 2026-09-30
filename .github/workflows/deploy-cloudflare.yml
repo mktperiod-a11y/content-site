@@ -124,7 +124,8 @@ jobs:
           echo
           failed=0
           for path in / /movies/now /search; do
-            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 60 "$URL$path" || echo "000")
+            # / 는 1탭으로 이동시키는 주소라 307 이 정상이다. 이동을 따라가 최종 화면을 본다.
+            code=$(curl -sSL -o /dev/null -w "%{http_code}" --max-time 60 "$URL$path" || echo "000")
             echo "화면 $path → HTTP $code"
             [ "$code" = "200" ] || failed=1
           done
