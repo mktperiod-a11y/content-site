@@ -238,6 +238,25 @@ if (D1_CONFIG) {
   console.log(`운영 D1(${D1_TARGET})에서 ${fromD1}행을 가져왔습니다.`);
 }
 
+/*
+ * 사이트 안의 수집은 무료 플랜의 외부 호출 한도에 걸려 실패한 건을 '오류'로
+ * 남긴다. 앱은 오류 건을 포스터 30일, 매칭 7일 동안 다시 시도하지 않는데,
+ * 한도 탓에 난 오류라 기다릴 이유가 없다. 이 수집기 안에서만 대기 표시를
+ * 풀어 이번 실행에서 바로 다시 시도한다. 앱의 재시도 규칙은 그대로 둔다.
+ */
+const retried = {
+  posters: sql.prepare(
+    "UPDATE theater_movies SET tmdb_status = 'pending' WHERE poster_url IS NULL AND tmdb_status = 'error'",
+  ).run().changes,
+  kobis: sql.prepare(
+    "UPDATE theater_movies SET kobis_status = 'pending' WHERE kobis_status = 'error'",
+  ).run().changes,
+  tmdbIds: sql.prepare(
+    "UPDATE movies SET tmdb_updated_at = NULL WHERE tmdb_id IS NULL AND tmdb_status = 'id_error'",
+  ).run().changes,
+};
+console.log("오류로 멈춰 있던 건을 다시 시도합니다:", retried);
+
 const prepare = (query) => {
   let bound = [];
   const api = {
