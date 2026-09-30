@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="무비시소">
-  <rect width="32" height="32" rx="7" fill="#0b1424"/>
-  <!-- 받침대 -->
-  <path d="M16 16.4 L21.6 26 H10.4 Z" fill="#ffd84d"/>
-  <!-- 널빤지. 받침 위에 얹혀 기울어 있다 -->
-  <rect x="3.6" y="11.2" width="24.8" height="4.4" rx="2.2" fill="#ffd84d"
-        transform="rotate(-13 16 13.4)"/>
+  <circle cx="16" cy="16" r="16" fill="#ffd84d"/>
+  <!-- 헤더 로고와 같은 필름 슬레이트 (lucide clapperboard) -->
+  <g transform="translate(4.4 4.4) scale(0.975)" fill="none" stroke="#0b1424"
+     stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m12.296 3.464 3.02 3.956"/>
+    <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"/>
+    <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <path d="m6.18 5.276 3.1 3.899"/>
+  </g>
 </svg>
