@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Info, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { JsonLd, breadcrumbSchema } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
 import { SponsoredBox } from "@/components/sponsored-slot";
 import { TheaterBookingLinks } from "@/components/theater-booking-links";
@@ -142,13 +143,13 @@ export async function generateMetadata({
   // sitemap.xml이 실어 보내는 주소와 같은 형태로 정본을 알린다.
   const canonical = `/movie/${encodeURIComponent(movieCd)}`;
   if (!data) {
-    return { alternates: { canonical }, title: "작품 정보 | 어디서 보지?" };
+    return { alternates: { canonical }, title: "작품 정보 | 무비시소" };
   }
 
   const directorText = data.directors.length ? ` · ${data.directors.join(", ")} 감독` : "";
   return {
     alternates: { canonical },
-    title: `${data.titleKo} (${data.prdtYear}) 어디서 보지? | OTT 제공처 확인`,
+    title: `${data.titleKo} (${data.prdtYear}) | OTT 제공처 확인 · 무비시소`,
     description: `${data.titleKo}${directorText}. 구독·대여·구매 등 국내 OTT 이용 방법을 확인하세요.`,
   };
 }
@@ -292,6 +293,13 @@ export default async function MovieDetailPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {/* 이 작품이 어느 목록에서 왔는지 알린다. 화면에는 보이지 않는다. */}
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "지금 극장에서 만날 영화", path: "/movies/now" },
+          { name: movie.titleKo, path: `/movie/${encodeURIComponent(movieCd)}` },
+        ])}
       />
       <SiteHeader />
 

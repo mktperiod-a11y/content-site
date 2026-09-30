@@ -25,7 +25,7 @@ export function SiteHeader({
           <span className="grid size-8 place-items-center rounded-xl bg-brand text-ink">
             <Clapperboard className="size-4.5" strokeWidth={2.4} />
           </span>
-          <span>어디서 보지?</span>
+          <span>무비시소</span>
         </Link>
 
         <span className="text-xs font-medium text-white/45">국내 제공처 기준</span>

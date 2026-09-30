@@ -34,8 +34,8 @@ test("server-renders the page shell as HTML", async () => {
   const html = await response.text();
   assert.match(html, /<html[^>]*\blang=["']ko["']/i);
   // 헤더가 실제로 그려졌는지 — 클라이언트 자바스크립트 없이도 보여야 한다.
-  assert.match(html, /어디서 보지\?/);
-  assert.match(html, /<title[^>]*>[^<]*어디서 보지\?/);
+  assert.match(html, /무비시소/);
+  assert.match(html, /<title[^>]*>[^<]*무비시소/);
   // Sites 미리보기 표식.
   assert.match(
     html,

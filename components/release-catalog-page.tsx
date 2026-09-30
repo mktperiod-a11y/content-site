@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, Clapperboard, Star } from "lucide-react";
 
 import { ReleaseRefresh } from "@/components/release-refresh";
+import { JsonLd, itemListSchema } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
 import { TheaterChainBadges } from "@/components/theater-booking-links";
 import { TmdbAttribution } from "@/components/tmdb-attribution";
@@ -163,6 +164,20 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
+      {/* 화면에 실제로 그린 작품만, 같은 순서로 담는다. */}
+      <JsonLd
+        data={itemListSchema({
+          name: isUpcoming ? "개봉 예정 영화" : "지금 극장에서 만날 영화",
+          description: isUpcoming
+            ? "KOBIS 개봉일 기준으로 앞으로 개봉할 영화 목록."
+            : "CGV·메가박스·롯데시네마의 현재 상영작을 모은 목록.",
+          path: isUpcoming ? "/movies/upcoming" : "/movies/now",
+          items: catalog.movies.map((movie) => ({
+            titleKo: movie.titleKo,
+            movieCd: movie.movieCd,
+          })),
+        })}
+      />
       <SiteHeader
         navigation={
           <nav aria-label="주요 기능" className="flex h-14 items-center gap-1.5">
