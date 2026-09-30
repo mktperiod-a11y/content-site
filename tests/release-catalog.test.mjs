@@ -238,7 +238,8 @@ test("aligns the release hero with the core tabs and summarizes both lists", () 
   assert.match(pageSource, /\{upcomingCount\}편/);
   assert.match(pageSource, /getReleaseCount\(isUpcoming \? "now" : "upcoming"\)/);
   assert.match(catalogSource, /export async function getReleaseCount/);
-  assert.match(pageSource, /tracking-\[1px\]/);
+  // 상단 제목 자간은 0 이다(2026-09-30 디자인 요청).
+  assert.match(pageSource, /<h1[^>]*tracking-normal/);
 });
 
 test("starts the detail page's TMDB lookup alongside the KOBIS one", async () => {
