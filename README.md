@@ -27,6 +27,7 @@
   - 상영 중인 목록은 상영 극장사 수 → 개봉일 최신순 → 제목순으로 정렬
   - 포스터·평점·국내 구독형 OTT 칩을 카드에서 확인하고 기존 상세 페이지로 이동
   - D1에 영화·제공처·갱신 상태를 저장하고, 극장 상영작은 24시간·KOBIS 개봉작은 7일 주기로 갱신 (매일 03:00 KST 크론)
+  - 포스터·매칭·상세 미리 받기처럼 외부 호출이 많은 작업은 GitHub Actions 수집기가 매일 채움 (아래 "운영")
   - 갱신 실패 시 기존 데이터를 삭제하지 않고 계속 제공
 - 검색엔진용 작품 사이트맵 (`/sitemap.xml`)
   - 개봉작 탐색 페이지와 D1에 저장된 작품 상세 URL 포함
@@ -61,6 +62,10 @@
 연결하며, 불확실한 매칭에는 정보를 임의로 연결하지 않습니다. 매칭에 실패하면 제공처를
 단정하지 않고 "확인하지 못했어요" 상태를 보여줍니다.
 
+극장 상영작 포스터도 같은 기준을 따릅니다. 기준 연도는 KOBIS 제작연도, 없으면 극장
+개봉연도이며, `[응원상영]`·`리마스터링` 같은 재상영 표시가 붙은 제목만 표시를 뗀 제목으로
+연도 없이 한 번 더 찾습니다(`lib/theater-sources.ts`의 `stripScreeningTags`).
+
 ## 환경변수
 
 ```bash
@@ -71,12 +76,28 @@ cp .env.example .env.local
 
 두 키 모두 서버 전용 코드(`lib/kobis.ts`, `lib/tmdb.ts`, `app/api/movies/search`)에서만
 사용되며 클라이언트 번들에 포함되지 않습니다. 이 값을 코드나 커밋에 직접 작성하지
-마세요. Sites 배포에서는 두 값을 프로젝트의 비밀 환경변수로 별도 등록해야 합니다.
+마세요. Cloudflare 배포에서는 GitHub 저장소 시크릿에 넣으면 배포 워크플로가 워커 비밀값으로
+옮기고, Sites 배포에서는 두 값을 프로젝트의 비밀 환경변수로 별도 등록해야 합니다.
 
 > **개발 샌드박스 주의**: 일부 개발 환경은 outbound 네트워크 정책상 `kobis.or.kr`,
 > `api.themoviedb.org` 접근이 차단됩니다. 이 경우 검색/상세 페이지는 의도대로 "API 오류"
 > 상태를 보여줍니다. 네트워크 없이 화면을 검증하려면 `KOBIS_API_BASE`,
 > `TMDB_API_BASE`, `TMDB_IMAGE_BASE`를 로컬 목 서버로 지정하세요.
+
+## 운영
+
+| | 방법 |
+|---|---|
+| 사이트 | Cloudflare Workers + D1 (`https://www.movieseesaw.workers.dev`) |
+| 배포 | Actions의 **Cloudflare 배포** 워크플로를 수동 실행 (`.github/workflows/deploy-cloudflare.yml`). D1 생성·마이그레이션·빌드·배포·키 연결·첫 수집까지 한 번에 진행 |
+| 매일 수집 | **영화 데이터 수집** 워크플로가 매일 03:37 KST에 실행 (`scripts/refresh-data.mjs`). 수집 결과를 운영 D1에 먼저 반영한 뒤, 1탭 영화의 상세를 최대 5분 동안 미리 받아 보관하고, 최종 상태를 `data/catalog.json`에 기록 |
+| 상세 보관함 | 상세 화면은 `detail_cache`에 보관된 KOBIS(7일)·TMDB(36시간) 응답을 먼저 쓰고, 없을 때만 외부에서 받아 보관 (`lib/detail-cache.ts`) |
+
+필요한 GitHub 저장소 시크릿: `KOBIS_API_KEY`, `TMDB_API_KEY`(v3 API Key), `CLOUDFLARE_API_TOKEN`,
+`CLOUDFLARE_ACCOUNT_ID`. 도메인을 연결하면 저장소 변수 `PUBLIC_SITE_URL`에 주소를 넣고 다시 배포합니다.
+
+지피티 Sites 배포 경로(`.openai/hosting.json`, `scripts/sites-env.sh`)는 그대로 남아 있어,
+D1 ID 등 Cloudflare 환경변수 없이 빌드하면 이전과 같은 결과물이 나옵니다.
 
 ## 다음 구현 우선순위
 

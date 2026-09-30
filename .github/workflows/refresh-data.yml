@@ -72,8 +72,8 @@ jobs:
 
       - name: 변경분 커밋
         run: |
-          # data/catalog.json 은 처음에는 추적되지 않는 새 파일이다.
-          # git diff 는 그런 파일을 보지 못하므로 반드시 먼저 add 한 뒤 비교한다.
+          # git diff 는 아직 추적되지 않는 파일을 보지 못한다. catalog.json 이 없던
+          # 저장소에서도 커밋되도록 반드시 먼저 add 한 뒤 비교한다.
           git add data/catalog.json
           if git diff --cached --quiet; then
             echo "바뀐 내용이 없어 커밋하지 않습니다."
@@ -81,7 +81,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): 주간 영화 정보 갱신 ($(date -u '+%Y-%m-%d'))"
+          git commit -m "chore(data): 영화 정보 갱신 ($(date -u '+%Y-%m-%d'))"
           # 수집이 도는 동안 main 이 움직였을 수 있다.
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
