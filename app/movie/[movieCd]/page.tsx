@@ -6,6 +6,7 @@ import { ArrowLeft, Info, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { JsonLd, breadcrumbSchema } from "@/components/json-ld";
+import { MainNav } from "@/components/main-nav";
 import { SiteHeader } from "@/components/site-header";
 import { SponsoredBox } from "@/components/sponsored-slot";
 import { TheaterBookingLinks } from "@/components/theater-booking-links";
@@ -198,7 +199,7 @@ export default async function MovieDetailPage({
   if (error) {
     return (
       <main className="min-h-screen bg-background text-foreground">
-        <SiteHeader />
+        <SiteHeader navigation={<MainNav />} />
         <section className="mx-auto max-w-6xl px-5 py-20 text-center sm:px-8">
           <p className="text-sm font-semibold text-destructive">작품 정보를 불러오지 못했어요</p>
           <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">{error}</h1>
@@ -301,7 +302,7 @@ export default async function MovieDetailPage({
           { name: movie.titleKo, path: `/movie/${encodeURIComponent(movieCd)}` },
         ])}
       />
-      <SiteHeader />
+      <SiteHeader navigation={<MainNav />} />
 
       <section className="relative overflow-hidden bg-ink text-white">
         {tmdb.movie?.backdropUrl && (
