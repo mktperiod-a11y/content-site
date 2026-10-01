@@ -14,6 +14,24 @@ import type { KobisMovieSummary } from "@/lib/kobis";
  * 검색 페이지에서는 `onSearch`로 검색 탭의 결과 영역을 그대로 재사용하고,
  * 그 밖의 페이지에서는 `/search?q=`로 이동해 같은 결과 화면을 보여준다.
  */
+const PLACEHOLDER = "영화 제목 또는 감독명 검색";
+const SHORT_PLACEHOLDER = "영화 제목·감독 검색";
+/** 탭과 한 줄에 놓여 검색창이 좁아지는 폭. 이때는 안내 문구가 잘리지 않게 줄인다. */
+const NARROW_QUERY = "(min-width: 640px) and (max-width: 689px)";
+
+function usePlaceholder() {
+  // 서버 렌더와 맞추려고 처음엔 긴 문구로 그리고, 화면에 붙은 뒤 폭에 맞춰 바꾼다.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(NARROW_QUERY);
+    const update = () => setNarrow(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  return narrow ? SHORT_PLACEHOLDER : PLACEHOLDER;
+}
+
 export function HeaderSearch({ onSearch }: { onSearch?: (query: string) => void }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -23,6 +41,7 @@ export function HeaderSearch({ onSearch }: { onSearch?: (query: string) => void 
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const suggestionButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const suggestionsAbortRef = useRef<AbortController | null>(null);
+  const placeholder = usePlaceholder();
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -139,7 +158,7 @@ export function HeaderSearch({ onSearch }: { onSearch?: (query: string) => void 
         onFocus={() => setShowSuggestions(true)}
         onKeyDown={handleKeyDown}
         minLength={2}
-        placeholder="영화 제목 또는 감독명 검색"
+        placeholder={placeholder}
         value={query}
       />
 
