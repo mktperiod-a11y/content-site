@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/site";
 import { JsonLd, websiteSchema } from "@/components/json-ld";
+import { SiteFooter } from "@/components/site-footer";
 
 const TITLE = "무비시소 | 작품별 OTT 제공처 찾기";
 /** 원본은 scripts/og-image.html. 브라우저로 열어 1200x630으로 캡처하면 교체할 수 있다. */
@@ -74,6 +75,7 @@ export default function RootLayout({
         {/* 검색엔진·AI용. 화면에는 보이지 않는다. */}
         <JsonLd data={websiteSchema()} />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

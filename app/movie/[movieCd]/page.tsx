@@ -11,7 +11,7 @@ import { MainNav } from "@/components/main-nav";
 import { SiteHeader } from "@/components/site-header";
 import { RotatingSponsoredBox } from "@/components/sponsored-rotation";
 import { TheaterBookingLinks } from "@/components/theater-booking-links";
-import { TmdbAttribution } from "@/components/tmdb-attribution";
+import { JustWatchCredit } from "@/components/tmdb-attribution";
 import {
   readFreshKobisDetail,
   readFreshTmdbDetail,
@@ -540,7 +540,7 @@ export default async function MovieDetailPage({
                       <p className="text-sm leading-6 text-muted-foreground">
                         제공 정보는 변경될 수 있어요. 이용 전 각 서비스에서 최종 확인해주세요.
                       </p>
-                      <TmdbAttribution justWatchLink={tmdb.providers.link} />
+                      <JustWatchCredit link={tmdb.providers.link} />
                     </div>
                   </div>
                 </article>
