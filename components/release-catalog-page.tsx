@@ -84,8 +84,9 @@ function ReleaseMovieCard({
           <h2 className="line-clamp-2 min-h-[3.1rem] break-keep text-lg font-black leading-snug tracking-[-0.02em] text-foreground">
             {movie.titleKo}
           </h2>
+          {/* 420px 이하 폰에서는 두 줄 카드가 좁아 제목이 잘리므로 별점을 빼고 제목에 폭을 준다. */}
           {movie.voteAverage !== null && movie.voteCount > 0 && (
-            <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-xs font-black text-foreground">
+            <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-xs font-black text-foreground max-[421px]:hidden">
               <Star className="size-3.5 text-brand" fill="currentColor" />
               {movie.voteAverage.toFixed(1)}
             </span>
