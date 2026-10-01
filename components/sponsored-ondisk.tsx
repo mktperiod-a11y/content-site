@@ -28,28 +28,32 @@ const linkProps = {
 const SURFACE_CLASS =
   "relative block overflow-hidden rounded-2xl shadow-[inset_0_0_0_1px_rgba(24,33,47,.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand";
 
-type Sizes = { logo: string; headline: string; cta: string };
+type Layout = { brand: string; logo: string; tag: string; text: string; headline: string; cta: string };
 
-/** 로고 · 제휴 표시 · 두 줄 제목 · 안내 문구 */
-function Copy({ sizes }: { sizes: Sizes }) {
+/** 왼쪽 위 로고 · 제휴 표시와, 그 아래 가운데 높이에 두는 두 줄 제목 · 안내 문구 */
+function Copy({ layout }: { layout: Layout }) {
   return (
     <>
-      <span className="flex items-center gap-1.5">
+      <span className={`absolute z-10 flex items-center gap-1.5 ${layout.brand}`}>
         {/* eslint-disable-next-line @next/next/no-img-element -- 제휴사 로고입니다. */}
-        <img alt="온디스크" className={`w-auto ${sizes.logo}`} src="/ondisk-logo.png" />
-        <span className="rounded border border-[#18212f]/20 px-1.5 py-px text-[9px] font-extrabold tracking-[0.08em] text-[#18212f]/50 sm:text-[10px]">
+        <img alt="온디스크" className={`w-auto ${layout.logo}`} src="/ondisk-logo.png" />
+        <span
+          className={`rounded border border-[#18212f]/20 px-1.5 py-px font-extrabold tracking-[0.08em] text-[#18212f]/50 ${layout.tag}`}
+        >
           제휴
         </span>
       </span>
-      <span className={`block font-extrabold leading-[1.28] tracking-[-0.035em] text-[#18212f] ${sizes.headline}`}>
-        {HEADLINE_TOP}
-        <br />
-        <span className="text-[#2f6bd8]">{HEADLINE_BOTTOM}</span>
-      </span>
-      <span className={`flex items-center gap-0.5 font-semibold tracking-[-0.02em] text-[#3d4a5c] ${sizes.cta}`}>
-        {CTA_LABEL}
-        <span aria-hidden="true" className="font-black">
-          ›
+      <span className={`absolute z-10 block -translate-y-1/2 ${layout.text}`}>
+        <span className={`block font-extrabold leading-[1.28] tracking-[-0.035em] text-[#18212f] ${layout.headline}`}>
+          {HEADLINE_TOP}
+          <br />
+          <span className="text-[#2f6bd8]">{HEADLINE_BOTTOM}</span>
+        </span>
+        <span className={`flex items-center gap-0.5 font-semibold tracking-[-0.02em] text-[#3d4a5c] ${layout.cta}`}>
+          {CTA_LABEL}
+          <span aria-hidden="true" className="font-black">
+            ›
+          </span>
         </span>
       </span>
     </>
@@ -67,14 +71,22 @@ export function OnDiskBox({ className = "" }: { className?: string }) {
   return (
     <a
       {...linkProps}
-      className={`${SURFACE_CLASS} aspect-[384/195] ${className}`}
+      className={`${SURFACE_CLASS} @container aspect-[384/195] ${className}`}
       data-ga-event="sponsored_ondisk_box_click"
       style={{ background: BACKGROUND }}
     >
       <Art className="bottom-0 right-[-2px] w-[50%]" />
-      <span className="absolute left-5 top-1/2 z-10 block -translate-y-1/2">
-        <Copy sizes={{ logo: "h-[22px]", headline: "mt-2.5 text-[22px]", cta: "mt-2 text-[13.5px]" }} />
-      </span>
+      {/* 사이드바 폭이 화면마다 달라, 글자와 여백을 박스 폭(cqw)에 맞춰 키운다. */}
+      <Copy
+        layout={{
+          brand: "left-[5.5cqw] top-[5cqw]",
+          logo: "h-[6cqw]",
+          tag: "text-[2.6cqw]",
+          text: "left-[5.5cqw] top-[57%]",
+          headline: "text-[6.6cqw]",
+          cta: "mt-[2.4cqw] text-[3.9cqw]",
+        }}
+      />
     </a>
   );
 }
@@ -89,15 +101,16 @@ export function OnDiskBanner({ className = "" }: { className?: string }) {
       style={{ background: BACKGROUND }}
     >
       <Art className="bottom-0 right-[-4px] w-[48%] sm:bottom-1.5 sm:right-[6%] sm:w-[280px]" />
-      <span className="absolute left-5 top-1/2 z-10 block -translate-y-1/2 sm:left-11">
-        <Copy
-          sizes={{
-            logo: "h-6 sm:h-7",
-            headline: "mt-2.5 text-[23px] sm:mt-3.5 sm:text-[34px]",
-            cta: "mt-2 text-[14px] sm:mt-3 sm:text-[17px]",
-          }}
-        />
-      </span>
+      <Copy
+        layout={{
+          brand: "left-5 top-4 sm:left-11 sm:top-5",
+          logo: "h-6 sm:h-7",
+          tag: "text-[9px] sm:text-[10px]",
+          text: "left-5 top-[57%] sm:left-11 sm:top-[58%]",
+          headline: "text-[23px] sm:text-[34px]",
+          cta: "mt-2 text-[14px] sm:mt-3 sm:text-[17px]",
+        }}
+      />
     </a>
   );
 }
