@@ -72,20 +72,21 @@ export function OnDiskBox({ className = "" }: { className?: string }) {
   return (
     <a
       {...linkProps}
-      className={`${SURFACE_CLASS} @container aspect-[384/195] ${className}`}
+      className={`${SURFACE_CLASS} @container aspect-[384/195] max-[300px]:hidden ${className}`}
       data-ga-event="sponsored_ondisk_box_click"
       style={{ background: BACKGROUND }}
     >
       <Art className="bottom-0 right-[-2px] w-[50%]" />
-      {/* 사이드바 폭이 화면마다 달라, 글자와 여백을 박스 폭(cqw)에 맞춰 키운다. */}
+      {/* 사이드바 폭이 화면마다 달라, 글자와 여백을 박스 폭(cqw)에 맞춰 키운다.
+          KDisk 박스와 같이 350px 이하 폰에서는 글자를 한 번 더 줄이고, 300px 미만에서는 숨긴다. */}
       <Copy
         layout={{
           brand: "left-[5.5cqw] top-[5cqw]",
           logo: "h-[6cqw]",
           tag: "text-[2.6cqw]",
           text: "left-[5.5cqw] top-[57%]",
-          headline: "text-[6.6cqw]",
-          cta: "mt-[2.4cqw] text-[3.9cqw]",
+          headline: "text-[6.6cqw] max-[351px]:text-[6cqw]",
+          cta: "mt-[2.4cqw] text-[3.9cqw] max-[351px]:text-[3.6cqw]",
         }}
       />
     </a>

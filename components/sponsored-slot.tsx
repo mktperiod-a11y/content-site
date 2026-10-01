@@ -97,7 +97,7 @@ export function SponsoredBox({ className = "" }: { className?: string }) {
     <a
       {...linkProps}
       aria-label={`제휴 광고: ${HEADLINE_TOP} ${HEADLINE_BOTTOM} (새 창)`}
-      className={`relative block aspect-[384/195] overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${className}`}
+      className={`relative block @container aspect-[384/195] overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-[300px]:hidden ${className}`}
       data-ga-event="sponsored_box_click"
       style={{ background: SURFACE }}
     >
@@ -125,13 +125,16 @@ export function SponsoredBox({ className = "" }: { className?: string }) {
         style={{ transform: "rotate(8deg)" }}
       />
 
-      <span className="absolute left-5 top-1/2 z-10 block -translate-y-1/2">
-        <span className="block text-[23px] font-black leading-[1.18] tracking-[-0.05em] text-white [text-shadow:0_0_1px_rgba(255,255,255,.85),0_2px_16px_rgba(0,0,0,.55)]">
+      {/* 폰(420px 이하)에서는 글 묶음을 조금 내려 "제휴" 표시와 띄우고, 350px 이하에서는 글자를 줄인다.
+          300px 미만에서는 박스 자체를 숨긴다.
+          350px 이하 제목은 박스 폭(cqw)에 맞춰 줄어들어 오른쪽 위 KDisk 타일에 닿지 않는다. */}
+      <span className="absolute left-5 top-1/2 z-10 block -translate-y-1/2 max-[421px]:top-[56%]">
+        <span className="block text-[23px] max-[351px]:text-[min(20px,calc(8cqw-3.7px))] font-black leading-[1.18] tracking-[-0.05em] text-white [text-shadow:0_0_1px_rgba(255,255,255,.85),0_2px_16px_rgba(0,0,0,.55)]">
           {HEADLINE_TOP}
           <br />
           {HEADLINE_BOTTOM}
         </span>
-        <Pill className="mt-3 h-9 px-[17px] text-[12.5px]" />
+        <Pill className="mt-3 h-9 px-[17px] text-[12.5px] max-[351px]:mt-2.5 max-[351px]:h-8 max-[351px]:px-3.5 max-[351px]:text-[11.5px]" />
       </span>
     </a>
   );
