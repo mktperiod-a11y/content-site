@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Info, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ExpandableText } from "@/components/expandable-text";
 import { JsonLd, breadcrumbSchema } from "@/components/json-ld";
 import { MainNav } from "@/components/main-nav";
 import { SiteHeader } from "@/components/site-header";
@@ -426,7 +427,7 @@ export default async function MovieDetailPage({
                 {tmdb.movie?.overview && (
                   <div className="border-b border-border px-6 py-5 sm:px-8">
                     <p className="text-xs font-semibold text-muted-foreground">줄거리</p>
-                    <p className="mt-2 break-keep text-sm leading-7">{tmdb.movie.overview}</p>
+                    <ExpandableText className="mt-2 break-keep text-sm leading-7" text={tmdb.movie.overview} />
                   </div>
                 )}
 
