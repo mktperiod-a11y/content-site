@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Calculator, CalendarDays, Search } from "lucide-react";
 
 const LINK_CLASS =
-  "inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white";
+  "inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white";
 
 /**
  * 상세 화면처럼 세 탭 어디에도 속하지 않는 화면에서 쓰는 상단 탭 줄.
