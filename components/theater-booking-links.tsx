@@ -138,9 +138,9 @@ export function TheaterBookingLinks({
                 <img alt="" className={`${theater.logoClassName} max-h-full max-w-full object-contain`} src={theater.logoUrl} />
               )}
             </span>
-            {/* 좁은 폰에서는 극장사 이름을 로고에 맡긴다: 360px 이하는 "예매 확인"만, 280px 이하는 로고만. */}
-            <span className="max-[361px]:hidden">{theater.label}</span>
-            <span className="hidden max-[361px]:inline max-[281px]:hidden">예매 확인</span>
+            {/* 좁은 폰에서는 극장사 이름을 로고에 맡긴다: 400px 이하는 "예매 확인"만, 280px 이하는 로고만. */}
+            <span className="max-[401px]:hidden">{theater.label}</span>
+            <span className="hidden max-[401px]:inline max-[281px]:hidden">예매 확인</span>
             {stateByCode.get(theater.code)?.availability === "unknown" && (
               <span className="ml-auto text-[10px] font-semibold text-muted-foreground">확인 필요</span>
             )}
