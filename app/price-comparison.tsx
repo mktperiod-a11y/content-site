@@ -17,6 +17,8 @@ import { OTT_PLANS, PRICES_VERIFIED_ON, findPlanByTmdbName, formatWon, type OttP
 import type { KobisMovieSummary } from "@/lib/kobis";
 import type { EnrichedMovie } from "@/lib/enrichment";
 import { isSearchable } from "@/lib/movie-search";
+import { OnDiskBanner } from "@/components/sponsored-ondisk";
+import { pickSponsor } from "@/components/sponsored-rotation";
 import { SponsoredBanner } from "@/components/sponsored-slot";
 
 const MAX_SELECTED = 5;
@@ -27,7 +29,14 @@ type SearchStatus = "idle" | "loading" | "success" | "error";
  * 노출 시점은 문맥을 쓰되, 배너 자체는 작품을 가리키지 않는다.
  */
 function AlternativeUsageLink() {
-  return <SponsoredBanner className="w-full" />;
+  // KDisk 와 온디스크 중 한 곳을 고른다. 이 구좌는 결과가 나온 뒤에만 그려져
+  // 서버 렌더와 어긋날 일이 없고, 한 번 고르면 다시 그려져도 바뀌지 않는다.
+  const [sponsor] = useState(pickSponsor);
+  return sponsor === "ondisk" ? (
+    <OnDiskBanner className="w-full" />
+  ) : (
+    <SponsoredBanner className="w-full" />
+  );
 }
 
 /** 선택한 작품의 제공처 조회 상태 */
