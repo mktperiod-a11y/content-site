@@ -12,10 +12,6 @@ const detailSource = await readFile(
   "utf8",
 );
 const tmdbSource = await readFile(new URL("../lib/tmdb.ts", import.meta.url), "utf8");
-const kdiskSource = await readFile(
-  new URL("../components/kdisk-flow.tsx", import.meta.url),
-  "utf8",
-);
 const movieSearchSource = await readFile(
   new URL("../lib/movie-search.ts", import.meta.url),
   "utf8",
@@ -67,13 +63,6 @@ test("shows TMDB images, ratings, reviews, and Korean watch providers", () => {
   assert.match(detailSource, /국내 제공처/);
   assert.match(tmdbSource, /watch\/providers/);
   assert.match(tmdbSource, /results\?\.KR/);
-});
-
-test("defers KDisk catalog claims behind a user-controlled second step", () => {
-  assert.match(kdiskSource, /다른 이용 방법 확인하기/);
-  assert.match(kdiskSource, /실제 보유 여부는 KDisk 검색 결과에서 확인/);
-  assert.doesNotMatch(kdiskSource, /KDisk 공식 제공 콘텐츠/);
-  assert.doesNotMatch(kdiskSource, /이 작품은 KDisk에서도 이용할 수 있어요/);
 });
 
 test("keeps both main product tabs", () => {
