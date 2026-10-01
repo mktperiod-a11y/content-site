@@ -97,19 +97,23 @@ export function OnDiskBanner({ className = "" }: { className?: string }) {
   return (
     <a
       {...linkProps}
-      className={`${SURFACE_CLASS} min-h-[170px] sm:min-h-[210px] ${className}`}
+      className={`${SURFACE_CLASS} @container min-h-[170px] sm:min-h-[210px] ${className}`}
       data-ga-event="sponsored_ondisk_banner_click"
       style={{ background: BACKGROUND }}
     >
-      <Art className="bottom-0 right-[-4px] w-[48%] sm:bottom-1.5 sm:right-[6%] sm:w-[280px]" />
+      {/*
+        이 배너는 PC에서도 반 칸에 들어가 좁아질 수 있어, 화면 폭이 아니라 배너 자기 폭으로
+        넓은 배치(@min-[720px])와 좁은 배치를 고른다.
+      */}
+      <Art className="bottom-0 right-[-4px] w-[48%] max-w-[260px] @min-[720px]:bottom-1.5 @min-[720px]:right-[6%] @min-[720px]:w-[280px] @min-[720px]:max-w-none" />
       <Copy
         layout={{
-          brand: "left-5 top-4 sm:left-11 sm:top-5",
-          logo: "h-6 sm:h-7",
-          tag: "text-[9px] sm:text-[10px]",
-          text: "left-5 top-[57%] sm:left-11 sm:top-[58%]",
-          headline: "text-[23px] sm:text-[34px]",
-          cta: "mt-2 text-[14px] sm:mt-3 sm:text-[17px]",
+          brand: "left-5 top-4 @min-[720px]:left-11 @min-[720px]:top-5",
+          logo: "h-6 @min-[720px]:h-7",
+          tag: "text-[9px] @min-[720px]:text-[10px]",
+          text: "left-5 top-[57%] @min-[720px]:left-11 @min-[720px]:top-[58%]",
+          headline: "text-[23px] @min-[720px]:text-[34px]",
+          cta: "mt-2 text-[14px] @min-[720px]:mt-3 @min-[720px]:text-[17px]",
         }}
       />
     </a>
