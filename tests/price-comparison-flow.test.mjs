@@ -12,11 +12,6 @@ const pageSource = await readFile(
   "utf8",
 );
 
-const watchOptionsSource = await readFile(
-  new URL("../app/watch-options/page.tsx", import.meta.url),
-  "utf8",
-);
-
 const sponsoredSource = await readFile(
   new URL("../components/sponsored-slot.tsx", import.meta.url),
   "utf8",
@@ -53,19 +48,13 @@ test("does not recommend a plan when any selected title remains unverified", () 
   assert.match(comparisonSource, /!recommendationBlocked/);
 });
 
-test("defers alternative services to a generic, copyright-safe comparison page", () => {
+test("sends alternative services to the sponsored slot, not inline copy", () => {
   // 진입점이 제휴 구좌로 바뀌었고, 링크는 그 컴포넌트가 들고 있다.
   assert.match(comparisonSource, /SponsoredBanner/);
   // KDisk 배너는 /go/kdisk 를 거쳐 파트너 링크로 넘어간다 (lib/partner-links.ts).
   assert.match(sponsoredSource, /href: partnerHref\("kdisk"\)/);
   assert.doesNotMatch(comparisonSource, /KDisk에서 확인하기/);
   assert.doesNotMatch(comparisonSource, /OnDisk에서도 확인/);
-  assert.match(watchOptionsSource, /구독형 OTT/);
-  assert.match(watchOptionsSource, /작품 대여·구매/);
-  assert.match(watchOptionsSource, /극장·VOD/);
-  assert.match(watchOptionsSource, /작품별 콘텐츠 이용 서비스/);
-  assert.match(watchOptionsSource, /실제 제공 여부와 이용 조건은 KDisk 검색 결과/);
-  assert.doesNotMatch(watchOptionsSource, /titleKo|movieTitle|searchTerm/);
 });
 
 test("keeps the sponsored slot structurally unable to name a title", () => {
