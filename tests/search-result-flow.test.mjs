@@ -95,7 +95,10 @@ test("offers the same search from the header on every page", () => {
   // 헤더 검색도 본문 검색과 같은 계약(2글자·자동완성 6건·키보드 이동)을 쓴다.
   assert.match(headerSearchSource, /fetchMovieSearch\(trimmed, 6, controller\.signal\)/);
   assert.match(headerSearchSource, /isSearchable/);
-  assert.match(headerSearchSource, /placeholder="영화 제목 또는 감독명 검색"/);
+  assert.match(headerSearchSource, /PLACEHOLDER = "영화 제목 또는 감독명 검색"/);
+  // 탭과 한 줄에 놓여 검색창이 좁아지는 태블릿 폭에서만 짧은 문구를 쓴다.
+  assert.match(headerSearchSource, /SHORT_PLACEHOLDER = "영화 제목·감독 검색"/);
+  assert.match(headerSearchSource, /placeholder=\{placeholder\}/);
   assert.match(headerSearchSource, /ArrowDown/);
   assert.match(movieSearchSource, /MIN_SEARCH_LENGTH = 2/);
 
