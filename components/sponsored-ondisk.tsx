@@ -73,7 +73,7 @@ export function OnDiskBox({ className = "" }: { className?: string }) {
     >
       <Art className="bottom-0 right-[-2px] w-[50%]" />
       <span className="absolute left-5 top-1/2 z-10 block -translate-y-1/2">
-        <Copy sizes={{ logo: "h-[22px]", headline: "mt-2.5 text-[19px]", cta: "mt-2 text-[12px]" }} />
+        <Copy sizes={{ logo: "h-[22px]", headline: "mt-2.5 text-[22px]", cta: "mt-2 text-[13.5px]" }} />
       </span>
     </a>
   );
@@ -93,8 +93,8 @@ export function OnDiskBanner({ className = "" }: { className?: string }) {
         <Copy
           sizes={{
             logo: "h-6 sm:h-7",
-            headline: "mt-2.5 text-[20px] sm:mt-3.5 sm:text-[30px]",
-            cta: "mt-2 text-[12.5px] sm:mt-3 sm:text-[15px]",
+            headline: "mt-2.5 text-[23px] sm:mt-3.5 sm:text-[34px]",
+            cta: "mt-2 text-[14px] sm:mt-3 sm:text-[17px]",
           }}
         />
       </span>
