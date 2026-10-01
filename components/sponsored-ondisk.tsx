@@ -98,13 +98,14 @@ export function OnDiskBanner({ className = "" }: { className?: string }) {
   return (
     <a
       {...linkProps}
-      className={`${SURFACE_CLASS} @container min-h-[170px] sm:min-h-[210px] ${className}`}
+      className={`${SURFACE_CLASS} @container min-h-[170px] max-[300px]:hidden sm:min-h-[210px] ${className}`}
       data-ga-event="sponsored_ondisk_banner_click"
       style={{ background: BACKGROUND }}
     >
       {/*
         이 배너는 PC에서도 반 칸에 들어가 좁아질 수 있어, 화면 폭이 아니라 배너 자기 폭으로
-        넓은 배치(@min-[720px])와 좁은 배치를 고른다.
+        넓은 배치(@min-[720px])와 좁은 배치를 고른다. KDisk 배너와 같이 350px 이하 폰에서는 글자를
+        줄여 그림에 닿지 않게 하고, 300px 미만에서는 숨긴다.
       */}
       <Art className="bottom-0 right-[-4px] w-[48%] max-w-[260px] @min-[720px]:bottom-1.5 @min-[720px]:right-[6%] @min-[720px]:w-[280px] @min-[720px]:max-w-none" />
       <Copy
@@ -113,8 +114,8 @@ export function OnDiskBanner({ className = "" }: { className?: string }) {
           logo: "h-6 @min-[720px]:h-7",
           tag: "text-[9px] @min-[720px]:text-[10px]",
           text: "left-5 top-[57%] @min-[720px]:left-11 @min-[720px]:top-[58%]",
-          headline: "text-[23px] @min-[720px]:text-[34px]",
-          cta: "mt-2 text-[14px] @min-[720px]:mt-3 @min-[720px]:text-[17px]",
+          headline: "text-[23px] max-[351px]:text-[20px] @min-[720px]:text-[34px]",
+          cta: "mt-2 text-[14px] max-[351px]:text-[12.5px] @min-[720px]:mt-3 @min-[720px]:text-[17px]",
         }}
       />
     </a>
