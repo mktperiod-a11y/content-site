@@ -91,6 +91,7 @@ cp .env.example .env.local
 | 사이트 | Cloudflare Workers + D1 (`https://www.movieseesaw.workers.dev`) |
 | 배포 | Actions의 **Cloudflare 배포** 워크플로를 수동 실행 (`.github/workflows/deploy-cloudflare.yml`). D1 생성·마이그레이션·빌드·배포·키 연결·첫 수집까지 한 번에 진행 |
 | 매일 수집 | **영화 데이터 수집** 워크플로가 매일 03:37 KST에 실행 (`scripts/refresh-data.mjs`). 수집 결과를 운영 D1에 먼저 반영한 뒤, 1탭 영화의 상세를 최대 5분 동안 미리 받아 보관하고, 최종 상태를 `data/catalog.json`에 기록 |
+| 제휴 링크 | 두 제휴 배너는 우리 주소 `/go/ondisk`, `/go/kdisk`를 걸고, 이 주소가 파트너 링크로 302 이동시킨다. 파트너 링크는 `lib/partner-links.ts` 한 곳에서 관리하며, `/go/`는 캐시·색인하지 않는다 |
 | 상세 보관함 | 상세 화면은 `detail_cache`에 보관된 KOBIS(7일)·TMDB(36시간) 응답을 먼저 쓰고, 없을 때만 외부에서 받아 보관 (`lib/detail-cache.ts`) |
 
 필요한 GitHub 저장소 시크릿: `KOBIS_API_KEY`, `TMDB_API_KEY`(v3 API Key), `CLOUDFLARE_API_TOKEN`,

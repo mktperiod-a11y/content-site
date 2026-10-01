@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { partnerHref } from "@/lib/partner-links";
 
 /**
  * 제휴 광고 구좌.
@@ -9,7 +9,13 @@ import Link from "next/link";
  * 표현을 넣지 않는다.
  */
 
-const WATCH_OPTIONS_HREF = "/watch-options";
+/** 우리 주소 /go/kdisk 를 거쳐 KDisk 파트너 링크로 넘어간다 (lib/partner-links.ts). */
+const linkProps = {
+  href: partnerHref("kdisk"),
+  rel: "sponsored noopener noreferrer",
+  target: "_blank",
+} as const;
+
 const HEADLINE_TOP = "늘어만 가는";
 const HEADLINE_BOTTOM = "구독제가 지겹다면?";
 const CTA_LABEL = "확인하러 가기";
@@ -88,11 +94,11 @@ function Pill({ className = "" }: { className?: string }) {
  */
 export function SponsoredBox({ className = "" }: { className?: string }) {
   return (
-    <Link
-      aria-label={`제휴 광고: ${HEADLINE_TOP} ${HEADLINE_BOTTOM}`}
+    <a
+      {...linkProps}
+      aria-label={`제휴 광고: ${HEADLINE_TOP} ${HEADLINE_BOTTOM} (새 창)`}
       className={`relative block aspect-[384/195] overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${className}`}
       data-ga-event="sponsored_box_click"
-      href={WATCH_OPTIONS_HREF}
       style={{ background: SURFACE }}
     >
       <span
@@ -127,7 +133,7 @@ export function SponsoredBox({ className = "" }: { className?: string }) {
         </span>
         <Pill className="mt-3 h-9 px-[17px] text-[12.5px]" />
       </span>
-    </Link>
+    </a>
   );
 }
 
@@ -136,11 +142,11 @@ export function SponsoredBox({ className = "" }: { className?: string }) {
  */
 export function SponsoredBanner({ className = "" }: { className?: string }) {
   return (
-    <Link
-      aria-label={`제휴 광고: ${HEADLINE_TOP} ${HEADLINE_BOTTOM}`}
+    <a
+      {...linkProps}
+      aria-label={`제휴 광고: ${HEADLINE_TOP} ${HEADLINE_BOTTOM} (새 창)`}
       className={`relative block min-h-[170px] overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:min-h-[210px] ${className}`}
       data-ga-event="sponsored_banner_click"
-      href={WATCH_OPTIONS_HREF}
       style={{ background: SURFACE }}
     >
       <span
@@ -188,6 +194,6 @@ export function SponsoredBanner({ className = "" }: { className?: string }) {
         </span>
         <Pill className="mt-3.5 h-10 px-5 text-[13px] sm:mt-[17px] sm:h-[45px] sm:px-6 sm:text-[15px]" />
       </span>
-    </Link>
+    </a>
   );
 }

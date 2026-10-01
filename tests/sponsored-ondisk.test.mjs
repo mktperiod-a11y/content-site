@@ -15,8 +15,10 @@ test("keeps the OnDisk slot structurally unable to name a title", () => {
   assert.match(ondisk, /export function OnDiskBanner\(\{ className = "" \}: \{ className\?: string \}\)/);
 });
 
-test("opens the official OnDisk site in a new tab as a sponsored link", () => {
-  assert.match(ondisk, /ONDISK_URL = "https:\/\/new\.ondisk\.co\.kr\/"/);
+test("opens OnDisk through our /go/ondisk address in a new tab as a sponsored link", () => {
+  // 파트너 링크는 lib/partner-links.ts 에만 두고, 배너는 우리 주소를 건다.
+  assert.match(ondisk, /href: partnerHref\("ondisk"\)/);
+  assert.doesNotMatch(ondisk, /https?:\/\//);
   assert.match(ondisk, /rel: "sponsored noopener noreferrer"/);
   assert.match(ondisk, /target: "_blank"/);
 });

@@ -10,7 +10,8 @@
  * 구성이다. 문구는 온디스크가 다루는 장르만 말하고 이용 가능 여부는 단정하지 않는다.
  */
 
-const ONDISK_URL = "https://new.ondisk.co.kr/";
+import { partnerHref } from "@/lib/partner-links";
+
 const HEADLINE_TOP = "주말 정주행 고민이면";
 const HEADLINE_BOTTOM = "영화부터 웹툰까지";
 const CTA_LABEL = "온디스크에서 둘러보기";
@@ -19,7 +20,7 @@ const BACKGROUND =
   "radial-gradient(70% 90% at 85% 100%, rgba(205,232,255,.9) 0%, transparent 70%), linear-gradient(165deg, #f4f8fe 0%, #e6effb 60%, #dce8f8 100%)";
 
 const linkProps = {
-  href: ONDISK_URL,
+  href: partnerHref("ondisk"),
   rel: "sponsored noopener noreferrer",
   target: "_blank",
   "aria-label": `제휴 광고: 온디스크 — ${HEADLINE_TOP} ${HEADLINE_BOTTOM}, ${CTA_LABEL} (새 창)`,
