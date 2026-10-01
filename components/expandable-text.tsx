@@ -35,7 +35,7 @@ export function ExpandableText({ text, className = "" }: { text: string; classNa
       {(overflowing || expanded) && (
         <button
           aria-expanded={expanded}
-          className="mt-1.5 text-sm font-semibold text-muted-foreground underline-offset-4 hover:text-foreground hover:underline sm:hidden"
+          className="mt-2.5 text-[13px] font-medium text-[#8592a5] underline-offset-4 hover:text-muted-foreground hover:underline sm:hidden"
           onClick={() => setExpanded((value) => !value)}
           type="button"
         >
