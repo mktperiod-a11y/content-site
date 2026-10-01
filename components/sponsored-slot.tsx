@@ -158,11 +158,8 @@ export function SponsoredBanner({ className = "" }: { className?: string }) {
       <SponsoredTag />
 
       <Disc className="right-[-8%] top-[-28%] aspect-square w-[30%]" />
-      {/* 모바일 타일 크기(23%)는 로고가 읽히도록 키운 값이다(7a03035). 좁은 폰(360·390px)에서
-          제목과 겹치지 않도록 크기는 두고 위치만 오른쪽 끝으로 밀었다. 잘리는 폭(약 12%)은
-          로고 바깥 여백(15%) 안이라 로고는 잘리지 않는다. sm 이상은 그대로다. */}
       <Tile
-        className="right-[-3%] top-[16%] aspect-square w-[23%] sm:right-[12%] sm:top-[19%] sm:w-[13%]"
+        className="right-[10%] top-[16%] aspect-square w-[23%] sm:right-[12%] sm:top-[19%] sm:w-[13%]"
         style={{ transform: "rotate(-10deg)" }}
       />
       <Chip
@@ -176,9 +173,18 @@ export function SponsoredBanner({ className = "" }: { className?: string }) {
 
       <span className="absolute left-6 top-1/2 z-10 block -translate-y-1/2 sm:left-11">
         <span className="block text-[26px] font-black leading-[1.16] tracking-[-0.05em] text-white [text-shadow:0_0_1px_rgba(255,255,255,.85),0_2px_18px_rgba(0,0,0,.55)] sm:text-[39px]">
-          {HEADLINE_TOP}
-          <br />
-          {HEADLINE_BOTTOM}
+          {/* 좁은 폰에서는 "구독제가 지겹다면?" 한 줄이 오른쪽 로고 타일을 덮는다.
+              모바일에서만 이 줄을 두 줄로 나눠 쓰고, 크기·위치는 원래대로 둔다. */}
+          <span className="sm:hidden">
+            {HEADLINE_BOTTOM.split(" ")[0]}
+            <br />
+            {HEADLINE_BOTTOM.split(" ").slice(1).join(" ")}
+          </span>
+          <span className="hidden sm:inline">
+            {HEADLINE_TOP}
+            <br />
+            {HEADLINE_BOTTOM}
+          </span>
         </span>
         <Pill className="mt-3.5 h-10 px-5 text-[13px] sm:mt-[17px] sm:h-[45px] sm:px-6 sm:text-[15px]" />
       </span>
