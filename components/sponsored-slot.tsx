@@ -145,7 +145,7 @@ export function SponsoredBanner({ className = "" }: { className?: string }) {
     <a
       {...linkProps}
       aria-label={`제휴 광고: ${HEADLINE_TOP} ${HEADLINE_BOTTOM} (새 창)`}
-      className={`relative block min-h-[170px] overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:min-h-[210px] ${className}`}
+      className={`relative block @container min-h-[170px] overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:min-h-[210px] ${className}`}
       data-ga-event="sponsored_banner_click"
       style={{ background: SURFACE }}
     >
@@ -177,8 +177,10 @@ export function SponsoredBanner({ className = "" }: { className?: string }) {
         style={{ transform: "rotate(12deg)" }}
       />
 
-      <span className="absolute left-6 top-1/2 z-10 block -translate-y-1/2 sm:left-11">
-        <span className="block text-[26px] font-black leading-[1.16] tracking-[-0.05em] text-white [text-shadow:0_0_1px_rgba(255,255,255,.85),0_2px_18px_rgba(0,0,0,.55)] sm:text-[39px]">
+      {/* 가격 비교 결과 칸처럼 PC에서도 배너가 좁아지면(640px 미만) 제목을 줄이고 왼쪽 여백을
+          좁혀 로고 타일을 덮지 않게 한다. 글 묶음은 조금 내려 "제휴" 표시와 띄운다. */}
+      <span className="absolute left-6 top-[55%] z-10 block -translate-y-1/2 sm:left-11 sm:@max-[640px]:left-6">
+        <span className="block text-[26px] font-black leading-[1.16] tracking-[-0.05em] text-white [text-shadow:0_0_1px_rgba(255,255,255,.85),0_2px_18px_rgba(0,0,0,.55)] sm:text-[39px] sm:@max-[640px]:text-[28px]">
           {/* 좁은 폰에서는 "구독제가 지겹다면?" 한 줄이 오른쪽 로고 타일을 덮는다.
               모바일에서만 이 줄을 두 줄로 나눠 쓰고, 크기·위치는 원래대로 둔다. */}
           <span className="sm:hidden">
