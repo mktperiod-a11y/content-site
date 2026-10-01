@@ -5,7 +5,6 @@ import { ReleaseRefresh } from "@/components/release-refresh";
 import { JsonLd, itemListSchema } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
 import { TheaterChainBadges } from "@/components/theater-booking-links";
-import { TmdbAttribution } from "@/components/tmdb-attribution";
 import {
   getReleaseCatalog,
   getReleaseCount,
@@ -353,10 +352,9 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
           </div>
         )}
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 text-xs leading-5 text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>기본 개봉 정보: KOBIS(영화진흥위원회)</span>
-          <TmdbAttribution />
-        </div>
+        <p className="mt-10 border-t border-border pt-6 text-xs leading-5 text-muted-foreground">
+          기본 개봉 정보: KOBIS(영화진흥위원회)
+        </p>
       </section>
     </main>
   );
