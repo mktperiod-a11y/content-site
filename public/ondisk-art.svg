@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -16 212 160">
+  <!-- 온디스크 제휴 배너의 포인트 그림: 팝콘 · 클래퍼보드 · 티켓 · 웃는 얼굴 동전 -->
+  <defs>
+    <linearGradient id="navy" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#45556f"/>
+      <stop offset="1" stop-color="#1d2738"/>
+    </linearGradient>
+    <radialGradient id="coin" cx=".35" cy=".3" r=".8">
+      <stop offset="0" stop-color="#a9cdff"/>
+      <stop offset=".55" stop-color="#5b93f0"/>
+      <stop offset="1" stop-color="#3a6fd4"/>
+    </radialGradient>
+    <linearGradient id="ticket" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffe7a3"/>
+      <stop offset="1" stop-color="#f7c75a"/>
+    </linearGradient>
+    <linearGradient id="cup" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#e9eef6"/>
+    </linearGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+    <clipPath id="band">
+      <rect x="0" y="24" width="78" height="12" rx="4"/>
+    </clipPath>
+    <clipPath id="bucket">
+      <path d="M0 0H40L35 50H5Z"/>
+    </clipPath>
+    <path id="stripes" d="M6 0h10l-8 12H-2ZM26 0h10l-8 12H18ZM46 0h10l-8 12H38ZM66 0h10l-8 12H58Z"/>
+    <path id="sparkle" d="M6 0c.5 3.5 2.5 5.5 6 6-3.5.5-5.5 2.5-6 6-.5-3.5-2.5-5.5-6-6 3.5-.5 5.5-2.5 6-6Z"/>
+  </defs>
+
+  <!-- 바닥 그림자 -->
+  <ellipse cx="108" cy="128" rx="70" ry="7" fill="#6d8fc4" opacity=".22" filter="url(#soft)"/>
+
+  <!-- 티켓 -->
+  <g transform="translate(144 6) rotate(14)">
+    <rect x="2" y="4" width="56" height="30" rx="5" fill="#b58a2a" opacity=".25" filter="url(#soft)"/>
+    <path d="M5 0H51a5 5 0 0 0 5 5V10a4 4 0 0 0 0 8V25a5 5 0 0 0-5 5H5a5 5 0 0 0-5-5V18a4 4 0 0 0 0-8V5A5 5 0 0 0 5 0Z" fill="url(#ticket)"/>
+    <path d="M40 4V26" stroke="#d9a53a" stroke-width="1.2" stroke-dasharray="2.5 2.5"/>
+    <circle cx="48" cy="15" r="3" fill="#e8b445"/>
+  </g>
+
+  <!-- 클래퍼보드 -->
+  <g transform="translate(70 40) rotate(-7)">
+    <rect x="2" y="30" width="76" height="54" rx="9" fill="#1d2738" opacity=".25" filter="url(#soft)"/>
+    <rect x="0" y="24" width="78" height="56" rx="9" fill="url(#navy)"/>
+    <g clip-path="url(#band)">
+      <rect x="0" y="24" width="78" height="12" rx="4" fill="#e9eef6"/>
+      <use href="#stripes" y="24" fill="#2a3448"/>
+    </g>
+    <g transform="rotate(-16 2 22)">
+      <rect x="0" y="9" width="78" height="12" rx="4" fill="#e9eef6"/>
+      <use href="#stripes" y="9" fill="#2a3448"/>
+    </g>
+    <circle cx="3" cy="22" r="3.2" fill="#c9d3e3"/>
+    <rect x="10" y="46" width="34" height="4" rx="2" fill="#fff" opacity=".35"/>
+    <rect x="10" y="56" width="52" height="4" rx="2" fill="#fff" opacity=".2"/>
+    <rect x="10" y="66" width="24" height="4" rx="2" fill="#fff" opacity=".2"/>
+  </g>
+
+  <!-- 팝콘 -->
+  <g transform="translate(40 68)">
+    <ellipse cx="20" cy="57" rx="20" ry="4" fill="#6d8fc4" opacity=".3" filter="url(#soft)"/>
+    <g fill="#fff6e2" stroke="#f0d9a8" stroke-width="1.2">
+      <circle cx="8" cy="0" r="7"/>
+      <circle cx="19" cy="-5" r="8"/>
+      <circle cx="31" cy="-1" r="7"/>
+      <circle cx="14" cy="4" r="6"/>
+      <circle cx="26" cy="5" r="6"/>
+    </g>
+    <path d="M0 0H40L35 50H5Z" fill="url(#cup)"/>
+    <path d="M3 0h7l1 50H6ZM17 0h6l0 50h-6ZM30 0h7l-3 50h-5Z" fill="#f07a7a" clip-path="url(#bucket)"/>
+    <rect x="-2" y="-1" width="44" height="6" rx="3" fill="#f07a7a"/>
+    <rect x="0" y="0" width="40" height="2" rx="1" fill="#fff" opacity=".45"/>
+  </g>
+
+  <!-- 웃는 얼굴 동전: 로고의 "o" -->
+  <g transform="translate(160 98)">
+    <circle cx="0" cy="4" r="20" fill="#2c58b0"/>
+    <circle r="20" fill="url(#coin)"/>
+    <circle r="15.5" fill="none" stroke="#fff" stroke-width="1.4" opacity=".55"/>
+    <circle cx="-5.5" cy="-3" r="2.2" fill="#fff"/>
+    <circle cx="5.5" cy="-3" r="2.2" fill="#fff"/>
+    <path d="M-7 4q7 7 14 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M-12 -12a17 17 0 0 1 9-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>
+  </g>
+
+  <use href="#sparkle" transform="translate(30 30)" fill="#fff"/>
+  <use href="#sparkle" transform="translate(186 60) scale(.7)" fill="#fff"/>
+</svg>
