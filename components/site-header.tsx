@@ -34,12 +34,13 @@ export function SiteHeader({
       <div className="border-y border-white/10">
         <div className="mx-auto flex min-h-14 max-w-6xl flex-col gap-2 px-5 py-2 sm:flex-row sm:items-center sm:gap-4 sm:px-8 sm:py-0">
           {navigation && (
-            <div className="w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:w-auto sm:overflow-visible">
+            <div className="w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:w-auto sm:shrink-0 sm:overflow-visible">
               {navigation}
             </div>
           )}
-          {/* 모바일에서는 탭바와 같은 위계로 보여 혼란을 줘 숨긴다. 검색은 각 탭 안에서 한다. */}
-          <div className="hidden sm:ml-auto sm:block sm:w-80 sm:shrink-0">
+          {/* 모바일에서는 탭바와 같은 위계로 보여 혼란을 줘 숨긴다. 검색은 각 탭 안에서 한다.
+              태블릿 폭에서는 탭이 눌려 글자가 꺾이지 않도록, 검색창이 남는 폭만 쓰고 최대 320px까지 넓어진다. */}
+          <div className="hidden sm:ml-auto sm:block sm:min-w-0 sm:max-w-80 sm:flex-1">
             {search ?? <HeaderSearch />}
           </div>
         </div>

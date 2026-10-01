@@ -357,7 +357,7 @@ function HomeContent() {
               variant="line"
             >
               <Link
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+                className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
                 href="/movies/now"
                 scroll={false}
               >

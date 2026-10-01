@@ -196,7 +196,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
           <nav aria-label="주요 기능" className="flex h-14 items-center gap-1.5">
             <Link
               aria-current="page"
-              className="relative inline-flex h-10 items-center gap-1.5 rounded-xl bg-white/[0.09] px-4 text-[15px] font-bold text-brand after:absolute after:inset-x-0 after:bottom-[-8px] after:h-0.5 after:bg-brand"
+              className="relative inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl bg-white/[0.09] px-4 text-[15px] font-bold text-brand after:absolute after:inset-x-0 after:bottom-[-8px] after:h-0.5 after:bg-brand"
               href={isUpcoming ? "/movies/upcoming" : "/movies/now"}
               scroll={false}
             >
@@ -204,7 +204,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
               개봉작
             </Link>
             <Link
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
               href="/search?tab=compare"
               scroll={false}
             >
@@ -212,7 +212,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
               가격 비교하기
             </Link>
             <Link
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
               href="/search"
               scroll={false}
             >
