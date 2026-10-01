@@ -12,7 +12,8 @@ export const THEATER_BOOKING_LINKS: ReadonlyArray<{
     code: "cgv",
     label: "CGV에서 예매 확인",
     href: "https://cgv.co.kr/cnm/movieBook/movie",
-    logoUrl: "https://img.cgv.co.kr/R2014/images/title/h1_cgv.png",
+    // CGV 공식 로고. 원격 이미지 대신 사이트에 둔 파일을 쓴다.
+    logoUrl: "/cgv-logo.png",
     logoClassName: "w-10",
   },
   {
@@ -126,17 +127,8 @@ export function TheaterBookingLinks({
             target="_blank"
           >
             <span className={`grid shrink-0 place-items-center ${compact ? "h-5 w-16" : "h-6 w-20"}`}>
-              {theater.code === "cgv" ? (
-                <span
-                  aria-hidden="true"
-                  className="text-[1.05rem] font-black italic leading-none tracking-[-0.08em] text-[#e31b35]"
-                >
-                  CGV
-                </span>
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element -- 각 극장사가 제공하는 공식 워드마크입니다.
-                <img alt="" className={`${theater.logoClassName} max-h-full max-w-full object-contain`} src={theater.logoUrl} />
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element -- 각 극장사가 제공하는 공식 워드마크입니다. */}
+              <img alt="" className={`${theater.logoClassName} max-h-full max-w-full object-contain`} src={theater.logoUrl} />
             </span>
             {/* 좁은 폰에서는 극장사 이름을 로고에 맡긴다: 400px 이하는 "예매 확인"만, 280px 이하는 로고만. */}
             <span className="max-[401px]:hidden">{theater.label}</span>
