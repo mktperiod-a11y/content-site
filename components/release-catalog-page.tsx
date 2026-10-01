@@ -351,10 +351,6 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
             </div>
           </div>
         )}
-
-        <p className="mt-10 border-t border-border pt-6 text-xs leading-5 text-muted-foreground">
-          기본 개봉 정보: KOBIS(영화진흥위원회)
-        </p>
       </section>
     </main>
   );
