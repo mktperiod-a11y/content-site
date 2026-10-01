@@ -23,3 +23,22 @@ test("redirects /go/* to the partner without caching or indexing", () => {
   assert.match(kdiskRoute, /redirectToPartner\("kdisk"\)/);
   assert.match(robots, /"Disallow: \/go\/"/);
 });
+
+test("sends every KDisk and OnDisk link through /go/*", async () => {
+  // 파트너 주소를 코드에 직접 쓰면 파트너 코드 없이 나가거나 /go 로 가려지지 않는다.
+  // 파트너 주소는 lib/partner-links.ts 한 곳에만 둔다.
+  const { readdir } = await import("node:fs/promises");
+  const offenders = [];
+  for (const dir of ["app", "components", "lib"]) {
+    for (const entry of await readdir(new URL(`../${dir}`, import.meta.url), { recursive: true })) {
+      if (!/\.(tsx?|mjs)$/.test(entry) || `${dir}/${entry}` === "lib/partner-links.ts") continue;
+      const source = await read(`${dir}/${entry}`);
+      if (/https?:\/\/[^"'`\s]*(kdisk|ondisk)\.co\.kr/i.test(source)) offenders.push(`${dir}/${entry}`);
+    }
+  }
+  assert.deepEqual(offenders, []);
+  const watchOptions = await read("app/watch-options/page.tsx");
+  const kdiskFlow = await read("components/kdisk-flow.tsx");
+  assert.match(watchOptions, /KDISK_HOME_URL = partnerHref\("kdisk"\)/);
+  assert.match(kdiskFlow, /KDISK_SIGNUP_URL = partnerHref\("kdisk"\)/);
+});

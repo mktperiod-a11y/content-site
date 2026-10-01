@@ -12,8 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { partnerHref } from "@/lib/partner-links";
 
-const KDISK_SIGNUP_URL = "https://m.kdisk.co.kr/web/member/join.html";
+/** 우리 주소 /go/kdisk 를 거쳐 KDisk 파트너 링크로 넘어간다 (lib/partner-links.ts). */
+const KDISK_SIGNUP_URL = partnerHref("kdisk");
 
 /**
  * "구독형 OTT에서 확인되지 않는 작품"에 대해서만 노출하는 2뎁스 안내.
@@ -127,7 +129,7 @@ export function KdiskFlow({ title }: { title: string }) {
                   data-content-title={title}
                   data-ga-event="kdisk_signup_outbound_click"
                   href={KDISK_SIGNUP_URL}
-                  rel="noreferrer"
+                  rel="sponsored noopener noreferrer"
                   target="_blank"
                 >
                   무료 가입하고 계속하기

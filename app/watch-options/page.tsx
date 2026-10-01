@@ -11,8 +11,10 @@ import {
 } from "lucide-react";
 
 import { SiteHeader } from "@/components/site-header";
+import { partnerHref } from "@/lib/partner-links";
 
-const KDISK_HOME_URL = "https://m.kdisk.co.kr/";
+/** 우리 주소 /go/kdisk 를 거쳐 KDisk 파트너 링크로 넘어간다 (lib/partner-links.ts). */
+const KDISK_HOME_URL = partnerHref("kdisk");
 
 const OPTIONS = [
   {
@@ -113,7 +115,7 @@ export default function WatchOptionsPage() {
             className="inline-flex h-13 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-ink transition-colors hover:bg-brand-bright"
             data-ga-event="kdisk_service_outbound_click"
             href={KDISK_HOME_URL}
-            rel="noreferrer"
+            rel="sponsored noopener noreferrer"
             target="_blank"
           >
             KDisk 서비스 알아보기
