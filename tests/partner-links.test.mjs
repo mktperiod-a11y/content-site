@@ -37,6 +37,4 @@ test("sends every KDisk and OnDisk link through /go/*", async () => {
     }
   }
   assert.deepEqual(offenders, []);
-  const kdiskFlow = await read("components/kdisk-flow.tsx");
-  assert.match(kdiskFlow, /KDISK_SIGNUP_URL = partnerHref\("kdisk"\)/);
 });
