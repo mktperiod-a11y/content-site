@@ -4,6 +4,7 @@ import { getSiteUrl } from "@/lib/site";
  * 크롤러가 사이트맵을 찾아가도록 robots.txt를 노출한다.
  * `/search`는 결과가 클라이언트에서 그려져 색인할 본문이 없어(noindex) 크롤링에서 제외한다.
  * 내부 API는 크롤러가 호출할 이유가 없고, 호출되면 외부 API 쿼터만 소모한다.
+ * `/go/*`는 제휴 파트너로 넘겨 주는 주소라 따라갈 이유가 없다.
  */
 export function GET() {
   const siteUrl = getSiteUrl();
@@ -12,6 +13,7 @@ export function GET() {
     "Allow: /",
     "Disallow: /search",
     "Disallow: /api/",
+    "Disallow: /go/",
     "",
     `Sitemap: ${siteUrl}/sitemap.xml`,
     "",
