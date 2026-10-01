@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Clapperboard, Star } from "lucide-react";
+import { Calculator, CalendarDays, Clapperboard, Search, Star } from "lucide-react";
 
 import { ReleaseRefresh } from "@/components/release-refresh";
 import { JsonLd, itemListSchema } from "@/components/json-ld";
@@ -201,21 +201,23 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
               href={isUpcoming ? "/movies/upcoming" : "/movies/now"}
               scroll={false}
             >
-              <CalendarDays className="size-4" />
+              <CalendarDays className="hidden size-4 sm:block" />
               개봉작
             </Link>
             <Link
-              className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
               href="/search?tab=compare"
               scroll={false}
             >
+              <Calculator className="hidden size-4 sm:block" />
               가격 비교하기
             </Link>
             <Link
-              className="inline-flex h-10 items-center rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
               href="/search"
               scroll={false}
             >
+              <Search className="hidden size-4 sm:block" />
               영화 찾기
             </Link>
           </nav>

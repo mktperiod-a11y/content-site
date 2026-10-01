@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowRight,
+  Calculator,
   CalendarDays,
   Check,
   Clapperboard,
@@ -360,19 +361,21 @@ function HomeContent() {
                 href="/movies/now"
                 scroll={false}
               >
-                <CalendarDays className="size-4" />
+                <CalendarDays className="hidden size-4 sm:block" />
                 개봉작
               </Link>
               <TabsTrigger
                 className="h-10 flex-none rounded-xl border-0 bg-transparent px-4 text-[15px] font-bold text-white/55 shadow-none after:bottom-[-8px] after:bg-brand hover:bg-white/[0.05] hover:text-white data-[state=active]:border-transparent data-[state=active]:bg-white/[0.09]! data-[state=active]:text-brand data-[state=active]:shadow-none"
                 value="compare"
               >
+                <Calculator className="hidden size-4 sm:block" />
                 가격 비교하기
               </TabsTrigger>
               <TabsTrigger
                 className="h-10 flex-none rounded-xl border-0 bg-transparent px-4 text-[15px] font-bold text-white/55 shadow-none after:bottom-[-8px] after:bg-brand hover:bg-white/[0.05] hover:text-white data-[state=active]:border-transparent data-[state=active]:bg-white/[0.09]! data-[state=active]:text-brand data-[state=active]:shadow-none"
                 value="search"
               >
+                <Search className="hidden size-4 sm:block" />
                 영화 찾기
               </TabsTrigger>
             </TabsList>
