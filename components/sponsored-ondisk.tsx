@@ -33,10 +33,8 @@ function SponsoredTag() {
 function BrandRow({ logoClassName }: { logoClassName: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <span className={`inline-flex items-center rounded-md bg-white shadow-[0_1px_3px_rgba(24,33,47,.08)] ${logoClassName}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- 제휴사 로고입니다. */}
-        <img alt="온디스크" className="h-full w-auto" src="/ondisk-logo.png" />
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element -- 제휴사 로고입니다. */}
+      <img alt="온디스크" className={`w-auto ${logoClassName}`} src="/ondisk-logo.png" />
       <SponsoredTag />
     </span>
   );
@@ -189,7 +187,7 @@ export function OnDiskBox({ className = "" }: { className?: string }) {
     >
       <Art className="bottom-0 right-[-2px] w-[50%]" id="ondisk-box" />
       <span className="absolute left-5 top-1/2 z-10 block -translate-y-1/2">
-        <BrandRow logoClassName="h-[22px] px-[7px]" />
+        <BrandRow logoClassName="h-[22px]" />
         <Copy ctaClassName="mt-2 text-[12px]" headlineClassName="mt-2.5 text-[19px]" />
       </span>
     </a>
@@ -207,7 +205,7 @@ export function OnDiskBanner({ className = "" }: { className?: string }) {
     >
       <Art className="bottom-0 right-[-4px] w-[48%] sm:bottom-1.5 sm:right-[6%] sm:w-[280px]" id="ondisk-banner" />
       <span className="absolute left-5 top-1/2 z-10 block -translate-y-1/2 sm:left-11">
-        <BrandRow logoClassName="h-6 px-2 sm:h-7 sm:px-[9px]" />
+        <BrandRow logoClassName="h-6 sm:h-7" />
         <Copy
           ctaClassName="mt-2 text-[12.5px] sm:mt-3 sm:text-[15px]"
           headlineClassName="mt-2.5 text-[20px] sm:mt-3.5 sm:text-[30px]"
