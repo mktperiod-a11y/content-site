@@ -7,6 +7,7 @@ import { ReleaseRefresh } from "@/components/release-refresh";
 import { JsonLd, itemListSchema } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
 import { TheaterChainBadges } from "@/components/theater-booking-links";
+import { UpdatedAt } from "@/components/updated-at";
 import {
   getReleaseCatalog,
   getReleaseCount,
@@ -22,16 +23,6 @@ const GRID_CLASS_NAME =
 function formatOpenDate(value: string) {
   if (!/^\d{8}$/.test(value)) return "개봉일 미정";
   return `${Number(value.slice(4, 6))}월 ${Number(value.slice(6, 8))}일`;
-}
-
-function formatUpdatedAt(value: number | null) {
-  if (!value) return "첫 수집 전";
-  return new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(value));
 }
 
 function formatMovieMetadata(movie: ReleaseMovie) {
@@ -245,9 +236,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
             </h2>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-medium text-muted-foreground">
-              마지막 갱신 {formatUpdatedAt(catalog.lastSuccessAt)}
-            </span>
+            <UpdatedAt at={catalog.lastSuccessAt} healthy={!catalog.stale} />
             {catalog.movies.length > 0 && (
               <ReleaseRefresh shouldRefresh={catalog.stale} />
             )}
