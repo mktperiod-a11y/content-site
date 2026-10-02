@@ -51,8 +51,9 @@ function ReleaseMovieCard({
 }) {
   const subscription = movie.providers.filter((provider) => provider.type === "subscription");
   const extraCount = Math.max(subscription.length - 2, 0);
-  const showProviderArea =
-    subscription.length > 0 || view === "upcoming" || movie.movieCd === null;
+  // 제공처가 확인된 작품만 칩을 보인다. 제공처가 없거나 아직 모르는 작품(예정작·KOBIS 미연결
+  // 상영작)은 카드에 안내 문구를 두지 않고, 제공처 안내는 상세 화면에 맡긴다.
+  const showProviderArea = subscription.length > 0;
   const cardClassName =
     "group flex min-h-full flex-col overflow-hidden rounded-2xl bg-card shadow-[0_16px_40px_rgba(20,32,51,0.08)] ring-1 ring-border/80 transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(20,32,51,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-muted";
   const cardContent = (
@@ -108,7 +109,7 @@ function ReleaseMovieCard({
           // 보여주고 나머지는 "+N" 으로 묶는다.
           <div className="@container mt-auto pt-3">
             <div className="flex min-h-8 flex-nowrap items-end gap-1">
-              {subscription.length ? (
+              {subscription.length > 0 && (
                 <>
                   {subscription.slice(0, 2).map((provider, index) => (
                     <span
@@ -135,12 +136,6 @@ function ReleaseMovieCard({
                     </span>
                   )}
                 </>
-              ) : (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {view === "upcoming"
-                    ? "개봉 후 제공처가 확인돼요"
-                    : "검색에서 제공처 확인하기"}
-                </span>
               )}
             </div>
           </div>

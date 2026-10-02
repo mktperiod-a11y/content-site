@@ -188,9 +188,9 @@ test("keeps posterless upcoming cards from breaking apart", () => {
   // 포스터가 없는 카드에서 아이콘과 문구가 카드 높이만큼 벌어졌다.
   assert.doesNotMatch(pageSource, /grid size-full place-items-center/);
   assert.match(pageSource, /flex size-full flex-col items-center justify-center/);
-  // 아직 개봉하지 않은 작품에 구독형 제공처 안내를 붙이지 않는다.
-  assert.match(pageSource, /view === "upcoming"/);
-  assert.match(pageSource, /개봉 후 제공처가 확인돼요/);
+  // 제공처가 확인되지 않은 카드에는 안내 문구를 붙이지 않는다(제공처 안내는 상세 화면 몫).
+  assert.match(pageSource, /const showProviderArea = subscription\.length > 0;/);
+  assert.doesNotMatch(pageSource, /개봉 후 제공처가 확인돼요|검색에서 제공처 확인하기/);
 });
 
 test("serves release posters from D1 without per-card API calls", () => {
