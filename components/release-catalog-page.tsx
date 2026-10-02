@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calculator, CalendarDays, Clapperboard, Search, Star } from "lucide-react";
 
+import { ReleaseMoreDetails } from "@/components/release-more-details";
 import { ReleaseRefresh } from "@/components/release-refresh";
 import { JsonLd, itemListSchema } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
@@ -317,13 +318,17 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
               ))}
             </div>
             {catalog.movies.length > INITIAL_VISIBLE_COUNT && (
-              <details className="group mt-6">
-                <summary className="mx-auto flex min-h-12 w-full max-w-xs cursor-pointer list-none items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-bold text-foreground transition-colors hover:border-brand-muted hover:bg-brand-soft">
-                  <span className="group-open:hidden">
-                    {catalog.movies.length - INITIAL_VISIBLE_COUNT}편 더 보기
-                  </span>
-                  <span className="hidden group-open:inline">접기</span>
-                </summary>
+              <ReleaseMoreDetails
+                storageKey={view}
+                summary={
+                  <summary className="mx-auto flex min-h-12 w-full max-w-xs cursor-pointer list-none items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-bold text-foreground transition-colors hover:border-brand-muted hover:bg-brand-soft">
+                    <span className="group-open:hidden">
+                      {catalog.movies.length - INITIAL_VISIBLE_COUNT}편 더 보기
+                    </span>
+                    <span className="hidden group-open:inline">접기</span>
+                  </summary>
+                }
+              >
                 <div className={GRID_CLASS_NAME}>
                   {catalog.movies.slice(INITIAL_VISIBLE_COUNT).map((movie) => (
                     <ReleaseMovieCard
@@ -333,7 +338,7 @@ export async function ReleaseCatalogPage({ view }: { view: ReleaseView }) {
                     />
                   ))}
                 </div>
-              </details>
+              </ReleaseMoreDetails>
             )}
           </>
         ) : (

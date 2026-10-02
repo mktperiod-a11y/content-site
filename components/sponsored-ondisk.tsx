@@ -78,7 +78,7 @@ export function OnDiskBox({ className = "" }: { className?: string }) {
     >
       <Art className="bottom-0 right-[-2px] w-[50%]" />
       {/* 사이드바 폭이 화면마다 달라, 글자와 여백을 박스 폭(cqw)에 맞춰 키운다.
-          KDisk 박스와 같이 350px 이하 폰에서는 글자를 한 번 더 줄이고, 300px 미만에서는 숨긴다. */}
+          350px 이하 폰에서는 글자를 한 번 더 줄이고, 300px 미만에서는 숨긴다. */}
       <Copy
         layout={{
           brand: "left-[5.5cqw] top-[5cqw]",

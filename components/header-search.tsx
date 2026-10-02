@@ -8,12 +8,6 @@ import { Input } from "@/components/ui/input";
 import { fetchMovieSearch, isSearchable } from "@/lib/movie-search";
 import type { KobisMovieSummary } from "@/lib/kobis";
 
-/**
- * 헤더 어디에서나 쓰는 전역 검색창.
- *
- * 검색 페이지에서는 `onSearch`로 검색 탭의 결과 영역을 그대로 재사용하고,
- * 그 밖의 페이지에서는 `/search?q=`로 이동해 같은 결과 화면을 보여준다.
- */
 const PLACEHOLDER = "영화 제목 또는 감독명 검색";
 const SHORT_PLACEHOLDER = "영화 제목·감독 검색";
 /** 탭과 한 줄에 놓여 검색창이 좁아지는 폭. 이때는 안내 문구가 잘리지 않게 줄인다. */
@@ -32,6 +26,12 @@ function usePlaceholder() {
   return narrow ? SHORT_PLACEHOLDER : PLACEHOLDER;
 }
 
+/**
+ * 헤더 어디에서나 쓰는 전역 검색창.
+ *
+ * 검색 페이지에서는 `onSearch`로 검색 탭의 결과 영역을 그대로 재사용하고,
+ * 그 밖의 페이지에서는 `/search?q=`로 이동해 같은 결과 화면을 보여준다.
+ */
 export function HeaderSearch({ onSearch }: { onSearch?: (query: string) => void }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
