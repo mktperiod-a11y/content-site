@@ -169,6 +169,44 @@ export function isLikelyReRelease(
   return isOldRelease || hasLargeYearGap;
 }
 
+/**
+ * 최신 개봉작(1탭)의 제목 묶음. 극장 3사 상영작을 제목별로 모은다.
+ * 목록과 히어로의 편수가 같은 조건을 쓰도록 한곳에 둔다.
+ */
+const NOW_PLAYING_TITLES = `
+WITH theater_titles AS (
+  SELECT normalized_title,
+         MIN(title_ko) AS title_ko,
+         MAX(open_date) AS open_date,
+         MAX(poster_url) AS poster_url,
+         MAX(kobis_movie_cd) AS kobis_movie_cd,
+         MAX(kobis_status = 'ambiguous') AS ambiguous,
+         COUNT(DISTINCT theater_code) AS theater_count
+  FROM theater_movies
+  GROUP BY normalized_title
+)`;
+
+/**
+ * 최신 개봉작 카드의 출처. 포스터가 없거나 상세로 이을 작품이 없는 제목은 목록에
+ * 내보내지 않는다("포스터 준비 중"·검색으로 가는 카드를 보이지 않게, 2026-10-02).
+ * 데이터는 지우지 않으므로 포스터나 작품이 채워지면 다음 조회부터 다시 나온다.
+ */
+const NOW_PLAYING_SOURCE = `
+FROM theater_titles
+-- 같은 제목 작품이 여러 편이라 어느 편인지 모르는 제목은 상세에 잇지 않는다
+-- (movie_cd 가 비면 카드는 검색으로 보낸다). 수집이 편을 정해 두었으면
+-- 그 편에, 아니면 지금처럼 같은 제목 작품 중 가장 최근 개봉작에 잇는다.
+LEFT JOIN movies AS m ON NOT theater_titles.ambiguous AND m.movie_cd = COALESCE(theater_titles.kobis_movie_cd, (
+  SELECT candidate.movie_cd
+  FROM movies AS candidate
+  WHERE candidate.normalized_title = theater_titles.normalized_title
+  ORDER BY candidate.open_date DESC
+  LIMIT 1
+))
+WHERE m.movie_cd IS NOT NULL
+  AND NOT theater_titles.ambiguous
+  AND COALESCE(m.poster_url, theater_titles.poster_url) IS NOT NULL`;
+
 export function getReleaseWindow(now = new Date()) {
   return {
     today: getKoreaDateString(now),
@@ -201,17 +239,7 @@ export async function getReleaseCatalog(
     const movieQuery = view === "now"
       ? db
           .prepare(
-            `WITH theater_titles AS (
-               SELECT normalized_title,
-                      MIN(title_ko) AS title_ko,
-                      MAX(open_date) AS open_date,
-                      MAX(poster_url) AS poster_url,
-                      MAX(kobis_movie_cd) AS kobis_movie_cd,
-                      MAX(kobis_status = 'ambiguous') AS ambiguous,
-                      COUNT(DISTINCT theater_code) AS theater_count
-               FROM theater_movies
-               GROUP BY normalized_title
-             )
+            `${NOW_PLAYING_TITLES}
              SELECT m.movie_cd,
                     COALESCE(NULLIF(m.title_ko, ''), theater_titles.title_ko) AS title_ko,
                     theater_titles.normalized_title,
@@ -229,17 +257,7 @@ export async function getReleaseCatalog(
                          ELSE COALESCE(m.poster_url, theater_titles.poster_url) END AS poster_url,
                     m.vote_average,
                     COALESCE(m.vote_count, 0) AS vote_count
-             FROM theater_titles
-             -- 같은 제목 작품이 여러 편이라 어느 편인지 모르는 제목은 상세에 잇지 않는다
-             -- (movie_cd 가 비면 카드는 검색으로 보낸다). 수집이 편을 정해 두었으면
-             -- 그 편에, 아니면 지금처럼 같은 제목 작품 중 가장 최근 개봉작에 잇는다.
-             LEFT JOIN movies AS m ON NOT theater_titles.ambiguous AND m.movie_cd = COALESCE(theater_titles.kobis_movie_cd, (
-               SELECT candidate.movie_cd
-               FROM movies AS candidate
-               WHERE candidate.normalized_title = theater_titles.normalized_title
-               ORDER BY candidate.open_date DESC
-               LIMIT 1
-             ))
+             ${NOW_PLAYING_SOURCE}
              ORDER BY theater_titles.theater_count DESC, open_date DESC, title_ko ASC
              LIMIT ?`,
           )
@@ -350,8 +368,9 @@ export async function getReleaseCount(view: ReleaseView): Promise<number> {
     const row = view === "now"
       ? await db
           .prepare(
-            `SELECT COUNT(*) AS count FROM (
-               SELECT 1 FROM theater_movies GROUP BY normalized_title LIMIT ?
+            `${NOW_PLAYING_TITLES}
+             SELECT COUNT(*) AS count FROM (
+               SELECT 1 ${NOW_PLAYING_SOURCE} LIMIT ?
              )`,
           )
           .bind(limit)

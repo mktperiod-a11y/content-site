@@ -73,17 +73,18 @@ test("collection queries run on a real SQLite schema", async () => {
   assert.equal(ids.refreshed, true);
 });
 
-test("the list follows the stored edition and leaves ambiguous titles unlinked", async () => {
+test("the list follows the stored edition and hides cards it cannot complete", async () => {
+  sql.prepare("UPDATE theater_movies SET poster_url = 'https://image.tmdb.org/t/p/w342/a.jpg' WHERE normalized_title = '시간을달리는소녀'").run();
   const { movies, unavailable } = await release.getReleaseCatalog("now");
   assert.equal(unavailable, false);
   const byTitle = Object.fromEntries(movies.map((movie) => [movie.titleKo, movie]));
   // 같은 제목 중 최근작(2010 실사)이 아니라 수집이 고른 2006 애니에 잇는다.
   assert.equal(byTitle["시간을 달리는 소녀"].movieCd, "20070216");
   assert.equal(byTitle["시간을 달리는 소녀"].productionYear, "2006");
-  // 애매한 제목은 상세 없이 검색으로, 연도 미상.
-  assert.equal(byTitle["파멸"].movieCd, null);
-  assert.equal(byTitle["파멸"].productionYear, "");
-  assert.equal(byTitle["파멸"].posterUrl, null);
+  // 애매한 제목(파멸)과 상세·포스터가 없는 제목(새 영화)은 목록에 내보내지 않는다.
+  assert.deepEqual(Object.keys(byTitle), ["시간을 달리는 소녀"]);
+  // 히어로의 "최신 N편"도 같은 조건으로 센다.
+  assert.equal(await release.getReleaseCount("now"), movies.length);
 });
 
 test("detail pages do not claim another edition is in theaters", async () => {
