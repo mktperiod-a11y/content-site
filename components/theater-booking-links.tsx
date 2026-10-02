@@ -125,7 +125,7 @@ export function TheaterBookingLinks({
       >
         {links.map((theater) => (
           <a
-            aria-label={theater.label}
+            aria-label={`${theater.label}${stateByCode.get(theater.code)?.availability === "unknown" ? " (확인 필요)" : ""}`}
             className={`flex items-center gap-3 rounded-xl border border-border bg-white font-bold text-foreground transition-colors hover:border-brand-muted hover:bg-brand-soft max-[281px]:justify-center ${compact ? "min-h-9 px-3" : "min-h-12 px-4 @min-[30rem]:justify-center @min-[30rem]:gap-2 @min-[30rem]:px-2"}`}
             href={theater.href}
             key={theater.code}
