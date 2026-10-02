@@ -31,6 +31,10 @@ export function generateMetadata(): Metadata {
       icon: "/favicon.svg",
       shortcut: "/favicon.svg",
     },
+    // 검색엔진 사이트 소유 확인(공개값). 네이버 서치어드바이저.
+    verification: {
+      other: { "naver-site-verification": "717ce11afc03a92567cf89a3305bc44244759141" },
+    },
     // 링크를 공유했을 때 미리보기가 뜨도록 한다. 각 페이지의 title/description을
     // 그대로 물려받으므로 페이지별로 따로 적을 필요가 없다.
     openGraph: {
