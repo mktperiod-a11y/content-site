@@ -9,6 +9,8 @@ export type TheaterSourceMovie = {
   normalizedTitle: string;
   openDate: string;
   bookingAvailable: boolean;
+  /** 극장사 포스터 주소. 어느 작품인지 애매하거나 TMDB 포스터가 없을 때만 카드에 쓴다. */
+  posterUrl: string | null;
 };
 
 const REQUEST_TIMEOUT_MS = 12_000;
@@ -107,6 +109,39 @@ export function stripScreeningTags(title: string) {
   return current;
 }
 
+/**
+ * CGV 포스터 주소. 목록 응답에 포스터 필드가 없어, 누리집이 쓰는 주소 규칙
+ * (영화번호를 9자리로 채운 앞 6자리/영화번호/영화번호_320.jpg)으로 만든다.
+ * 8자리 번호(30001476)는 누리집에서 실제로 뜨는 것을 확인했다. 5자리 옛 번호도
+ * 예전 CGV 이미지 주소가 같은 규칙이라 쓰되, 못 불러오면 카드가 다음 포스터나
+ * "포스터 준비 중"으로 넘어간다. 번호가 그 작품의 것이라 다른 작품 포스터가 뜨지는 않는다.
+ */
+export function cgvPosterUrl(movieNo: string) {
+  if (!/^\d{5,9}$/.test(movieNo)) return null;
+  const folder = movieNo.padStart(9, "0").slice(0, 6);
+  return `https://cdn.cgv.co.kr/cgvpomsfilm/Movie/Thumbnail/Poster/${folder}/${movieNo}/${movieNo}_320.jpg`;
+}
+
+/**
+ * 극장 응답의 이미지 경로를 https 주소로 바꾼다. 상대 경로면 host 를 붙인다.
+ * 우리 사이트가 https 라 http 이미지는 브라우저가 막거나 바꿔 부르므로 처음부터 https 로 둔다.
+ */
+export function toTheaterImageUrl(value: unknown, host: string) {
+  const raw = asString(value);
+  if (!raw || !/\.(?:jpe?g|png|webp|gif)(?:\?.*)?$/i.test(raw)) return null;
+  let url: URL;
+  try {
+    url = new URL(raw.replace(/^\/\//, "https://"), host);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+  url.protocol = "https:";
+  // "cf.lottecinema.co.kr//Media/..." 처럼 겹친 빗금을 하나로 줄인다.
+  url.pathname = url.pathname.replace(/\/{2,}/g, "/");
+  return url.toString();
+}
+
 export function normalizeTheaterDate(value: unknown) {
   const raw = asString(value);
   const match = raw.match(/(\d{4})\D?(\d{2})\D?(\d{2})/);
@@ -174,6 +209,7 @@ export function parseCgvCurrentMovies(payload: unknown): TheaterSourceMovie[] {
       normalizedTitle,
       openDate: normalizeTheaterDate(value.realOpenYmd || value.rlsYmd),
       bookingAvailable: isYes(value.atktPsblYn),
+      posterUrl: cgvPosterUrl(theaterMovieId),
     }];
   });
 }
@@ -214,6 +250,7 @@ export function parseMegaboxMovies(payload: unknown, today = koreaToday()): Thea
       normalizedTitle,
       openDate,
       bookingAvailable: isYes(value.bokdAbleYn) || isYes(value.bokdAbleAt),
+      posterUrl: toTheaterImageUrl(value.imgPathNm, "https://img.megabox.co.kr"),
     }];
   });
 }
@@ -281,6 +318,7 @@ export function parseLotteMovies(payload: unknown, today = koreaToday()): Theate
       normalizedTitle,
       openDate,
       bookingAvailable: isYes(value.BookingYN),
+      posterUrl: toTheaterImageUrl(value.PosterURL, "https://cf.lottecinema.co.kr"),
     }];
   });
 }

@@ -14,6 +14,10 @@ const pageSource = await readFile(
   new URL("../components/release-catalog-page.tsx", import.meta.url),
   "utf8",
 );
+const posterSource = await readFile(
+  new URL("../components/release-poster.tsx", import.meta.url),
+  "utf8",
+);
 const searchPageSource = await readFile(
   new URL("../app/search/page.tsx", import.meta.url),
   "utf8",
@@ -186,8 +190,11 @@ test("does not skip a daily sync because the previous run finished late", () => 
 test("keeps posterless upcoming cards from breaking apart", () => {
   // grid + place-items-center 는 자식 둘을 각각 다른 행에 중앙 정렬해
   // 포스터가 없는 카드에서 아이콘과 문구가 카드 높이만큼 벌어졌다.
-  assert.doesNotMatch(pageSource, /grid size-full place-items-center/);
-  assert.match(pageSource, /flex size-full flex-col items-center justify-center/);
+  // 자리표시자는 포스터를 못 불러올 때도 쓰도록 ReleasePoster 안으로 옮겼다.
+  assert.match(pageSource, /<ReleasePoster/);
+  assert.doesNotMatch(posterSource, /grid size-full place-items-center/);
+  assert.match(posterSource, /flex size-full flex-col items-center justify-center/);
+  assert.match(posterSource, /포스터 준비 중/);
   // 제공처가 확인되지 않은 카드에는 안내 문구를 붙이지 않는다(제공처 안내는 상세 화면 몫).
   // 구독형 OTT 여부는 카드 아래 칩 대신 개봉일 라벨 아래 짧은 라벨로만 알린다.
   assert.match(pageSource, /const onSubscription = movie\.providers\.some\(\(provider\) => provider\.type === "subscription"\);/);

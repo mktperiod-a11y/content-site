@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Calculator, CalendarDays, Clapperboard, Search, Star } from "lucide-react";
 
 import { ReleaseMoreDetails } from "@/components/release-more-details";
+import { ReleasePoster } from "@/components/release-poster";
 import { ReleaseRefresh } from "@/components/release-refresh";
 import { JsonLd, itemListSchema } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
@@ -57,21 +58,13 @@ function ReleaseMovieCard({
   const cardContent = (
     <>
       <div className="relative aspect-[2/3] overflow-hidden bg-secondary">
-        {movie.posterUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- D1에 저장된 TMDB CDN 원격 이미지입니다.
-          <img
-            alt={`${movie.titleKo} 포스터`}
-            className="size-full object-cover transition duration-300 group-hover:scale-[1.025]"
-            fetchPriority={priority ? "high" : "auto"}
-            loading={priority ? "eager" : "lazy"}
-            src={movie.posterUrl}
-          />
-        ) : (
-          <div className="flex size-full flex-col items-center justify-center gap-2 px-5 text-center text-sm font-medium text-muted-foreground">
-            <Clapperboard className="size-8 opacity-40" />
-            <span>포스터 준비 중</span>
-          </div>
-        )}
+        <ReleasePoster
+          alt={`${movie.titleKo} 포스터`}
+          priority={priority}
+          sources={[movie.posterUrl, ...movie.theaterPosterUrls].filter(
+            (url): url is string => Boolean(url),
+          )}
+        />
         <span className="absolute left-3 top-3 flex flex-col items-start gap-1">
           <span className="rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
             {movie.isReRelease ? "재개봉" : formatOpenDate(movie.openDate)}

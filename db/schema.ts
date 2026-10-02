@@ -69,12 +69,20 @@ export const theaterMovies = sqliteTable(
     normalizedTitle: text("normalized_title").notNull(),
     openDate: text("open_date").notNull().default(""),
     posterUrl: text("poster_url"),
+    /**
+     * 극장사가 쓰는 포스터 주소. 같은 제목의 작품이 여러 편이라 어느 편인지
+     * 가릴 수 없을 때(kobis_status = 'ambiguous')와, TMDB 포스터를 찾지 못했을
+     * 때만 카드에 쓴다. 극장 쪽 이미지라 못 불러오면 "포스터 준비 중"으로 둔다.
+     */
+    theaterPosterUrl: text("theater_poster_url"),
     tmdbStatus: text("tmdb_status").notNull().default("pending"),
     tmdbUpdatedAt: integer("tmdb_updated_at"),
     /**
      * 이 제목을 KOBIS에서 찾아봤는지. 극장에는 걸려 있지만 KOBIS 수집 창
      * (오늘 -60일~+120일) 밖이라 movies에 없는 작품을 채워 넣기 위한 것으로,
      * "찾아봤지만 없었다"를 남겨야 매 수집마다 같은 제목을 다시 묻지 않는다.
+     * 'ambiguous'는 같은 제목이 여러 편인데 극장 개봉일과 ±1년 안에 드는 편이
+     * 없어 어느 작품인지 정할 수 없다는 뜻이다. 그런 제목은 상세에 잇지 않는다.
      */
     kobisStatus: text("kobis_status").notNull().default("pending"),
     kobisUpdatedAt: integer("kobis_updated_at"),

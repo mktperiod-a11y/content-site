@@ -80,6 +80,7 @@ type TheaterRow = {
   theater_code: TheaterCode;
   normalized_title: string;
   booking_available: number;
+  kobis_status?: string;
 };
 
 function syncKey(code: TheaterCode) {
@@ -136,12 +137,13 @@ function upsertStatement(movie: TheaterSourceMovie, checkedAt: number) {
     .prepare(
       `INSERT INTO theater_movies
          (theater_code, theater_movie_id, title_ko, normalized_title,
-          open_date, booking_available, checked_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
+          open_date, theater_poster_url, booking_available, checked_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(theater_code, theater_movie_id) DO UPDATE SET
          title_ko = excluded.title_ko,
          normalized_title = excluded.normalized_title,
          open_date = excluded.open_date,
+         theater_poster_url = excluded.theater_poster_url,
          booking_available = excluded.booking_available,
          checked_at = excluded.checked_at`,
     )
@@ -151,6 +153,7 @@ function upsertStatement(movie: TheaterSourceMovie, checkedAt: number) {
       movie.titleKo,
       movie.normalizedTitle,
       movie.openDate,
+      movie.posterUrl,
       movie.bookingAvailable ? 1 : 0,
       checkedAt,
     );
@@ -242,6 +245,8 @@ async function getTheaterPosterTargets(now: number) {
                  AND m.production_year <> '') AS production_year
        FROM theater_movies
        WHERE poster_url IS NULL
+         -- 어느 작품인지 정하지 못한 제목은 기준 연도도 믿을 수 없다. 극장 포스터를 쓴다.
+         AND kobis_status <> 'ambiguous'
          AND (
            tmdb_status = 'pending'
            OR tmdb_updated_at IS NULL
@@ -415,6 +420,12 @@ async function acquireKobisLock(now: number, token: string) {
 /**
  * 극장에는 걸려 있는데 movies에 대응 레코드가 없는 제목을 고른다.
  * 이런 제목의 카드는 상세 주소가 없어 검색 탭으로 보낼 수밖에 없다.
+ *
+ * 이 수집이 이어 준 제목('matched')과 애매하다고 본 제목('ambiguous')도 재시도
+ * 기한이 지나면 다시 본다. 같은 제목 작품이 여러 편이면 처음 고른 편이 틀렸을 수
+ * 있고(시간을 달리는 소녀: 극장은 2006년 애니, 우리는 2010년 실사에 이었다),
+ * 극장 개봉일이 바뀌면 판단도 바뀐다. KOBIS 수집 창으로 채운 제목('pending')은
+ * 그대로 건너뛴다.
  */
 async function getTheaterKobisTargets(now: number) {
   const result = await getD1()
@@ -423,9 +434,12 @@ async function getTheaterKobisTargets(now: number) {
               MIN(tm.title_ko) AS title_ko,
               MAX(tm.open_date) AS open_date
        FROM theater_movies AS tm
-       WHERE NOT EXISTS (
-               SELECT 1 FROM movies AS m
-               WHERE m.normalized_title = tm.normalized_title
+       WHERE (
+               NOT EXISTS (
+                 SELECT 1 FROM movies AS m
+                 WHERE m.normalized_title = tm.normalized_title
+               )
+               OR tm.kobis_status IN ('matched', 'ambiguous')
              )
          AND (
                tm.kobis_status = 'pending'
@@ -441,6 +455,14 @@ async function getTheaterKobisTargets(now: number) {
   return result.results ?? [];
 }
 
+/** 같은 제목 작품이 여러 편일 때, 극장 개봉일과 이만큼(년) 안에 드는 편만 같은 작품으로 본다. */
+const KOBIS_YEAR_TOLERANCE = 1;
+
+function kobisYear(movie: KobisMovieSummary) {
+  if (/^\d{8}$/.test(movie.openDt)) return Number(movie.openDt.slice(0, 4));
+  return /^\d{4}$/.test(movie.prdtYear) ? Number(movie.prdtYear) : null;
+}
+
 /**
  * 후보 중 채택할 KOBIS 레코드를 고른다.
  *
@@ -448,32 +470,38 @@ async function getTheaterKobisTargets(now: number) {
  * "괴물들"을 물어오는 식의 오매칭이 생기고, 잘못 붙은 상세 페이지는 없는 것만
  * 못하다. (포스터 매칭이 findTmdbMatch에서 쓰는 것과 같은 원칙이다.)
  *
- * 같은 제목이 여러 편이면 극장이 알려준 개봉일에 가장 가까운 편을 고른다.
- * 리메이크·동명이인 작품에서 엉뚱한 연도를 집지 않기 위해서다.
+ * 같은 제목이 한 편뿐이면 그 편이다(오래된 작품의 재개봉도 여기에 든다).
+ * 여러 편이면 극장이 알려준 개봉일과 ±1년 안에 드는 편 중 가장 가까운 편을 고른다.
+ * 그런 편이 없으면 어느 작품인지 정할 수 없으므로 "ambiguous"를 돌려준다.
+ * 가장 가까운 편을 억지로 고르면 시간을 달리는 소녀(2006 애니 재개봉)에
+ * 2010년 실사판이 붙었다 — 잘못 붙은 상세보다 검색으로 보내는 편이 낫다.
  */
 export function pickKobisMatch(
   candidates: KobisMovieSummary[],
   normalizedTitle: string,
   theaterOpenDate: string,
-): KobisMovieSummary | null {
+): KobisMovieSummary | "ambiguous" | null {
   const exact = candidates.filter(
     (movie) => normalizeTheaterTitle(movie.titleKo) === normalizedTitle,
   );
   if (!exact.length) return null;
   if (exact.length === 1) return exact[0];
 
-  const target = /^\d{8}$/.test(theaterOpenDate) ? Number(theaterOpenDate) : null;
-  return exact.reduce((best, movie) => {
-    if (target === null) {
-      // 기준 날짜가 없으면 가장 최근 개봉작을 쓴다.
-      return movie.openDt > best.openDt ? movie : best;
-    }
-    const distance = (candidate: KobisMovieSummary) =>
-      /^\d{8}$/.test(candidate.openDt)
-        ? Math.abs(Number(candidate.openDt) - target)
-        : Number.MAX_SAFE_INTEGER;
-    return distance(movie) < distance(best) ? movie : best;
+  // 기준 날짜가 없으면 어느 편인지 가릴 근거가 없다.
+  if (!/^\d{8}$/.test(theaterOpenDate)) return "ambiguous";
+  const target = Number(theaterOpenDate);
+  const targetYear = Number(theaterOpenDate.slice(0, 4));
+  const near = exact.filter((movie) => {
+    const year = kobisYear(movie);
+    return year !== null && Math.abs(year - targetYear) <= KOBIS_YEAR_TOLERANCE;
   });
+  if (!near.length) return "ambiguous";
+
+  const distance = (candidate: KobisMovieSummary) =>
+    /^\d{8}$/.test(candidate.openDt)
+      ? Math.abs(Number(candidate.openDt) - target)
+      : Number.MAX_SAFE_INTEGER;
+  return near.reduce((best, movie) => (distance(movie) < distance(best) ? movie : best));
 }
 
 function markKobisStatus(normalizedTitle: string, status: string, now: number) {
@@ -532,6 +560,22 @@ async function matchOneTheaterTitle(target: TheaterKobisTarget, now: number) {
       await markKobisStatus(target.normalized_title, "not_found", now).run();
       return "not_found" as const;
     }
+    if (match === "ambiguous") {
+      // movies에 이미 들어 있는 같은 제목 작품은 지우지 않는다(그 작품의 상세는 맞다).
+      // 목록 카드가 그 작품에 잇지 않도록 상태만 남기고, 그 작품 연도로 찾았을 수
+      // 있는 TMDB 포스터도 비운다. 카드는 극장 포스터를 쓴다.
+      await db.batch([
+        markKobisStatus(target.normalized_title, "ambiguous", now),
+        db
+          .prepare(
+            `UPDATE theater_movies
+             SET poster_url = NULL, tmdb_status = 'pending', tmdb_updated_at = NULL
+             WHERE normalized_title = ?`,
+          )
+          .bind(target.normalized_title),
+      ]);
+      return "ambiguous" as const;
+    }
 
     await db.batch([
       upsertMatchedMovie(match, now),
@@ -562,7 +606,7 @@ export async function syncTheaterKobisMatches() {
 
   try {
     const targets = await getTheaterKobisTargets(now);
-    const results: Array<"matched" | "not_found" | "error"> = [];
+    const results: Array<"matched" | "ambiguous" | "not_found" | "error"> = [];
     // KOBIS는 응답이 느린 편이라 동시 실행을 낮게 잡는다.
     const concurrency = 4;
     for (let index = 0; index < targets.length; index += concurrency) {
@@ -589,6 +633,7 @@ export async function syncTheaterKobisMatches() {
       refreshed: true,
       checked: targets.length,
       matched: results.filter((result) => result === "matched").length,
+      ambiguous: results.filter((result) => result === "ambiguous").length,
       notFound: results.filter((result) => result === "not_found").length,
       errors: results.filter((result) => result === "error").length,
     };
@@ -794,7 +839,7 @@ export async function getTheaterStatuses(title: string) {
     const [movieResult, stateResult] = await Promise.all([
       db
         .prepare(
-          `SELECT theater_code, normalized_title, booking_available
+          `SELECT theater_code, normalized_title, booking_available, kobis_status
            FROM theater_movies WHERE normalized_title = ?`,
         )
         .bind(normalizedTitle)
@@ -821,6 +866,10 @@ export async function getTheaterStatuses(title: string) {
         const isFresh = Boolean(
           state?.last_success_at && now - state.last_success_at < THEATER_SYNC_INTERVAL_MS * 2,
         );
+        // 같은 제목의 다른 작품이 걸려 있을 수 있다. 이 작품이 상영 중이라고 단정하지 않는다.
+        if (row?.kobis_status === "ambiguous") {
+          return { code, availability: "unknown", bookingAvailable: false };
+        }
         if (row) {
           return {
             code,
@@ -842,7 +891,17 @@ export async function getTheaterStatuses(title: string) {
   }
 }
 
-export async function getConfirmedTheatersByTitle(titles: string[]) {
+/**
+ * 제목별로 상영이 확인된 극장사를 돌려준다.
+ *
+ * 같은 제목 작품이 여러 편이라 어느 편인지 모르는 제목('ambiguous')은 기본으로 뺀다.
+ * 검색 결과에서 그 제목의 모든 작품에 극장 표시가 붙지 않게 하기 위해서다. 극장
+ * 목록 카드처럼 "극장에 걸린 그 제목" 자체를 보여줄 때만 includeAmbiguous 를 켠다.
+ */
+export async function getConfirmedTheatersByTitle(
+  titles: string[],
+  { includeAmbiguous = false }: { includeAmbiguous?: boolean } = {},
+) {
   const normalized = Array.from(new Set(titles.map(normalizeTheaterTitle).filter(Boolean)));
   const result = new Map<string, TheaterCode[]>();
   if (!normalized.length) return result;
@@ -857,6 +916,7 @@ export async function getConfirmedTheatersByTitle(titles: string[]) {
          INNER JOIN sync_state AS ss
            ON ss.sync_key = 'theater:' || tm.theater_code
          WHERE tm.normalized_title IN (${placeholders})
+           ${includeAmbiguous ? "" : "AND tm.kobis_status <> 'ambiguous'"}
            AND ss.last_success_at >= ?
            AND ss.status != 'error'`,
       )

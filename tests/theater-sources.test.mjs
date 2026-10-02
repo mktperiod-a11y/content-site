@@ -112,3 +112,65 @@ test("returns null when a title has no screening tag to strip", () => {
   // 떼고 나면 한 글자만 남는 경우도 검색에 쓰지 않는다.
   assert.equal(stripScreeningTags("[더빙] 1"), null);
 });
+
+test("keeps each theater's own poster address for ambiguous or posterless titles", () => {
+  // CGV 응답에는 포스터 필드가 없어 누리집의 주소 규칙으로 만든다(영화번호 30001476 은
+  // 실제 누리집에서 이 주소로 뜨는 것을 확인했다).
+  const cgv = parseCgvCurrentMovies({
+    tabExpoNm: "현재상영작",
+    movctSearchResDtoList: [
+      { movNo: "30001476", movNm: "시간을 달리는 소녀", realOpenYmd: "20160114", atktPsblYn: "Y" },
+      { movNo: "78718", movNm: "옛 번호 작품", realOpenYmd: "20160114", atktPsblYn: "Y" },
+    ],
+  });
+  assert.equal(
+    cgv[0].posterUrl,
+    "https://cdn.cgv.co.kr/cgvpomsfilm/Movie/Thumbnail/Poster/030001/30001476/30001476_320.jpg",
+  );
+  // 5자리 옛 번호도 같은 규칙(못 불러오면 카드가 "포스터 준비 중"으로 넘어간다).
+  assert.equal(
+    cgv[1].posterUrl,
+    "https://cdn.cgv.co.kr/cgvpomsfilm/Movie/Thumbnail/Poster/000078/78718/78718_320.jpg",
+  );
+  // 번호가 아닌 값으로는 주소를 지어내지 않는다.
+  assert.equal(
+    parseCgvCurrentMovies({ tabExpoNm: "현재상영작", movctSearchResDtoList: [{ movNo: "A12", movNm: "x" }] })[0].posterUrl,
+    null,
+  );
+
+  // 롯데시네마는 응답의 주소를 https 로, 겹친 빗금은 하나로.
+  const lotte = parseLotteMovies(
+    {
+      Movies: {
+        Items: [
+          {
+            RepresentationMovieCode: "24708",
+            MovieNameKR: "롯데 작품",
+            ReleaseDate: "2026-09-01",
+            BookingYN: "Y",
+            PosterURL: "http://cf.lottecinema.co.kr//Media/MovieFile/MovieImg/202609/24708_503_1.jpg",
+          },
+        ],
+      },
+    },
+    "20260910",
+  );
+  assert.equal(
+    lotte[0].posterUrl,
+    "https://cf.lottecinema.co.kr/Media/MovieFile/MovieImg/202609/24708_503_1.jpg",
+  );
+
+  // 메가박스는 상대 경로라 이미지 서버를 붙인다. 이미지가 아닌 값은 버린다.
+  const megabox = parseMegaboxMovies(
+    {
+      totCnt: 2,
+      movieList: [
+        { movieNo: "1", movieNm: "메가 작품", rfilmDe: "20260901", imgPathNm: "/SharedImg/2026/09/03/abc.jpg" },
+        { movieNo: "2", movieNm: "경로 없음", rfilmDe: "20260901", imgPathNm: "" },
+      ],
+    },
+    "20260910",
+  );
+  assert.equal(megabox[0].posterUrl, "https://img.megabox.co.kr/SharedImg/2026/09/03/abc.jpg");
+  assert.equal(megabox[1].posterUrl, null);
+});
