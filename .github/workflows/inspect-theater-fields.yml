@@ -1,0 +1,19 @@
+name: 극장 응답 항목 점검 (임시)
+
+# 극장 3사 응답에서 포스터 항목 이름을 확인하려는 임시 점검. 데이터를 저장하지 않는다.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/inspect-theater-fields.mjs
