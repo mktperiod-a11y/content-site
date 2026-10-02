@@ -28,7 +28,8 @@ function cameBack() {
   return entry?.type === "back_forward";
 }
 
-type Snapshot = { open: boolean; y: number };
+/** href: 누른 카드의 주소. 상세 화면의 "목록으로" 버튼이 자기가 이 목록에서 왔는지 확인한다. */
+type Snapshot = { open: boolean; y: number; href?: string };
 
 function readSnapshot(key: string): Snapshot | null {
   try {
@@ -37,6 +38,17 @@ function readSnapshot(key: string): Snapshot | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * 지금 보는 상세 화면(pathname)이 개봉작 목록의 카드를 눌러 들어온 것이면 그 목록("now"/"upcoming")을,
+ * 아니면 null 을 돌려준다.
+ */
+export function readReleaseOrigin(pathname: string): "now" | "upcoming" | null {
+  for (const view of ["now", "upcoming"] as const) {
+    if (readSnapshot(STORAGE_PREFIX + view)?.href === pathname) return view;
+  }
+  return null;
 }
 
 export function ReleaseMoreDetails({
@@ -85,7 +97,8 @@ export function ReleaseMoreDetails({
       const link = (event.target as Element | null)?.closest?.('a[href^="/movie/"], a[href^="/search?q="]');
       if (!link || !ref.current) return;
       try {
-        sessionStorage.setItem(key, JSON.stringify({ open: ref.current.open, y: window.scrollY }));
+        const snapshot: Snapshot = { open: ref.current.open, y: window.scrollY, href: link.getAttribute("href") ?? undefined };
+        sessionStorage.setItem(key, JSON.stringify(snapshot));
       } catch {
         // 저장 실패는 복원만 못 할 뿐 이동에는 영향이 없다.
       }

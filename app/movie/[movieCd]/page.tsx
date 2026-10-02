@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Info, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DetailBackLink } from "@/components/detail-back-link";
 import { ExpandableText } from "@/components/expandable-text";
 import { JsonLd, breadcrumbSchema } from "@/components/json-ld";
 import { MainNav } from "@/components/main-nav";
@@ -344,13 +345,7 @@ export default async function MovieDetailPage({
         )}
 
         <div className="relative mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
-          <Link
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 text-[15px] font-bold text-white shadow-lg shadow-black/15 backdrop-blur transition-colors hover:border-brand/70 hover:bg-white/15 hover:text-brand"
-            href="/search"
-          >
-            <ArrowLeft className="size-4.5" strokeWidth={2.5} />
-            다른 작품 검색하기
-          </Link>
+          <DetailBackLink />
 
           <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end">
             <div className="w-32 shrink-0 overflow-hidden rounded-2xl bg-white/10 shadow-2xl sm:w-44">
