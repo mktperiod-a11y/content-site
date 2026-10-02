@@ -58,13 +58,7 @@ function ReleaseMovieCard({
   const cardContent = (
     <>
       <div className="relative aspect-[2/3] overflow-hidden bg-secondary">
-        <ReleasePoster
-          alt={`${movie.titleKo} 포스터`}
-          priority={priority}
-          sources={[movie.posterUrl, ...movie.theaterPosterUrls].filter(
-            (url): url is string => Boolean(url),
-          )}
-        />
+        <ReleasePoster alt={`${movie.titleKo} 포스터`} priority={priority} src={movie.posterUrl} />
         <span className="absolute left-3 top-3 flex flex-col items-start gap-1">
           <span className="rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
             {movie.isReRelease ? "재개봉" : formatOpenDate(movie.openDate)}

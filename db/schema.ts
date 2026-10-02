@@ -70,11 +70,11 @@ export const theaterMovies = sqliteTable(
     openDate: text("open_date").notNull().default(""),
     posterUrl: text("poster_url"),
     /**
-     * 극장사가 쓰는 포스터 주소. 같은 제목의 작품이 여러 편이라 어느 편인지
-     * 가릴 수 없을 때(kobis_status = 'ambiguous')와, TMDB 포스터를 찾지 못했을
-     * 때만 카드에 쓴다. 극장 쪽 이미지라 못 불러오면 "포스터 준비 중"으로 둔다.
+     * 이 제목이 가리키는 KOBIS 작품. 같은 제목 작품이 여러 편이라 제목만으로는
+     * 어느 편인지 모를 때, 수집이 고른 편을 여기에 적는다. 비어 있으면 목록은
+     * 지금처럼 같은 제목 작품에 잇는다.
      */
-    theaterPosterUrl: text("theater_poster_url"),
+    kobisMovieCd: text("kobis_movie_cd"),
     tmdbStatus: text("tmdb_status").notNull().default("pending"),
     tmdbUpdatedAt: integer("tmdb_updated_at"),
     /**

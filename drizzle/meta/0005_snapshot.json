@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6d4d9045-431f-410c-8333-69908e9880e2",
+  "id": "c036b2ad-2c2d-4528-ad7d-a10ab5a0ba07",
   "prevId": "44190065-6b3c-44ef-9993-6a3c8fb27b80",
   "tables": {
     "detail_cache": {
@@ -400,8 +400,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "theater_poster_url": {
-          "name": "theater_poster_url",
+        "kobis_movie_cd": {
+          "name": "kobis_movie_cd",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

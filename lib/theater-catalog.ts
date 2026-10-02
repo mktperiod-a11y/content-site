@@ -5,7 +5,11 @@ import {
   TMDB_ID_ONLY_STATUS,
 } from "@/lib/enrichment-cache";
 import { listKobisMoviesByTitle, type KobisMovieSummary } from "@/lib/kobis";
-import { findTmdbMatch } from "@/lib/tmdb";
+import {
+  findTmdbMatch,
+  listTmdbExactTitleMatches,
+  type TmdbTitleCandidate,
+} from "@/lib/tmdb";
 import {
   THEATER_CODES,
   THEATER_SOURCE_LOADERS,
@@ -81,6 +85,7 @@ type TheaterRow = {
   normalized_title: string;
   booking_available: number;
   kobis_status?: string;
+  kobis_movie_cd?: string | null;
 };
 
 function syncKey(code: TheaterCode) {
@@ -137,13 +142,12 @@ function upsertStatement(movie: TheaterSourceMovie, checkedAt: number) {
     .prepare(
       `INSERT INTO theater_movies
          (theater_code, theater_movie_id, title_ko, normalized_title,
-          open_date, theater_poster_url, booking_available, checked_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          open_date, booking_available, checked_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(theater_code, theater_movie_id) DO UPDATE SET
          title_ko = excluded.title_ko,
          normalized_title = excluded.normalized_title,
          open_date = excluded.open_date,
-         theater_poster_url = excluded.theater_poster_url,
          booking_available = excluded.booking_available,
          checked_at = excluded.checked_at`,
     )
@@ -153,7 +157,6 @@ function upsertStatement(movie: TheaterSourceMovie, checkedAt: number) {
       movie.titleKo,
       movie.normalizedTitle,
       movie.openDate,
-      movie.posterUrl,
       movie.bookingAvailable ? 1 : 0,
       checkedAt,
     );
@@ -240,12 +243,18 @@ async function getTheaterPosterTargets(now: number) {
   const result = await getD1()
     .prepare(
       `SELECT normalized_title, MIN(title_ko) AS title_ko, MAX(open_date) AS open_date,
-              (SELECT MAX(m.production_year) FROM movies AS m
-               WHERE m.normalized_title = theater_movies.normalized_title
-                 AND m.production_year <> '') AS production_year
+              -- 이 제목이 가리키는 작품을 수집이 정해 두었으면 그 작품의 연도를 쓴다.
+              -- 같은 제목 작품이 movies 에 여러 편 있으면 MAX 가 다른 편의 연도를 집는다.
+              COALESCE(
+                (SELECT NULLIF(m.production_year, '') FROM movies AS m
+                 WHERE m.movie_cd = MAX(theater_movies.kobis_movie_cd)),
+                (SELECT MAX(m.production_year) FROM movies AS m
+                 WHERE m.normalized_title = theater_movies.normalized_title
+                   AND m.production_year <> '')
+              ) AS production_year
        FROM theater_movies
        WHERE poster_url IS NULL
-         -- 어느 작품인지 정하지 못한 제목은 기준 연도도 믿을 수 없다. 극장 포스터를 쓴다.
+         -- 어느 작품인지 정하지 못한 제목은 기준 연도도 믿을 수 없다. "포스터 준비 중"으로 둔다.
          AND kobis_status <> 'ambiguous'
          AND (
            tmdb_status = 'pending'
@@ -504,6 +513,49 @@ export function pickKobisMatch(
   return near.reduce((best, movie) => (distance(movie) < distance(best) ? movie : best));
 }
 
+/** 평가 수로 고를 때, 1등이 최소 이만큼은 평가를 받아야 한다(표본이 적으면 우연이다). */
+const POPULAR_MIN_VOTES = 50;
+/** 평가 수로 고를 때, 1등이 2등의 몇 배 이상이어야 "압도적"으로 보는지. */
+const POPULAR_DOMINANCE_RATIO = 3;
+
+/**
+ * 같은 제목 작품이 여러 편이고 극장 날짜로 가릴 수 없을 때(pickKobisMatch 가
+ * "ambiguous"), TMDB 평가 수가 압도적으로 많은 편을 고른다. 재개봉은 대개 유명한
+ * 편이다(시간을 달리는 소녀: 2006년 애니).
+ *
+ * 압도적이지 않거나, 그 편의 연도(±1년)에 해당하는 KOBIS 작품이 딱 한 편이 아니면
+ * 고르지 않는다(null). 리메이크가 더 유명한데 원작이 특별상영되는 경우처럼, 억지로
+ * 고르면 다시 남의 작품이 붙기 때문이다.
+ */
+export function pickByPopularity(
+  candidates: KobisMovieSummary[],
+  normalizedTitle: string,
+  tmdbMatches: TmdbTitleCandidate[],
+): { movie: KobisMovieSummary; tmdb: TmdbTitleCandidate } | null {
+  const ranked = [...tmdbMatches].sort((a, b) => b.voteCount - a.voteCount);
+  const [top, second] = ranked;
+  if (!top || top.year === null || top.voteCount < POPULAR_MIN_VOTES) return null;
+  if (top.voteCount < (second?.voteCount ?? 0) * POPULAR_DOMINANCE_RATIO) return null;
+
+  const topYear = top.year;
+  const near = candidates.filter((movie) => {
+    if (normalizeTheaterTitle(movie.titleKo) !== normalizedTitle) return false;
+    // KOBIS 는 국내 개봉이 늦은 작품이 많아 제작연도와 개봉연도를 둘 다 본다.
+    const years = [movie.prdtYear, movie.openDt.slice(0, 4)]
+      .filter((value) => /^\d{4}$/.test(value))
+      .map(Number);
+    return years.some((year) => Math.abs(year - topYear) <= KOBIS_YEAR_TOLERANCE);
+  });
+  return near.length === 1 ? { movie: near[0], tmdb: top } : null;
+}
+
+/** 이 제목이 가리키는 KOBIS 작품을 적는다. null 이면 지운다(어느 편인지 모름). */
+function linkKobisMovie(normalizedTitle: string, movieCd: string | null) {
+  return getD1()
+    .prepare("UPDATE theater_movies SET kobis_movie_cd = ? WHERE normalized_title = ?")
+    .bind(movieCd, normalizedTitle);
+}
+
 function markKobisStatus(normalizedTitle: string, status: string, now: number) {
   return getD1()
     .prepare(
@@ -560,28 +612,67 @@ async function matchOneTheaterTitle(target: TheaterKobisTarget, now: number) {
       await markKobisStatus(target.normalized_title, "not_found", now).run();
       return "not_found" as const;
     }
-    if (match === "ambiguous") {
-      // movies에 이미 들어 있는 같은 제목 작품은 지우지 않는다(그 작품의 상세는 맞다).
-      // 목록 카드가 그 작품에 잇지 않도록 상태만 남기고, 그 작품 연도로 찾았을 수
-      // 있는 TMDB 포스터도 비운다. 카드는 극장 포스터를 쓴다.
+
+    if (match !== "ambiguous") {
       await db.batch([
-        markKobisStatus(target.normalized_title, "ambiguous", now),
+        upsertMatchedMovie(match, now),
+        markKobisStatus(target.normalized_title, "matched", now),
+        linkKobisMovie(target.normalized_title, match.movieCd),
+      ]);
+      return "matched" as const;
+    }
+
+    // 극장 날짜로는 가릴 수 없다. 평가 수가 압도적인 편이 있으면 그 편으로 잇고,
+    // 그 편의 TMDB 포스터를 바로 쓴다.
+    const popular = pickByPopularity(
+      candidates,
+      target.normalized_title,
+      await listTmdbExactTitleMatches(target.title_ko),
+    );
+    if (popular) {
+      await db.batch([
+        upsertMatchedMovie(popular.movie, now),
+        // 상세가 같은 TMDB 작품을 바로 찾게 id 만 적는다. 제공처는 확인하지 않았으므로
+        // 'matched' 가 아닌 id_only 상태를 쓴다.
+        db
+          .prepare(
+            `UPDATE movies SET tmdb_id = ?, tmdb_status = ?, tmdb_updated_at = ?
+             WHERE movie_cd = ? AND tmdb_id IS NULL`,
+          )
+          .bind(popular.tmdb.id, TMDB_ID_ONLY_STATUS, now, popular.movie.movieCd),
+        markKobisStatus(target.normalized_title, "matched", now),
+        linkKobisMovie(target.normalized_title, popular.movie.movieCd),
         db
           .prepare(
             `UPDATE theater_movies
-             SET poster_url = NULL, tmdb_status = 'pending', tmdb_updated_at = NULL
+             SET poster_url = ?, tmdb_status = ?, tmdb_updated_at = ?
              WHERE normalized_title = ?`,
           )
-          .bind(target.normalized_title),
+          .bind(
+            popular.tmdb.posterUrl,
+            popular.tmdb.posterUrl ? "matched" : "pending",
+            popular.tmdb.posterUrl ? now : null,
+            target.normalized_title,
+          ),
       ]);
-      return "ambiguous" as const;
+      return "matched" as const;
     }
 
+    // 끝내 정하지 못했다. movies에 이미 들어 있는 같은 제목 작품은 지우지 않는다
+    // (그 작품의 상세는 맞다). 목록 카드가 그 작품에 잇지 않도록 상태만 남기고,
+    // 그 작품 연도로 찾았을 수 있는 TMDB 포스터도 비운다("포스터 준비 중").
     await db.batch([
-      upsertMatchedMovie(match, now),
-      markKobisStatus(target.normalized_title, "matched", now),
+      markKobisStatus(target.normalized_title, "ambiguous", now),
+      linkKobisMovie(target.normalized_title, null),
+      db
+        .prepare(
+          `UPDATE theater_movies
+           SET poster_url = NULL, tmdb_status = 'pending', tmdb_updated_at = NULL
+           WHERE normalized_title = ?`,
+        )
+        .bind(target.normalized_title),
     ]);
-    return "matched" as const;
+    return "ambiguous" as const;
   } catch (error) {
     console.error(`Failed to match theater title ${target.normalized_title}`, error);
     await markKobisStatus(target.normalized_title, "error", now).run();
@@ -821,7 +912,11 @@ export async function syncTheaterMovieTmdbIds() {
   }
 }
 
-export async function getTheaterStatuses(title: string) {
+/**
+ * 상세 화면의 극장별 상영 여부. movieCd 를 넘기면, 극장에 걸린 같은 제목이 다른
+ * 작품을 가리킬 때(같은 제목의 리메이크 등) 이 작품은 상영 중이 아닌 것으로 본다.
+ */
+export async function getTheaterStatuses(title: string, movieCd?: string) {
   const normalizedTitle = normalizeTheaterTitle(title);
   const fallback = {
     initialized: false,
@@ -839,7 +934,7 @@ export async function getTheaterStatuses(title: string) {
     const [movieResult, stateResult] = await Promise.all([
       db
         .prepare(
-          `SELECT theater_code, normalized_title, booking_available, kobis_status
+          `SELECT theater_code, normalized_title, booking_available, kobis_status, kobis_movie_cd
            FROM theater_movies WHERE normalized_title = ?`,
         )
         .bind(normalizedTitle)
@@ -861,7 +956,11 @@ export async function getTheaterStatuses(title: string) {
     return {
       initialized,
       statuses: THEATER_CODES.map((code): TheaterStatus => {
-        const row = rows.find((item) => item.theater_code === code);
+        const row = rows.find(
+          (item) =>
+            item.theater_code === code &&
+            !(movieCd && item.kobis_movie_cd && item.kobis_movie_cd !== movieCd),
+        );
         const state = states.get(syncKey(code));
         const isFresh = Boolean(
           state?.last_success_at && now - state.last_success_at < THEATER_SYNC_INTERVAL_MS * 2,

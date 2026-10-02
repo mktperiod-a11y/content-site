@@ -19,7 +19,7 @@ after(async () => {
   await vite.close();
 });
 
-const { pickKobisMatch } = await vite.ssrLoadModule("/lib/theater-catalog.ts");
+const { pickKobisMatch, pickByPopularity } = await vite.ssrLoadModule("/lib/theater-catalog.ts");
 const catalogSource = await readFile(
   new URL("../lib/theater-catalog.ts", import.meta.url),
   "utf8",
@@ -161,11 +161,66 @@ test("ambiguous titles are neither linked nor given a poster from another editio
   const releaseSource = await readFile(new URL("../lib/release-catalog.ts", import.meta.url), "utf8");
   // 목록 카드는 같은 제목의 다른 작품 상세에 잇지 않는다(검색으로 보낸다).
   assert.match(releaseSource, /LEFT JOIN movies AS m ON NOT theater_titles\.ambiguous AND/);
-  // 그 작품 연도로 찾은 TMDB 포스터를 쓰지 않고 극장 포스터만 쓴다.
+  // 그 작품 연도로 찾은 TMDB 포스터를 쓰지 않는다("포스터 준비 중").
   assert.match(releaseSource, /CASE WHEN theater_titles\.ambiguous THEN NULL/);
-  assert.match(releaseSource, /theaterPosterUrls: theaterPosterUrls\(row\)/);
+  // 수집이 편을 정해 둔 제목은 그 편에 잇는다(같은 제목 작품 중 최근작이 아니라).
+  assert.match(releaseSource, /m\.movie_cd = COALESCE\(theater_titles\.kobis_movie_cd,/);
   // 포스터 수집도 애매한 제목은 건너뛴다.
   assert.match(catalogSource, /AND kobis_status <> 'ambiguous'/);
   // 상세 화면은 그 작품이 상영 중이라고 단정하지 않는다.
   assert.match(catalogSource, /row\?\.kobis_status === "ambiguous"/);
+});
+
+test("never hotlinks theater posters", async () => {
+  // 극장사 이미지를 방문자 브라우저가 직접 끌어오면 극장 서버에 부하를 주고,
+  // 포스터를 쓸 권리도 없다. 포스터는 TMDB 것만 쓴다.
+  const sources = await Promise.all(
+    ["../lib/theater-sources.ts", "../lib/release-catalog.ts", "../components/release-poster.tsx"].map((path) =>
+      readFile(new URL(path, import.meta.url), "utf8"),
+    ),
+  );
+  for (const source of sources) {
+    assert.doesNotMatch(source, /cdn\.cgv\.co\.kr|lottecinema\.co\.kr\/Media|img\.megabox\.co\.kr|theater_poster_url|no-referrer/);
+  }
+});
+
+function tmdb(id, year, voteCount) {
+  return { id, year, posterUrl: `https://image.tmdb.org/t/p/w342/${id}.jpg`, voteCount };
+}
+
+test("picks the overwhelmingly popular edition when the theater date cannot tell", () => {
+  const candidates = [
+    summary("20070070", "시간을 달리는 소녀", "20070705"),
+    summary("20119851", "시간을 달리는 소녀", "20110324"),
+  ];
+  // KOBIS 는 국내 개봉연도(2007)지만 제작연도(2006)로도 맞춘다.
+  candidates[0].prdtYear = "2006";
+  candidates[1].prdtYear = "2010";
+  const picked = pickByPopularity(candidates, "시간을달리는소녀", [tmdb(14069, 2006, 2400), tmdb(54770, 2010, 60)]);
+  assert.equal(picked.movie.movieCd, "20070070");
+  assert.equal(picked.tmdb.id, 14069);
+});
+
+test("does not guess when no edition clearly dominates", () => {
+  const candidates = [
+    summary("19900001", "같은제목", "19900101"),
+    summary("20200001", "같은제목", "20200101"),
+  ];
+  // 3배가 안 된다.
+  assert.equal(pickByPopularity(candidates, "같은제목", [tmdb(1, 1990, 500), tmdb(2, 2020, 200)]), null);
+  // 평가가 너무 적다.
+  assert.equal(pickByPopularity(candidates, "같은제목", [tmdb(1, 1990, 30), tmdb(2, 2020, 2)]), null);
+  // 1등의 연도에 맞는 KOBIS 작품이 없다.
+  assert.equal(pickByPopularity(candidates, "같은제목", [tmdb(1, 2005, 900), tmdb(2, 2020, 10)]), null);
+  // TMDB 에 같은 제목이 없다.
+  assert.equal(pickByPopularity(candidates, "같은제목", []), null);
+});
+
+test("stores which edition a theater title points to", () => {
+  // 고른 편을 적어 두어야 목록·포스터·상세가 같은 제목의 다른 편으로 새지 않는다.
+  assert.match(catalogSource, /linkKobisMovie\(target\.normalized_title, match\.movieCd\)/);
+  assert.match(catalogSource, /linkKobisMovie\(target\.normalized_title, popular\.movie\.movieCd\)/);
+  assert.match(catalogSource, /linkKobisMovie\(target\.normalized_title, null\)/);
+  // 평가 수로 고른 작품도 제공처는 확인하지 않았으므로 'matched' 로 적지 않는다.
+  assert.match(catalogSource, /\.bind\(popular\.tmdb\.id, TMDB_ID_ONLY_STATUS, now, popular\.movie\.movieCd\)/);
 });

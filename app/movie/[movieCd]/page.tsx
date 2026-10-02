@@ -247,7 +247,7 @@ export default async function MovieDetailPage({
 
   const [tmdb, theaterStatus] = await Promise.all([
     seededTmdb ?? getTmdbBundleByTitle(movie.titleKo, movie.prdtYear, movie.titleEn),
-    getTheaterStatuses(movie.titleKo),
+    getTheaterStatuses(movie.titleKo, movieCd),
   ]);
 
   // 제공처까지 저장된 적이 없으면 이번에 가져온 결과로 캐시를 채운다.

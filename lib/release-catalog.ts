@@ -52,11 +52,6 @@ export type ReleaseMovie = {
   directors: string[];
   tmdbId: number | null;
   posterUrl: string | null;
-  /**
-   * 극장사 포스터 주소들(먼저 쓸 순서). posterUrl 이 없거나 불러오지 못했을 때
-   * 차례로 쓴다. 극장 쪽 이미지라 막힐 수 있어, 다 실패하면 "포스터 준비 중"이다.
-   */
-  theaterPosterUrls: string[];
   voteAverage: number | null;
   voteCount: number;
   providers: ReleaseProvider[];
@@ -83,23 +78,9 @@ type MovieRow = {
   directors_json: string;
   tmdb_id: number | null;
   poster_url: string | null;
-  /** 극장 목록(now)에서만 온다. */
-  cgv_poster_url?: string | null;
-  lotte_poster_url?: string | null;
-  megabox_poster_url?: string | null;
   vote_average: number | null;
   vote_count: number;
 };
-
-/**
- * 극장 포스터를 쓸 순서. CGV 는 누리집에서 실제로 뜨는 것을 확인한 주소 규칙이고,
- * 롯데시네마는 응답에 든 주소, 메가박스는 응답의 경로에 이미지 서버를 붙인 것이다.
- */
-function theaterPosterUrls(row: MovieRow) {
-  return [row.cgv_poster_url, row.lotte_poster_url, row.megabox_poster_url].filter(
-    (url): url is string => Boolean(url),
-  );
-}
 
 type ProviderRow = {
   movie_cd: string;
@@ -225,9 +206,7 @@ export async function getReleaseCatalog(
                       MIN(title_ko) AS title_ko,
                       MAX(open_date) AS open_date,
                       MAX(poster_url) AS poster_url,
-                      MAX(CASE WHEN theater_code = 'cgv' THEN theater_poster_url END) AS cgv_poster_url,
-                      MAX(CASE WHEN theater_code = 'lotte' THEN theater_poster_url END) AS lotte_poster_url,
-                      MAX(CASE WHEN theater_code = 'megabox' THEN theater_poster_url END) AS megabox_poster_url,
+                      MAX(kobis_movie_cd) AS kobis_movie_cd,
                       MAX(kobis_status = 'ambiguous') AS ambiguous,
                       COUNT(DISTINCT theater_code) AS theater_count
                FROM theater_movies
@@ -245,24 +224,22 @@ export async function getReleaseCatalog(
                     COALESCE(m.nation_text, '') AS nation_text,
                     COALESCE(m.directors_json, '[]') AS directors_json,
                     m.tmdb_id,
-                    -- 애매한 제목은 같은 이름의 다른 작품 포스터일 수 있어 극장 포스터만 쓴다.
+                    -- 애매한 제목은 같은 이름의 다른 작품 포스터일 수 있어 "포스터 준비 중"으로 둔다.
                     CASE WHEN theater_titles.ambiguous THEN NULL
                          ELSE COALESCE(m.poster_url, theater_titles.poster_url) END AS poster_url,
-                    theater_titles.cgv_poster_url,
-                    theater_titles.lotte_poster_url,
-                    theater_titles.megabox_poster_url,
                     m.vote_average,
                     COALESCE(m.vote_count, 0) AS vote_count
              FROM theater_titles
-             -- 같은 제목 작품이 여러 편이라 어느 편인지 모르는 제목은 상세에 잇지 않는다.
-             -- movie_cd 가 비면 카드는 검색으로 보낸다.
-             LEFT JOIN movies AS m ON NOT theater_titles.ambiguous AND m.movie_cd = (
+             -- 같은 제목 작품이 여러 편이라 어느 편인지 모르는 제목은 상세에 잇지 않는다
+             -- (movie_cd 가 비면 카드는 검색으로 보낸다). 수집이 편을 정해 두었으면
+             -- 그 편에, 아니면 지금처럼 같은 제목 작품 중 가장 최근 개봉작에 잇는다.
+             LEFT JOIN movies AS m ON NOT theater_titles.ambiguous AND m.movie_cd = COALESCE(theater_titles.kobis_movie_cd, (
                SELECT candidate.movie_cd
                FROM movies AS candidate
                WHERE candidate.normalized_title = theater_titles.normalized_title
                ORDER BY candidate.open_date DESC
                LIMIT 1
-             )
+             ))
              ORDER BY theater_titles.theater_count DESC, open_date DESC, title_ko ASC
              LIMIT ?`,
           )
@@ -339,7 +316,6 @@ export async function getReleaseCatalog(
         directors: parseDirectors(row.directors_json),
         tmdbId: row.tmdb_id,
         posterUrl: row.poster_url,
-        theaterPosterUrls: theaterPosterUrls(row),
         voteAverage: row.vote_average,
         voteCount: row.vote_count,
         providers: row.movie_cd ? providersByMovie.get(row.movie_cd) ?? [] : [],

@@ -203,6 +203,47 @@ export async function findTmdbMatch(
   });
 }
 
+export type TmdbTitleCandidate = {
+  id: number;
+  /** TMDB 개봉연도. 모르면 null. */
+  year: number | null;
+  posterUrl: string | null;
+  voteCount: number;
+};
+
+/**
+ * 제목이 정확히 같은 TMDB 작품들을 평가 수와 함께 돌려준다.
+ *
+ * 같은 제목 작품이 여러 편이고 극장 날짜로는 어느 편인지 가릴 수 없을 때,
+ * 어느 편이 압도적으로 유명한지 비교하는 데 쓴다(재개봉은 대개 유명한 편이다).
+ */
+export async function listTmdbExactTitleMatches(titleKo: string): Promise<TmdbTitleCandidate[]> {
+  return withCache(`exact:${titleKo}`, async () => {
+    const json = (await fetchTmdbJson("/search/movie", {
+      query: titleKo,
+      language: "ko-KR",
+      include_adult: "false",
+    })) as { results?: TmdbSearchResult[] } | null;
+
+    const wanted = normalizeTitle(titleKo);
+    return (json?.results ?? [])
+      .filter((result) =>
+        [result.title, result.original_title]
+          .filter(Boolean)
+          .some((title) => normalizeTitle(title as string) === wanted),
+      )
+      .map((result) => {
+        const year = Number((result.release_date ?? "").slice(0, 4));
+        return {
+          id: result.id,
+          year: year || null,
+          posterUrl: tmdbImageUrl(result.poster_path, "w342"),
+          voteCount: result.vote_count ?? 0,
+        };
+      });
+  });
+}
+
 export async function getTmdbMovie(tmdbId: number): Promise<TmdbMovie | null> {
   return withCache(`movie:${tmdbId}`, async () => {
     const json = (await fetchTmdbJson(`/movie/${tmdbId}`, { language: "ko-KR" })) as {
