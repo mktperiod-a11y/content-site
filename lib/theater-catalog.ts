@@ -242,28 +242,34 @@ async function acquirePosterLock(now: number, token: string) {
 async function getTheaterPosterTargets(now: number) {
   const result = await getD1()
     .prepare(
-      `SELECT normalized_title, MIN(title_ko) AS title_ko, MAX(open_date) AS open_date,
+      `WITH targets AS (
+         SELECT normalized_title, MIN(title_ko) AS title_ko, MAX(open_date) AS open_date,
+                MAX(kobis_movie_cd) AS kobis_movie_cd, MAX(checked_at) AS checked_at
+         FROM theater_movies
+         WHERE poster_url IS NULL
+           -- 어느 작품인지 정하지 못한 제목은 기준 연도도 믿을 수 없다. "포스터 준비 중"으로 둔다.
+           AND kobis_status <> 'ambiguous'
+           AND (
+             tmdb_status = 'pending'
+             OR tmdb_updated_at IS NULL
+             OR tmdb_updated_at <= ?
+           )
+         GROUP BY normalized_title
+         ORDER BY MAX(checked_at) DESC, normalized_title ASC
+         LIMIT ?
+       )
+       SELECT t.normalized_title, t.title_ko, t.open_date,
               -- 이 제목이 가리키는 작품을 수집이 정해 두었으면 그 작품의 연도를 쓴다.
               -- 같은 제목 작품이 movies 에 여러 편 있으면 MAX 가 다른 편의 연도를 집는다.
               COALESCE(
                 (SELECT NULLIF(m.production_year, '') FROM movies AS m
-                 WHERE m.movie_cd = MAX(theater_movies.kobis_movie_cd)),
+                 WHERE m.movie_cd = t.kobis_movie_cd),
                 (SELECT MAX(m.production_year) FROM movies AS m
-                 WHERE m.normalized_title = theater_movies.normalized_title
+                 WHERE m.normalized_title = t.normalized_title
                    AND m.production_year <> '')
               ) AS production_year
-       FROM theater_movies
-       WHERE poster_url IS NULL
-         -- 어느 작품인지 정하지 못한 제목은 기준 연도도 믿을 수 없다. "포스터 준비 중"으로 둔다.
-         AND kobis_status <> 'ambiguous'
-         AND (
-           tmdb_status = 'pending'
-           OR tmdb_updated_at IS NULL
-           OR tmdb_updated_at <= ?
-         )
-       GROUP BY normalized_title
-       ORDER BY MAX(checked_at) DESC, normalized_title ASC
-       LIMIT ?`,
+       FROM targets AS t
+       ORDER BY t.checked_at DESC, t.normalized_title ASC`,
     )
     .bind(now - THEATER_POSTER_RETRY_MS, THEATER_POSTER_BATCH_LIMIT)
     .all<TheaterPosterTarget>();
@@ -675,7 +681,18 @@ async function matchOneTheaterTitle(target: TheaterKobisTarget, now: number) {
     return "ambiguous" as const;
   } catch (error) {
     console.error(`Failed to match theater title ${target.normalized_title}`, error);
-    await markKobisStatus(target.normalized_title, "error", now).run();
+    // 다시 확인하다 실패한 제목('matched'·'ambiguous')은 앞선 판단을 그대로 둔다.
+    // 'error' 로 덮으면 애매한 제목이 다시 같은 제목 작품에 이어져 남의 포스터가 뜬다.
+    await getD1()
+      .prepare(
+        `UPDATE theater_movies
+         SET kobis_status = CASE WHEN kobis_status IN ('matched', 'ambiguous')
+                                 THEN kobis_status ELSE 'error' END,
+             kobis_updated_at = ?
+         WHERE normalized_title = ?`,
+      )
+      .bind(now, target.normalized_title)
+      .run();
     return "error" as const;
   }
 }
