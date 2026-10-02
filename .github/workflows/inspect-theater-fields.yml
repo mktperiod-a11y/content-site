@@ -17,3 +17,5 @@ jobs:
         with:
           node-version: "22"
       - run: node scripts/inspect-theater-fields.mjs
+      - name: CGV (사이트 서버 경유)
+        run: curl -sS -m 30 https://www.movieseesaw.workers.dev/api/inspect-cgv-235a807d14c9d986 | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log("count",j.count??j.status);for(const x of j.samples??[]){console.log("----- "+x.movNm);for(const [k,v] of Object.entries(x))console.log("  "+k+" = "+v)}})'
