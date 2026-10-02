@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-10-01T22:54:08.521Z",
+  "generatedAt": "2026-10-02T05:35:49.221Z",
   "counts": {
-    "movies": 405,
+    "movies": 406,
     "theater_movies": 134,
-    "movie_providers": 35
+    "movie_providers": 41
   },
   "tables": {
     "movies": [
@@ -22,7 +22,7 @@
         "vote_count": 400,
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760083842,
-        "updated_at": 1790760083842,
+        "updated_at": 1790919271570,
         "normalized_title": "베크마이스터하모니즈"
       },
       {
@@ -98,6 +98,24 @@
         "normalized_title": "조제호랑이그리고물고기들"
       },
       {
+        "movie_cd": "20070216",
+        "title_ko": "시간을 달리는 소녀",
+        "title_en": "The Girl Who Leapt Through Time",
+        "production_year": "2006",
+        "open_date": "20070614",
+        "genre_text": "애니메이션,판타지,멜로/로맨스",
+        "nation_text": "일본",
+        "directors_json": "[\"호소다 마모루\"]",
+        "tmdb_id": 14069,
+        "poster_url": "https://image.tmdb.org/t/p/w500/zhvpSzYKUMdAfId2VSU1qLFeW5x.jpg",
+        "vote_average": 7.773,
+        "vote_count": 2319,
+        "tmdb_status": "matched",
+        "tmdb_updated_at": 1790919346418,
+        "updated_at": 1790919346418,
+        "normalized_title": "시간을달리는소녀"
+      },
+      {
         "movie_cd": "20078751",
         "title_ko": "런던에서 온 사나이",
         "title_en": "The Man from London",
@@ -112,7 +130,7 @@
         "vote_count": 113,
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760084849,
-        "updated_at": 1790760084849,
+        "updated_at": 1790919271570,
         "normalized_title": "런던에서온사나이"
       },
       {
@@ -184,7 +202,7 @@
         "vote_count": 437,
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760083425,
-        "updated_at": 1790760083425,
+        "updated_at": 1790919271570,
         "normalized_title": "토리노의말"
       },
       {
@@ -220,7 +238,7 @@
         "vote_count": 326,
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790895242264,
-        "updated_at": 1790895242264,
+        "updated_at": 1790919271570,
         "normalized_title": "사탄탱고"
       },
       {
@@ -526,7 +544,7 @@
         "vote_count": 99,
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760080885,
-        "updated_at": 1790760080885,
+        "updated_at": 1790919271570,
         "normalized_title": "호프"
       },
       {
@@ -1912,7 +1930,7 @@
         "vote_count": 278,
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760081843,
-        "updated_at": 1790760081843,
+        "updated_at": 1790919271570,
         "normalized_title": "파리의사생활"
       },
       {
@@ -2212,13 +2230,13 @@
         "genre_text": "애니메이션",
         "nation_text": "미국",
         "directors_json": "[\"캘런 브런커\"]",
-        "tmdb_id": null,
-        "poster_url": null,
-        "vote_average": null,
-        "vote_count": 0,
-        "tmdb_status": "pending",
-        "tmdb_updated_at": null,
-        "updated_at": 1790756913052,
+        "tmdb_id": 1185806,
+        "poster_url": "https://image.tmdb.org/t/p/w500/AnG0YQdnIf3mMYEVc2onMeAROzU.jpg",
+        "vote_average": 8.1,
+        "vote_count": 153,
+        "tmdb_status": "matched",
+        "tmdb_updated_at": 1790919345738,
+        "updated_at": 1790919345738,
         "normalized_title": "퍼피구조대더다이노무비"
       },
       {
@@ -2524,7 +2542,7 @@
         "vote_count": 69,
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790895233080,
-        "updated_at": 1790895233080,
+        "updated_at": 1790919271570,
         "normalized_title": "최후의만찬"
       },
       {
@@ -5908,7 +5926,7 @@
         "vote_count": 1,
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760085220,
-        "updated_at": 1790760085220,
+        "updated_at": 1790919271570,
         "normalized_title": "상상의개와거짓말쟁이고양이"
       },
       {
@@ -7311,7 +7329,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20259551"
       },
       {
         "theater_code": "cgv",
@@ -7325,7 +7344,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7339,7 +7359,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7353,7 +7374,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7367,7 +7389,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7381,7 +7404,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7395,7 +7419,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7409,7 +7434,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7423,7 +7449,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7437,7 +7464,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7451,7 +7479,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20233219"
       },
       {
         "theater_code": "cgv",
@@ -7465,7 +7494,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "not_found",
-        "kobis_updated_at": 1790756058491
+        "kobis_updated_at": 1790756058491,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7479,7 +7509,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7493,7 +7524,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7507,7 +7539,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7521,7 +7554,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7531,11 +7565,12 @@
         "open_date": "20160114",
         "booking_available": 1,
         "checked_at": 1790839866215,
-        "poster_url": "https://image.tmdb.org/t/p/w342/u4lNG7XKLa4NRYj0Iw9qanM4xOV.jpg",
+        "poster_url": "https://image.tmdb.org/t/p/w342/zhvpSzYKUMdAfId2VSU1qLFeW5x.jpg",
         "tmdb_status": "matched",
-        "tmdb_updated_at": 1790760052749,
+        "tmdb_updated_at": 1790919271570,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20070216"
       },
       {
         "theater_code": "cgv",
@@ -7546,10 +7581,11 @@
         "booking_available": 1,
         "checked_at": 1790839866215,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7563,7 +7599,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7577,7 +7614,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790756058491
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20266144"
       },
       {
         "theater_code": "cgv",
@@ -7591,7 +7629,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7605,7 +7644,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7619,7 +7659,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7633,7 +7674,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7647,7 +7689,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20078751"
       },
       {
         "theater_code": "cgv",
@@ -7661,7 +7704,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20001063"
       },
       {
         "theater_code": "cgv",
@@ -7675,7 +7719,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7689,7 +7734,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7703,7 +7749,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20124427"
       },
       {
         "theater_code": "cgv",
@@ -7713,11 +7760,12 @@
         "open_date": "20260916",
         "booking_available": 1,
         "checked_at": 1790839866215,
-        "poster_url": "https://image.tmdb.org/t/p/w342/qRkhptDOpeoAdVw0OlTJNqXd9xL.jpg",
-        "tmdb_status": "matched",
-        "tmdb_updated_at": 1790760052749,
-        "kobis_status": "matched",
-        "kobis_updated_at": 1790757092960
+        "poster_url": null,
+        "tmdb_status": "pending",
+        "tmdb_updated_at": null,
+        "kobis_status": "ambiguous",
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7731,7 +7779,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7745,7 +7794,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7759,7 +7809,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7770,10 +7821,11 @@
         "booking_available": 1,
         "checked_at": 1790839866215,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7784,10 +7836,11 @@
         "booking_available": 1,
         "checked_at": 1790839866215,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7801,7 +7854,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7815,7 +7869,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7829,7 +7884,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7843,7 +7899,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7857,7 +7914,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7871,7 +7929,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790756058491
+        "kobis_updated_at": 1790756058491,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7885,7 +7944,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7899,7 +7959,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7910,10 +7971,11 @@
         "booking_available": 1,
         "checked_at": 1790839866215,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7927,7 +7989,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7941,7 +8004,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "cgv",
@@ -7955,7 +8019,8 @@
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790840154911
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20147111"
       },
       {
         "theater_code": "lotte",
@@ -7964,12 +8029,13 @@
         "normalized_title": "극장판치이카와인어섬의비밀",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/5TMyytCI5Pfc9c1eNsljiCdiB05.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -7978,12 +8044,13 @@
         "normalized_title": "암살자들",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/c55ijsOdntj6P25vDwHLdgsBpmV.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -7992,12 +8059,13 @@
         "normalized_title": "부활남더레드",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/nLsyRK3SmtdIftozpCd8sGQMRGD.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8006,12 +8074,13 @@
         "normalized_title": "타짜벨제붑의노래",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/ueigb5zra1tj6FTK9yhh2P33P9B.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8020,12 +8089,13 @@
         "normalized_title": "인턴",
         "open_date": "20260916",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/kRHjgsICPISgEClloeARkPHP96M.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8034,12 +8104,13 @@
         "normalized_title": "오디세이",
         "open_date": "20260805",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/8ze9OcVuFiy94s6FFPvsn4oC2e1.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8048,12 +8119,13 @@
         "normalized_title": "가능한사랑",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/7UAzxqezg5yvZyK3k62wOAzg0Zs.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8062,12 +8134,13 @@
         "normalized_title": "엔하이픈브이알콘서트데스티니",
         "open_date": "20260918",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/uO42vQHjDQ1CYSdCiNUY5iP7YqO.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8076,12 +8149,13 @@
         "normalized_title": "옵세션",
         "open_date": "20260902",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/df4rpubfWy0g7HCzBNtPLLKnoMH.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8090,12 +8164,13 @@
         "normalized_title": "인피니티비전어벤져스엔드게임앙코르",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/z7ilT5rNN9kDo8JZmgyhM6ej2xv.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "not_found",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790757092960,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8104,12 +8179,13 @@
         "normalized_title": "레지던트이블0번째밤",
         "open_date": "20260917",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/fQX4fRsagskLvCXnvPfdvh62QTG.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8118,12 +8194,13 @@
         "normalized_title": "가족여행",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/ab0jA90IuyjydjDe99lH51kA8BN.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8132,12 +8209,13 @@
         "normalized_title": "스파이더맨브랜드뉴데이",
         "open_date": "20260729",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/8mLepBa5l591xFidRpn65xV7hb4.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "not_found",
-        "kobis_updated_at": 1790756058491
+        "kobis_updated_at": 1790756058491,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8146,12 +8224,13 @@
         "normalized_title": "이방인",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/2NoWaSTgKF7FcJ0Lr5NrvDDINOv.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8160,12 +8239,13 @@
         "normalized_title": "청년조용기신을저주하던청년시대를긋는종이되다",
         "open_date": "20260911",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/2eU1IJWeDOXWT6SAHXB4lRE44DX.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8174,12 +8254,13 @@
         "normalized_title": "오아시스돈룩백인앵거",
         "open_date": "20260909",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/pRMOGMnTKZO7P0J65UNORcXAU8G.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8188,12 +8269,13 @@
         "normalized_title": "환희의얼굴",
         "open_date": "20260909",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8202,12 +8284,13 @@
         "normalized_title": "어벤져스엔드게임앙코르",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/z7ilT5rNN9kDo8JZmgyhM6ej2xv.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8216,12 +8299,13 @@
         "normalized_title": "바다탐험대옥토넛어보브앤비욘드두근두근대자연어드벤처",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8230,12 +8314,13 @@
         "normalized_title": "사랑의하츄핑고래보석의전설",
         "open_date": "20260805",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/tmV1b9s0zKtUx06pkYaRtBAz065.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8244,12 +8329,13 @@
         "normalized_title": "스티치헤드비밀의성꼬마괴물",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/dTcAE69YKmEatDPCl1BmOpFHbUb.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8258,12 +8344,13 @@
         "normalized_title": "알파",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/tUZaajRDFjitxzCQK87vlRDedox.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8272,12 +8359,13 @@
         "normalized_title": "포가튼아일랜드",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/bIQY9RLkqUhdwOBExK4k3ggxddF.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8286,12 +8374,13 @@
         "normalized_title": "경주기행",
         "open_date": "20260826",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/2dAd2APyFUyJ6qEv9VFHdHQtQI6.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8300,12 +8389,13 @@
         "normalized_title": "꿈꾸던모험",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/7RHD1NhFz1FtkOVMmAlP0oBl8Ds.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8314,12 +8404,13 @@
         "normalized_title": "나의사적인예술가",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/hv7zKr3cCdOFhNVcqWYj74Ij6KX.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8328,12 +8419,13 @@
         "normalized_title": "담요를입은사람",
         "open_date": "20260909",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8342,12 +8434,13 @@
         "normalized_title": "빈집의연인들",
         "open_date": "20260812",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/ccMh9yIUMP2p5yi7ELp5BtoT1fc.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8356,12 +8449,13 @@
         "normalized_title": "사진의얼굴",
         "open_date": "20260902",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/53yTiV0XOIQ0tUaqToO6yUfZFNA.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8370,12 +8464,13 @@
         "normalized_title": "숨어드는산",
         "open_date": "20260812",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8384,12 +8479,13 @@
         "normalized_title": "지난여름",
         "open_date": "20260805",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8398,12 +8494,13 @@
         "normalized_title": "착지연습",
         "open_date": "20260910",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/A6dQ9cWkz4LxqRaxvL8fScaUGfl.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8412,12 +8509,13 @@
         "normalized_title": "철들무렵",
         "open_date": "20260916",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/7gBqPAjf7jLZxbp61Zn2oak2SUW.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8426,12 +8524,13 @@
         "normalized_title": "친숙한손길",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/4tWJdFTBEg0hXHw41ZFCjj3Cvpo.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8440,12 +8539,13 @@
         "normalized_title": "콘크리트녹색섬",
         "open_date": "20260819",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/pnZy0mRf0c0PAqBTFdquK4zWeNY.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8454,12 +8554,13 @@
         "normalized_title": "다윗",
         "open_date": "20260710",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/tGmTssnoltCCZBY7ys4lYRTFYFj.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790755137518
+        "kobis_updated_at": 1790755137518,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "lotte",
@@ -8468,12 +8569,28 @@
         "normalized_title": "아가미",
         "open_date": "20260909",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/eZpXVmzpJCMzNLh6QNiiUAAAsPb.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
+      },
+      {
+        "theater_code": "lotte",
+        "theater_movie_id": "24513",
+        "title_ko": "퍼피 구조대: 더 다이노 무비",
+        "normalized_title": "퍼피구조대더다이노무비",
+        "open_date": "20260813",
+        "booking_available": 1,
+        "checked_at": 1790919339098,
+        "poster_url": null,
+        "tmdb_status": "pending",
+        "tmdb_updated_at": null,
+        "kobis_status": "pending",
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8482,12 +8599,13 @@
         "normalized_title": "극장판치이카와인어섬의비밀",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/5TMyytCI5Pfc9c1eNsljiCdiB05.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8496,12 +8614,13 @@
         "normalized_title": "암살자들",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/c55ijsOdntj6P25vDwHLdgsBpmV.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8510,12 +8629,13 @@
         "normalized_title": "부활남더레드",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/nLsyRK3SmtdIftozpCd8sGQMRGD.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8524,12 +8644,13 @@
         "normalized_title": "타짜벨제붑의노래",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/ueigb5zra1tj6FTK9yhh2P33P9B.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8538,12 +8659,13 @@
         "normalized_title": "가능한사랑",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/7UAzxqezg5yvZyK3k62wOAzg0Zs.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8552,12 +8674,13 @@
         "normalized_title": "오디세이",
         "open_date": "20260805",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/8ze9OcVuFiy94s6FFPvsn4oC2e1.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8566,12 +8689,13 @@
         "normalized_title": "인턴",
         "open_date": "20260916",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/kRHjgsICPISgEClloeARkPHP96M.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8580,12 +8704,13 @@
         "normalized_title": "어벤져스엔드게임앙코르",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/z7ilT5rNN9kDo8JZmgyhM6ej2xv.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8594,12 +8719,13 @@
         "normalized_title": "옵세션",
         "open_date": "20260902",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/df4rpubfWy0g7HCzBNtPLLKnoMH.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8608,12 +8734,13 @@
         "normalized_title": "2026ntlive인간혐오자",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/nT4pJP2unwITQ2AYHnsgyb1vnZZ.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "not_found",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790757092960,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8622,12 +8749,13 @@
         "normalized_title": "레지던트이블0번째밤",
         "open_date": "20260917",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/fQX4fRsagskLvCXnvPfdvh62QTG.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8636,12 +8764,13 @@
         "normalized_title": "명탐정코난흑철의어영",
         "open_date": "20230720",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790755137518
+        "kobis_updated_at": 1790755137518,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8650,12 +8779,13 @@
         "normalized_title": "이방인",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/2NoWaSTgKF7FcJ0Lr5NrvDDINOv.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8664,12 +8794,13 @@
         "normalized_title": "명탐정코난할로윈의신부",
         "open_date": "20220713",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/8H1jQGdc2tC5f3BAdaiERQrhPOW.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790755137518
+        "kobis_updated_at": 1790755137518,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8678,12 +8809,13 @@
         "normalized_title": "디지몬어드벤처운명적만남우리들의워게임",
         "open_date": "20260916",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8692,12 +8824,13 @@
         "normalized_title": "명탐정코난100만달러의펜타그램",
         "open_date": "20240717",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/n5tubyY6HoGzhd3RpTAmfKgrt9Y.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790755137518
+        "kobis_updated_at": 1790755137518,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8706,12 +8839,13 @@
         "normalized_title": "명탐정코난척안의잔상",
         "open_date": "20250716",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/40nUEiyj9j7y2rryZf1JE9qp8ut.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790755137518
+        "kobis_updated_at": 1790755137518,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8720,12 +8854,13 @@
         "normalized_title": "알파",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/tUZaajRDFjitxzCQK87vlRDedox.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8734,12 +8869,13 @@
         "normalized_title": "가족여행",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/ab0jA90IuyjydjDe99lH51kA8BN.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8748,12 +8884,13 @@
         "normalized_title": "스티치헤드비밀의성꼬마괴물",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/dTcAE69YKmEatDPCl1BmOpFHbUb.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8762,12 +8899,13 @@
         "normalized_title": "다윗",
         "open_date": "20260710",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/tGmTssnoltCCZBY7ys4lYRTFYFj.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790755137518
+        "kobis_updated_at": 1790755137518,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8776,12 +8914,13 @@
         "normalized_title": "아비정전4k리마스터링",
         "open_date": "20260912",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/rOuT8ngBskioGEKyWQ22j8tkGdo.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790755137518
+        "kobis_updated_at": 1790755137518,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8790,12 +8929,13 @@
         "normalized_title": "스파이더맨브랜드뉴데이",
         "open_date": "20260729",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/8mLepBa5l591xFidRpn65xV7hb4.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "not_found",
-        "kobis_updated_at": 1790756058491
+        "kobis_updated_at": 1790756058491,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8804,12 +8944,13 @@
         "normalized_title": "싱어게인",
         "open_date": "20260902",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/19BfIkDHgbgLcHVbi9rKx7KUCgi.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8818,12 +8959,13 @@
         "normalized_title": "오페라2026아레나디베로나오페라페스티벌라트라비아타",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "not_found",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790757092960,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8832,12 +8974,13 @@
         "normalized_title": "명탐정코난하이웨이의타천사",
         "open_date": "20260812",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/uvhDoTtOyoUO0hn02buTv2rxyf8.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8846,12 +8989,13 @@
         "normalized_title": "표인풍기대막",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/yVEwJ0Badf4KYhhXNRNa8MIkgKP.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8860,12 +9004,13 @@
         "normalized_title": "더드라마",
         "open_date": "20260909",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/9MKVekk642o1IXug6VSerPqIrZc.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8874,12 +9019,13 @@
         "normalized_title": "포가튼아일랜드",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/bIQY9RLkqUhdwOBExK4k3ggxddF.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8888,12 +9034,13 @@
         "normalized_title": "포르테",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/4q33XeazR4lxJj7kRtl03OeqLHK.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8902,12 +9049,13 @@
         "normalized_title": "어떻게해야했을까",
         "open_date": "20260729",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/7G0wrfzXcsh1uLtVKT4LvEYawuT.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790756058491
+        "kobis_updated_at": 1790756058491,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8916,12 +9064,13 @@
         "normalized_title": "셀린느와줄리배타러가다",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8930,12 +9079,13 @@
         "normalized_title": "호프",
         "open_date": "20260715",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/ptqlN6mDIAqJjVA86J5eOoG82zc.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790757092960
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20233219"
       },
       {
         "theater_code": "megabox",
@@ -8944,12 +9094,13 @@
         "normalized_title": "상상의개와거짓말쟁이고양이",
         "open_date": "20260930",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/rAUGA6yt1EJ6kGNEUvENNUEPdtj.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "matched",
-        "kobis_updated_at": 1790756058491
+        "kobis_updated_at": 1790919271570,
+        "kobis_movie_cd": "20266144"
       },
       {
         "theater_code": "megabox",
@@ -8958,12 +9109,13 @@
         "normalized_title": "마티슈프림",
         "open_date": "20260701",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/rvuNQWp8xzVeRCzsVD1tejbdjUf.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": 1790755137518
+        "kobis_updated_at": 1790755137518,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8972,12 +9124,13 @@
         "normalized_title": "나의사적인예술가",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/hv7zKr3cCdOFhNVcqWYj74Ij6KX.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -8986,12 +9139,13 @@
         "normalized_title": "사랑의하츄핑고래보석의전설",
         "open_date": "20260805",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/tmV1b9s0zKtUx06pkYaRtBAz065.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9000,12 +9154,13 @@
         "normalized_title": "꿈꾸던모험",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/7RHD1NhFz1FtkOVMmAlP0oBl8Ds.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9014,12 +9169,13 @@
         "normalized_title": "콘크리트녹색섬",
         "open_date": "20260819",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/pnZy0mRf0c0PAqBTFdquK4zWeNY.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9028,12 +9184,13 @@
         "normalized_title": "빈집의연인들",
         "open_date": "20260812",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/ccMh9yIUMP2p5yi7ELp5BtoT1fc.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9042,12 +9199,13 @@
         "normalized_title": "지난여름",
         "open_date": "20260805",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9056,12 +9214,13 @@
         "normalized_title": "경주기행",
         "open_date": "20260826",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/2dAd2APyFUyJ6qEv9VFHdHQtQI6.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9070,12 +9229,13 @@
         "normalized_title": "고양이를놓아줘",
         "open_date": "20260826",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/4dS74FTvHkBzjCdZZSwfjwt4UQZ.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9084,12 +9244,13 @@
         "normalized_title": "사진의얼굴",
         "open_date": "20260902",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/53yTiV0XOIQ0tUaqToO6yUfZFNA.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9098,12 +9259,13 @@
         "normalized_title": "올공2030나라를살리다",
         "open_date": "20260909",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/vB2rQ0kXcIBsqQpJBOMgO5gwkXo.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9112,12 +9274,13 @@
         "normalized_title": "철들무렵",
         "open_date": "20260916",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/7gBqPAjf7jLZxbp61Zn2oak2SUW.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9126,12 +9289,13 @@
         "normalized_title": "친숙한손길",
         "open_date": "20260923",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/4tWJdFTBEg0hXHw41ZFCjj3Cvpo.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790760052749,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9140,12 +9304,13 @@
         "normalized_title": "담요를입은사람",
         "open_date": "20260909",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": null,
-        "tmdb_status": "not_found",
+        "tmdb_status": "pending",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       },
       {
         "theater_code": "megabox",
@@ -9154,26 +9319,13 @@
         "normalized_title": "청년조용기신을저주하던청년시대를긋는종이되다",
         "open_date": "20260911",
         "booking_available": 1,
-        "checked_at": 1790895213391,
+        "checked_at": 1790919339098,
         "poster_url": "https://image.tmdb.org/t/p/w342/2eU1IJWeDOXWT6SAHXB4lRE44DX.jpg",
         "tmdb_status": "matched",
         "tmdb_updated_at": 1790895215401,
         "kobis_status": "pending",
-        "kobis_updated_at": null
-      },
-      {
-        "theater_code": "megabox",
-        "theater_movie_id": "26029300",
-        "title_ko": "최후의 만찬",
-        "normalized_title": "최후의만찬",
-        "open_date": "20260604",
-        "booking_available": 1,
-        "checked_at": 1790895213391,
-        "poster_url": "https://image.tmdb.org/t/p/w342/s1l3QN7oY1hYkgz0AE1mcYKlrXu.jpg",
-        "tmdb_status": "matched",
-        "tmdb_updated_at": 1790895215401,
-        "kobis_status": "matched",
-        "kobis_updated_at": 1790895215401
+        "kobis_updated_at": null,
+        "kobis_movie_cd": null
       }
     ],
     "movie_providers": [
@@ -9239,6 +9391,60 @@
         "monetization_type": "subscription",
         "source_url": "https://www.themoviedb.org/movie/72443/watch?locale=KR",
         "updated_at": 1790837112475
+      },
+      {
+        "movie_cd": "20070216",
+        "provider_id": 356,
+        "provider_name": "wavve",
+        "logo_url": "https://image.tmdb.org/t/p/w92/mh1vBeclG7Eq15TjRnmyustqp3v.png",
+        "monetization_type": "buy",
+        "source_url": "https://www.themoviedb.org/movie/14069/watch?locale=KR",
+        "updated_at": 1790919346418
+      },
+      {
+        "movie_cd": "20070216",
+        "provider_id": 3,
+        "provider_name": "Google Play Movies",
+        "logo_url": "https://image.tmdb.org/t/p/w92/aZRENwYILujqs0RVOZutTh0BVGV.png",
+        "monetization_type": "buy",
+        "source_url": "https://www.themoviedb.org/movie/14069/watch?locale=KR",
+        "updated_at": 1790919346418
+      },
+      {
+        "movie_cd": "20070216",
+        "provider_id": 356,
+        "provider_name": "wavve",
+        "logo_url": "https://image.tmdb.org/t/p/w92/mh1vBeclG7Eq15TjRnmyustqp3v.png",
+        "monetization_type": "rent",
+        "source_url": "https://www.themoviedb.org/movie/14069/watch?locale=KR",
+        "updated_at": 1790919346418
+      },
+      {
+        "movie_cd": "20070216",
+        "provider_id": 3,
+        "provider_name": "Google Play Movies",
+        "logo_url": "https://image.tmdb.org/t/p/w92/aZRENwYILujqs0RVOZutTh0BVGV.png",
+        "monetization_type": "rent",
+        "source_url": "https://www.themoviedb.org/movie/14069/watch?locale=KR",
+        "updated_at": 1790919346418
+      },
+      {
+        "movie_cd": "20070216",
+        "provider_id": 356,
+        "provider_name": "wavve",
+        "logo_url": "https://image.tmdb.org/t/p/w92/mh1vBeclG7Eq15TjRnmyustqp3v.png",
+        "monetization_type": "subscription",
+        "source_url": "https://www.themoviedb.org/movie/14069/watch?locale=KR",
+        "updated_at": 1790919346418
+      },
+      {
+        "movie_cd": "20070216",
+        "provider_id": 97,
+        "provider_name": "Watcha",
+        "logo_url": "https://image.tmdb.org/t/p/w92/ppQIS7UMtBwJSspSoGqDR8wO1Gr.png",
+        "monetization_type": "subscription",
+        "source_url": "https://www.themoviedb.org/movie/14069/watch?locale=KR",
+        "updated_at": 1790919346418
       },
       {
         "movie_cd": "20176983",
