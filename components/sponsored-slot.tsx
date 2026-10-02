@@ -31,9 +31,12 @@ const CHIP_GRADIENT = "linear-gradient(150deg, #ffb98a, #f05c1e)";
 
 const SURFACE = "#0c0d10";
 
-function SponsoredTag() {
+/** 기본 위치는 가로 배너용이다. 상세 박스는 박스 폭에 비례한 위치를 넘긴다. */
+function SponsoredTag({ position = "left-3.5 top-3 sm:left-4 sm:top-3.5" }: { position?: string }) {
   return (
-    <span className="absolute left-3.5 top-3 z-20 rounded border border-white/25 px-1.5 py-0.5 text-[8.5px] font-black tracking-[0.1em] text-white/50 sm:left-4 sm:top-3.5 sm:text-[9.5px]">
+    <span
+      className={`absolute z-20 rounded border border-white/25 px-1.5 py-0.5 text-[8.5px] font-black tracking-[0.1em] text-white/50 sm:text-[9.5px] ${position}`}
+    >
       제휴
     </span>
   );
@@ -113,7 +116,8 @@ export function SponsoredBox({ className = "" }: { className?: string }) {
           backgroundImage: `linear-gradient(95deg, ${SURFACE} 26%, rgba(12,13,16,.5) 52%, transparent 80%)`,
         }}
       />
-      <SponsoredTag />
+      {/* 왼쪽은 원래 자리 그대로, 온디스크 박스처럼 위에서 조금 내린다. */}
+      <SponsoredTag position="left-3.5 top-[4.6cqw] sm:left-4" />
 
       <Disc className="right-[-9%] top-[18%] aspect-square w-[31%]" />
       <Tile
@@ -125,16 +129,17 @@ export function SponsoredBox({ className = "" }: { className?: string }) {
         style={{ transform: "rotate(8deg)" }}
       />
 
-      {/* 글자·버튼은 박스 폭(cqw)에 비례한다. PC 사이드바(408px)에서 제목 23px 이고, 폰에서는
-          같은 비율로 작아져 박스보다 글자가 커 보이지 않는다(넓은 태블릿 폭에서는 상한을 둔다).
-          폰(420px 이하)에서는 글 묶음을 조금 내려 "제휴" 표시와 띄우고, 300px 미만에서는 박스를 숨긴다. */}
-      <span className="absolute left-[min(4.9cqw,28px)] top-1/2 z-10 block -translate-y-1/2 max-[421px]:top-[56%]">
-        <span className="block text-[min(5.64cqw,30px)] font-black leading-[1.18] tracking-[-0.05em] text-white [text-shadow:0_0_1px_rgba(255,255,255,.85),0_2px_16px_rgba(0,0,0,.55)]">
+      {/* 글자·버튼·여백은 모두 박스 폭(cqw)에 비례해 어느 폭에서나 같은 구도로 보인다.
+          PC 사이드바(408px)에서 제목 26px, 제목과 버튼 사이 18px 이다.
+          글 묶음은 "제휴" 표시와 띄우려고 가운데보다 조금 아래(59%, 폰은 61%)에 두고,
+          300px 미만 화면에서는 박스를 숨긴다. */}
+      <span className="absolute left-[4.9cqw] top-[59%] z-10 block -translate-y-1/2 max-[421px]:top-[61%]">
+        <span className="block text-[6.4cqw] font-black leading-[1.18] tracking-[-0.05em] text-white [text-shadow:0_0_1px_rgba(255,255,255,.85),0_2px_16px_rgba(0,0,0,.55)]">
           {HEADLINE_TOP}
           <br />
           {HEADLINE_BOTTOM}
         </span>
-        <Pill className="mt-[min(2.94cqw,15px)] h-[min(8.82cqw,46px)] px-[min(4.17cqw,22px)] text-[min(3.06cqw,16px)]" />
+        <Pill className="mt-[4.4cqw] h-[8.82cqw] px-[4.17cqw] text-[3.06cqw]" />
       </span>
     </a>
   );
