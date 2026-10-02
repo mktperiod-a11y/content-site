@@ -269,6 +269,8 @@ export async function getReleaseCatalog(
                     vote_average, vote_count
              FROM movies
              WHERE open_date > ? AND open_date <= ?
+               -- 포스터를 찾지 못한 작품은 목록에 내보내지 않는다(데이터는 그대로 둔다).
+               AND poster_url IS NOT NULL
              ORDER BY open_date ASC, title_ko ASC
              LIMIT ?`,
           )
@@ -380,6 +382,7 @@ export async function getReleaseCount(view: ReleaseView): Promise<number> {
             `SELECT COUNT(*) AS count FROM (
                SELECT 1 FROM movies
                WHERE open_date > ? AND open_date <= ?
+                 AND poster_url IS NOT NULL
                LIMIT ?
              )`,
           )

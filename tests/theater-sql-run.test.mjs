@@ -94,3 +94,19 @@ test("detail pages do not claim another edition is in theaters", async () => {
   assert.equal(anime.statuses.find((status) => status.code === "cgv").bookingAvailable, true);
   await theater.getConfirmedTheatersByTitle(["파멸", "시간을 달리는 소녀"]);
 });
+
+test("upcoming cards without a poster stay out of the list but keep their data", async () => {
+  const insert = sql.prepare(
+    `INSERT INTO movies (movie_cd, title_ko, normalized_title, production_year, open_date, poster_url, updated_at)
+     VALUES (?, ?, ?, '2027', ?, ?, ?)`,
+  );
+  const soon = release.getReleaseWindow().end;
+  insert.run("20279001", "포스터 있는 예정작", "포스터있는예정작", soon, "https://image.tmdb.org/t/p/w342/b.jpg", now);
+  insert.run("20279002", "포스터 없는 예정작", "포스터없는예정작", soon, null, now);
+  const { movies } = await release.getReleaseCatalog("upcoming");
+  assert.deepEqual(movies.map((movie) => movie.titleKo), ["포스터 있는 예정작"]);
+  assert.equal(await release.getReleaseCount("upcoming"), 1);
+  // 영화 찾기·가격 비교에서 쓸 수 있게 행은 남아 있다.
+  assert.ok(sql.prepare("SELECT 1 FROM movies WHERE movie_cd = '20279002'").get());
+});
+
