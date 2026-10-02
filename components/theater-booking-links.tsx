@@ -116,23 +116,23 @@ export function TheaterBookingLinks({
       <h2 className={compact ? "text-sm font-black text-foreground" : "text-lg font-black text-foreground"}>
         극장에서 확인하기
       </h2>
-      {/* 상세 화면이 한 줄 배치(태블릿 폭)라 이 영역이 768px 이상으로 넓게 펼쳐질 때만 버튼 셋을
+      {/* 상세 화면이 한 줄 배치(태블릿 폭)라 이 영역이 704px 이상으로 넓게 펼쳐질 때만 버튼 셋을
           한 줄로 놓는다. 이때는 로고 칸·여백을 조금 줄여 "OO에서 예매 확인"이 한 줄에 들어가게 한다.
           PC 사이드바·폰처럼 좁을 때는 세로로 쌓는다. */}
       <nav
         aria-label="극장 예매처 확인"
-        className={compact ? "mt-2 grid gap-1.5 text-xs" : "mt-4 grid gap-2 text-sm @min-[48rem]:grid-cols-3"}
+        className={compact ? "mt-2 grid gap-1.5 text-xs" : "mt-4 grid gap-2 text-sm @min-[44rem]:grid-cols-3"}
       >
         {links.map((theater) => (
           <a
             aria-label={theater.label}
-            className={`flex items-center gap-3 rounded-xl border border-border bg-white font-bold text-foreground transition-colors hover:border-brand-muted hover:bg-brand-soft max-[281px]:justify-center ${compact ? "min-h-9 px-3" : "min-h-12 px-4 @min-[48rem]:justify-center @min-[48rem]:gap-2 @min-[48rem]:px-3"}`}
+            className={`flex items-center gap-3 rounded-xl border border-border bg-white font-bold text-foreground transition-colors hover:border-brand-muted hover:bg-brand-soft max-[281px]:justify-center ${compact ? "min-h-9 px-3" : "min-h-12 px-4 @min-[44rem]:justify-center @min-[44rem]:gap-2 @min-[44rem]:px-2"}`}
             href={theater.href}
             key={theater.code}
             rel="noopener noreferrer"
             target="_blank"
           >
-            <span className={`grid shrink-0 place-items-center ${compact ? "h-5 w-16" : "h-6 w-20 @min-[48rem]:w-16"}`}>
+            <span className={`grid shrink-0 place-items-center ${compact ? "h-5 w-16" : "h-6 w-20 @min-[44rem]:w-14"}`}>
               {/* eslint-disable-next-line @next/next/no-img-element -- 각 극장사가 제공하는 공식 워드마크입니다. */}
               <img alt="" className={`${theater.logoClassName} max-h-full max-w-full object-contain`} src={theater.logoUrl} />
             </span>
