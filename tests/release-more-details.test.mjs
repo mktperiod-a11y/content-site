@@ -10,7 +10,8 @@ test("restores the opened 더 보기 list and scroll position only when coming b
   assert.match(page, /<ReleaseMoreDetails\s+storageKey=\{view\}/);
   assert.doesNotMatch(page, /<details/);
   // 카드를 누르는 순간 펼침 여부와 위치를 적고, 뒤로가기일 때만 되살린다.
-  assert.match(more, /sessionStorage\.setItem\(key, JSON\.stringify\(\{ open: ref\.current\.open, y: window\.scrollY \}\)\)/);
+  assert.match(more, /const snapshot: Snapshot = \{ open: ref\.current\.open, y: window\.scrollY,/);
+  assert.match(more, /sessionStorage\.setItem\(key, JSON\.stringify\(snapshot\)\)/);
   assert.match(more, /addEventListener\("popstate"/);
   assert.match(more, /if \(!back \|\| !snapshot\) return;/);
   assert.match(more, /window\.scrollTo\(0, snapshot\.y\)/);
