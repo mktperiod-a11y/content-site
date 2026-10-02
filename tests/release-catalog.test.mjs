@@ -189,7 +189,10 @@ test("keeps posterless upcoming cards from breaking apart", () => {
   assert.doesNotMatch(pageSource, /grid size-full place-items-center/);
   assert.match(pageSource, /flex size-full flex-col items-center justify-center/);
   // 제공처가 확인되지 않은 카드에는 안내 문구를 붙이지 않는다(제공처 안내는 상세 화면 몫).
-  assert.match(pageSource, /const showProviderArea = subscription\.length > 0;/);
+  // 구독형 OTT 여부는 카드 아래 칩 대신 개봉일 라벨 아래 짧은 라벨로만 알린다.
+  assert.match(pageSource, /const onSubscription = movie\.providers\.some\(\(provider\) => provider\.type === "subscription"\);/);
+  assert.match(pageSource, /OTT에서 시청가능/);
+  assert.doesNotMatch(pageSource, /showProviderArea/);
   assert.doesNotMatch(pageSource, /개봉 후 제공처가 확인돼요|검색에서 제공처 확인하기/);
 });
 

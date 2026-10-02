@@ -49,11 +49,9 @@ function ReleaseMovieCard({
   view: ReleaseView;
   priority?: boolean;
 }) {
-  const subscription = movie.providers.filter((provider) => provider.type === "subscription");
-  const extraCount = Math.max(subscription.length - 2, 0);
-  // 제공처가 확인된 작품만 칩을 보인다. 제공처가 없거나 아직 모르는 작품(예정작·KOBIS 미연결
-  // 상영작)은 카드에 안내 문구를 두지 않고, 제공처 안내는 상세 화면에 맡긴다.
-  const showProviderArea = subscription.length > 0;
+  // 구독형 OTT로도 볼 수 있으면 포스터의 개봉일 라벨 아래에 짧게 알린다. 어느 서비스인지는
+  // 상세 화면 제공처 칸에서 보여준다(카드 아래에 칩 줄을 두면 그 줄만큼 카드가 길어졌다).
+  const onSubscription = movie.providers.some((provider) => provider.type === "subscription");
   const cardClassName =
     "group flex min-h-full flex-col overflow-hidden rounded-2xl bg-card shadow-[0_16px_40px_rgba(20,32,51,0.08)] ring-1 ring-border/80 transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(20,32,51,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-muted";
   const cardContent = (
@@ -74,8 +72,15 @@ function ReleaseMovieCard({
             <span>포스터 준비 중</span>
           </div>
         )}
-        <span className="absolute left-3 top-3 rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
-          {movie.isReRelease ? "재개봉" : formatOpenDate(movie.openDate)}
+        <span className="absolute left-3 top-3 flex flex-col items-start gap-1">
+          <span className="rounded-full bg-ink/88 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
+            {movie.isReRelease ? "재개봉" : formatOpenDate(movie.openDate)}
+          </span>
+          {onSubscription && (
+            <span className="rounded-full bg-brand/70 px-3 py-1.5 text-xs font-bold text-ink backdrop-blur">
+              OTT에서 시청가능
+            </span>
+          )}
         </span>
       </div>
 
@@ -101,44 +106,6 @@ function ReleaseMovieCard({
 
         {view === "now" && movie.theaters.length > 0 && (
           <TheaterChainBadges className="mt-3" theaters={movie.theaters} />
-        )}
-
-        {showProviderArea && (
-          // OTT 칩은 옆 카드와 같은 선(카드 아래)에 한 줄로 선다. 이름은 자르지 않고,
-          // 카드 폭에 두 곳이 온전히 들어가면(11.5rem 이상) 두 곳을, 아니면 한 곳만
-          // 보여주고 나머지는 "+N" 으로 묶는다.
-          <div className="@container mt-auto pt-3">
-            <div className="flex min-h-8 flex-nowrap items-end gap-1">
-              {subscription.length > 0 && (
-                <>
-                  {subscription.slice(0, 2).map((provider, index) => (
-                    <span
-                      className={`h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-secondary px-2 text-[11px] font-bold text-secondary-foreground ${
-                        index === 0 ? "inline-flex" : "hidden @min-[11.5rem]:inline-flex"
-                      }`}
-                      key={provider.providerId}
-                    >
-                      {provider.logoUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element -- TMDB provider logo.
-                        <img alt="" className="size-3.5 shrink-0 rounded" src={provider.logoUrl} />
-                      )}
-                      {provider.name}
-                    </span>
-                  ))}
-                  {subscription.length > 1 && (
-                    <span className="inline-flex h-7 shrink-0 items-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground @min-[11.5rem]:hidden">
-                      +{subscription.length - 1}
-                    </span>
-                  )}
-                  {extraCount > 0 && (
-                    <span className="hidden h-7 shrink-0 items-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground @min-[11.5rem]:inline-flex">
-                      +{extraCount}
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
         )}
       </div>
     </>
